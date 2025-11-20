@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoilWise - Soil Companion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css">
+    <!-- Leaflet map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://cdn.jsdelivr.net/npm/marked@17.0.0/lib/marked.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/scala.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./main.css" />
+    <!-- Leaflet map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+<div class="app layout">
+    <header class="top-banner">
+        <div class="brand">
+            <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <img src="./img/SWlogobrown.svg" alt="SoilWise Logo" class="logo-small">
+            <h1 class="app-title">Soil Companion</h1>
+        </div>
+        <div class="banner-actions" style="padding-right: 8px;">
+            <a href="https://soilwise-he.eu" class="project-link" target="_blank" rel="noopener noreferrer" title="Open the SoilWise project website" aria-label="Open the SoilWise project website">
+                soilwise-he.eu
+            </a>
+            <div class="header-tools">
+                <button id="btn-theme" class="toolbar-btn" title="Theme: System" aria-label="Theme: System">
+                    <i id="theme-icon" class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                    <span id="theme-text" class="visually-hidden">System theme</span>
+                </button>
+                <button id="btn-copy" class="toolbar-btn" title="Copy chat" aria-label="Copy chat"><i class="fa-regular fa-copy"></i><span class="btn-label">Copy</span></button>
+                <button id="btn-clear" class="toolbar-btn" title="Clear chat" aria-label="Clear chat"><i class="fa-regular fa-trash-can"></i><span class="btn-label">Clear</span></button>
+            </div>
+        </div>
+    </header>
+    <div class="content">
+        <aside id="sidebar" class="sidebar" aria-label="Information and login">
+            <div class="sidebar-tabs" role="region" aria-label="Sidebar tabs">
+                <div class="tablist" role="tablist" aria-label="Sidebar sections">
+                    <button role="tab" id="tab-about" aria-controls="panel-about" aria-selected="true" tabindex="0" class="tab">About</button>
+                    <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="false" tabindex="-1" class="tab">First use</button>
+                    <button role="tab" id="tab-location" aria-controls="panel-location" aria-selected="false" tabindex="-1" class="tab">Location</button>
+                </div>
+                <div id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="tabpanel" tabindex="0">
+                    <div class="explainer">
+                        <img
+                            src="./img/soilwise-soil-companion-icon-512-transparant.png"
+                            alt="Soil Companion icon"
+                            class="about-logo"
+                            width="96" height="96"
+                        />
+                        <div>
+                            <p>This is a chatbot for the <a href="https://soilwise-he.eu">SoilWise</a> project.</p>
+                            <br/>
+                            <p>Ask it a soil related question, and you'll get answers based on the open access knowledge and data repository that the project collects.</p>
+                            <br/>
+                            <p>SoilWise aims to foster soil wisdom, advance agriculture, and build a legacy of greener, healthier soils. The chatbot will prefer giving answers that take these aims into account.</p>
+                            <br/>
+                            <p>The chat memory and any uploaded file will be erased 15 minutes after your last message. No information is kept or used for training models.</p>
+                            <br/>
+                            <p>You can voluntarily provide feedback by rating answers given by the chatbot, or by contacting SoilWise via this <a href="https://soilwise-he.eu/contact/">form</a>.</p>
+                        </div>
+                        <div class="login-section" aria-label="User login (demo)">
+                            <div class="login-row">
+                                <input type="text" class="login-input" id="login-username" name="username" placeholder="Email or username" autocomplete="username">
+                                <input type="password" class="login-input" id="login-password" name="password" placeholder="Password" autocomplete="current-password">
+                            </div>
+                            <div class="login-actions">
+                                <button id="login-button" class="login-button" type="button" title="Login">Login</button>
+                                <button id="logout-button" class="login-button" type="button" title="Logout" style="display:none;">Logout</button>
+                                <span id="login-info" class="login-info" aria-live="polite"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0" hidden>
+                    <div class="first-use">
+                        <h3>Getting started</h3>
+                        <ol>
+                            <li>Ask a question related to soil, agriculture, or soil health. Example: <em>How do cover crops improve soil structure?</em></li>
+                            <li>Wait for the AI to respond. You can ask follow-up questions to refine the answer.</li>
+                            <li>Rate answers with the thumbs-up/down icons to help improve future responses.</li>
+                        </ol>
+                        <br/>
+                        <p><strong>Tips</strong></p>
+                        <ul>
+                            <li>Select a location in the sidebar for more specific answers.</li>
+                            <li>Ask one thing at a time for clearer results.</li>
+                            <li>Instruct the AI to look in the SoilWise catalog for datasets and papers if it doesn't by itself.</li>
+                            <li>Or ask it to provide references to catalog items if they are not provided.</li>
+                            <li>You can upload a temporary text file with specific information, e.g., a soil sampling report.</li>
+                            <li>Use the <em>Copy</em> button at the top right to copy the conversation.</li>
+                            <li>The <em>Clear</em> button can be used to start afresh.</li>
+                        </ul>
+                        <br/>
+                        <p><strong>Disclaimer</strong></p>
+                        <br/>
+                        <p>The chatbot’s responses should not be considered as official agricultural advice, validated soil data, or policy guidance. For professional or field-level decisions, please consult authoritative data sources or qualified experts.</p>
+                    </div>
+                </div>
+                <div id="panel-location" role="tabpanel" aria-labelledby="tab-location" class="tabpanel" tabindex="0" hidden>
+                    <div class="location-panel">
+                        <p>Select a location to provide geographic context for the chatbot.</p>
+                        <p class="location-tip">Tip: Pan and zoom the map. Click to select a point; we’ll try to detect the country. Initial view centers on Europe or your location.</p>
+                        <div class="location-search" aria-label="Location search">
+                            <label for="location-search-input" class="visually-hidden">Search for a country or place</label>
+                            <div class="location-search-row">
+                                <input id="location-search-input" class="location-search-input" type="text" placeholder="Search country or place (e.g., Netherlands, Nairobi)" list="country-list" autocomplete="off" />
+                                <button id="location-search-btn" class="login-button location-search-btn" type="button" title="Search">Search</button>
+                            </div>
+                            <datalist id="country-list">
+                                <option value="Afghanistan"></option>
+                                <option value="Albania"></option>
+                                <option value="Algeria"></option>
+                                <option value="Andorra"></option>
+                                <option value="Angola"></option>
+                                <option value="Antigua and Barbuda"></option>
+                                <option value="Argentina"></option>
+                                <option value="Armenia"></option>
+                                <option value="Australia"></option>
+                                <option value="Austria"></option>
+                                <option value="Azerbaijan"></option>
+                                <option value="Bahamas"></option>
+                                <option value="Bahrain"></option>
+                                <option value="Bangladesh"></option>
+                                <option value="Barbados"></option>
+                                <option value="Belarus"></option>
+                                <option value="Belgium"></option>
+                                <option value="Belize"></option>
+                                <option value="Benin"></option>
+                                <option value="Bhutan"></option>
+                                <option value="Bolivia"></option>
+                                <option value="Bosnia and Herzegovina"></option>
+                                <option value="Botswana"></option>
+                                <option value="Brazil"></option>
+                                <option value="Brunei"></option>
+                                <option value="Bulgaria"></option>
+                                <option value="Burkina Faso"></option>
+                                <option value="Burundi"></option>
+                                <option value="Cabo Verde"></option>
+                                <option value="Cambodia"></option>
+                                <option value="Cameroon"></option>
+                                <option value="Canada"></option>
+                                <option value="Central African Republic"></option>
+                                <option value="Chad"></option>
+                                <option value="Chile"></option>
+                                <option value="China"></option>
+                                <option value="Colombia"></option>
+                                <option value="Comoros"></option>
+                                <option value="Congo (Congo-Brazzaville)"></option>
+                                <option value="Costa Rica"></option>
+                                <option value="Côte d’Ivoire"></option>
+                                <option value="Croatia"></option>
+                                <option value="Cuba"></option>
+                                <option value="Cyprus"></option>
+                                <option value="Czechia"></option>
+                                <option value="Democratic Republic of the Congo"></option>
+                                <option value="Denmark"></option>
+                                <option value="Djibouti"></option>
+                                <option value="Dominica"></option>
+                                <option value="Dominican Republic"></option>
+                                <option value="Ecuador"></option>
+                                <option value="Egypt"></option>
+                                <option value="El Salvador"></option>
+                                <option value="Equatorial Guinea"></option>
+                                <option value="Eritrea"></option>
+                                <option value="Estonia"></option>
+                                <option value="Eswatini"></option>
+                                <option value="Ethiopia"></option>
+                                <option value="Fiji"></option>
+                                <option value="Finland"></option>
+                                <option value="France"></option>
+                                <option value="Gabon"></option>
+                                <option value="Gambia"></option>
+                                <option value="Georgia"></option>
+                                <option value="Germany"></option>
+                                <option value="Ghana"></option>
+                                <option value="Greece"></option>
+                                <option value="Grenada"></option>
+                                <option value="Guatemala"></option>
+                                <option value="Guinea"></option>
+                                <option value="Guinea-Bissau"></option>
+                                <option value="Guyana"></option>
+                                <option value="Haiti"></option>
+                                <option value="Honduras"></option>
+                                <option value="Hungary"></option>
+                                <option value="Iceland"></option>
+                                <option value="India"></option>
+                                <option value="Indonesia"></option>
+                                <option value="Iran"></option>
+                                <option value="Iraq"></option>
+                                <option value="Ireland"></option>
+                                <option value="Israel"></option>
+                                <option value="Italy"></option>
+                                <option value="Jamaica"></option>
+                                <option value="Japan"></option>
+                                <option value="Jordan"></option>
+                                <option value="Kazakhstan"></option>
+                                <option value="Kenya"></option>
+                                <option value="Kiribati"></option>
+                                <option value="Kuwait"></option>
+                                <option value="Kyrgyzstan"></option>
+                                <option value="Laos"></option>
+                                <option value="Latvia"></option>
+                                <option value="Lebanon"></option>
+                                <option value="Lesotho"></option>
+                                <option value="Liberia"></option>
+                                <option value="Libya"></option>
+                                <option value="Liechtenstein"></option>
+                                <option value="Lithuania"></option>
+                                <option value="Luxembourg"></option>
+                                <option value="Madagascar"></option>
+                                <option value="Malawi"></option>
+                                <option value="Malaysia"></option>
+                                <option value="Maldives"></option>
+                                <option value="Mali"></option>
+                                <option value="Malta"></option>
+                                <option value="Marshall Islands"></option>
+                                <option value="Mauritania"></option>
+                                <option value="Mauritius"></option>
+                                <option value="Mexico"></option>
+                                <option value="Micronesia"></option>
+                                <option value="Moldova"></option>
+                                <option value="Monaco"></option>
+                                <option value="Mongolia"></option>
+                                <option value="Montenegro"></option>
+                                <option value="Morocco"></option>
+                                <option value="Mozambique"></option>
+                                <option value="Myanmar"></option>
+                                <option value="Namibia"></option>
+                                <option value="Nauru"></option>
+                                <option value="Nepal"></option>
+                                <option value="Netherlands"></option>
+                                <option value="New Zealand"></option>
+                                <option value="Nicaragua"></option>
+                                <option value="Niger"></option>
+                                <option value="Nigeria"></option>
+                                <option value="North Korea"></option>
+                                <option value="North Macedonia"></option>
+                                <option value="Norway"></option>
+                                <option value="Oman"></option>
+                                <option value="Pakistan"></option>
+                                <option value="Palau"></option>
+                                <option value="Panama"></option>
+                                <option value="Papua New Guinea"></option>
+                                <option value="Paraguay"></option>
+                                <option value="Peru"></option>
+                                <option value="Philippines"></option>
+                                <option value="Poland"></option>
+                                <option value="Portugal"></option>
+                                <option value="Qatar"></option>
+                                <option value="Romania"></option>
+                                <option value="Russia"></option>
+                                <option value="Rwanda"></option>
+                                <option value="Saint Kitts and Nevis"></option>
+                                <option value="Saint Lucia"></option>
+                                <option value="Saint Vincent and the Grenadines"></option>
+                                <option value="Samoa"></option>
+                                <option value="San Marino"></option>
+                                <option value="Sao Tome and Principe"></option>
+                                <option value="Saudi Arabia"></option>
+                                <option value="Senegal"></option>
+                                <option value="Serbia"></option>
+                                <option value="Seychelles"></option>
+                                <option value="Sierra Leone"></option>
+                                <option value="Singapore"></option>
+                                <option value="Slovakia"></option>
+                                <option value="Slovenia"></option>
+                                <option value="Solomon Islands"></option>
+                                <option value="Somalia"></option>
+                                <option value="South Africa"></option>
+                                <option value="South Korea"></option>
+                                <option value="South Sudan"></option>
+                                <option value="Spain"></option>
+                                <option value="Sri Lanka"></option>
+                                <option value="Sudan"></option>
+                                <option value="Suriname"></option>
+                                <option value="Sweden"></option>
+                                <option value="Switzerland"></option>
+                                <option value="Syria"></option>
+                                <option value="Taiwan"></option>
+                                <option value="Tajikistan"></option>
+                                <option value="Tanzania"></option>
+                                <option value="Thailand"></option>
+                                <option value="Timor-Leste"></option>
+                                <option value="Togo"></option>
+                                <option value="Tonga"></option>
+                                <option value="Trinidad and Tobago"></option>
+                                <option value="Tunisia"></option>
+                                <option value="Turkey"></option>
+                                <option value="Turkmenistan"></option>
+                                <option value="Tuvalu"></option>
+                                <option value="Uganda"></option>
+                                <option value="Ukraine"></option>
+                                <option value="United Arab Emirates"></option>
+                                <option value="United Kingdom"></option>
+                                <option value="United States"></option>
+                                <option value="Uruguay"></option>
+                                <option value="Uzbekistan"></option>
+                                <option value="Vanuatu"></option>
+                                <option value="Vatican City"></option>
+                                <option value="Venezuela"></option>
+                                <option value="Vietnam"></option>
+                                <option value="Yemen"></option>
+                                <option value="Zambia"></option>
+                                <option value="Zimbabwe"></option>
+                            </datalist>
+                        </div>
+                        <div id="map" style="height: 300px; border-radius: 8px; overflow: hidden;"></div>
+                        <button id="location-clear" class="login-button location-clear-btn" type="button" title="Clear selection">Clear</button>
+                        <div class="location-card" role="status" aria-live="polite" aria-atomic="true">
+                            <div class="location-card-header">
+                                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                <span class="location-card-title">Selected location</span>
+                            </div>
+                            <div id="location-summary" class="location-card-body">No location selected</div>
+                        </div>
+                        <!-- push notice to the bottom of the panel -->
+                        <div class="location-notice" aria-label="SoilGrids notice">
+                            Note: Statistical soil info (~250 m resolution) may be retrieved for this location via ISRIC SoilGrids.
+                            <a href="https://soilgrids.org/" target="_blank" rel="noopener noreferrer" aria-label="Open SoilGrids website in a new tab">Learn more</a>
+                        </div>
+                        <div class="location-notice" aria-label="AgroDataCube notice">
+                            Note: For locations in The Netherlands, crop field specific data may be retrieved via WUR AgroDataCube. If data for the current year is not yet available, it will fall back to the previous year.
+                            <a href="https://agrodatacube.wur.nl/" target="_blank" rel="noopener noreferrer" aria-label="Open AgroDataCube website in a new tab">Learn more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="main-area">
+            <div id="chat-container" class="chat-container">
+                <div id="messages" class="messages"></div>
+                <div id="input-container" class="input-container input-card" aria-label="Chat input">
+                    <textarea id="question" class="question" placeholder="Ask any question related to soil." rows="1" maxlength="400"></textarea>
+                    <div class="input-actions">
+                        <div id="char-counter" class="char-counter" aria-live="polite">400 left</div>
+                        <div class="actions-group">
+                            <div id="upload-indicator" class="upload-indicator" aria-live="polite" title="No file uploaded" hidden>
+                                <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
+                                <span class="upload-indicator-text">No file</span>
+                            </div>
+                            <button id="upload-button" class="upload-button" title="Upload a text or markdown file" aria-label="Upload file" disabled aria-disabled="true">
+                                <i class="fa-solid fa-file-arrow-up"></i>
+                            </button>
+                            <input type="file" id="file-upload" accept=".txt,.md" style="display:none" aria-hidden="true" />
+                            <button id="send-button" class="send-button" title="Send message" aria-label="Send message" disabled aria-disabled="true">
+                                <i class="fa-regular fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="spin-container" id="spin-container">
+                    <div id="spinner" class="spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <footer class="status-footer" role="status" aria-live="polite">
+        <div id="status-text">Ready.</div>
+    </footer>
+</div>
+<script src="./main.js"></script>
+<script src="./toolbar.js"></script>
+<script>
+    // Sidebar toggle: adds/removes 'sidebar-collapsed' on body root .app
+    (function() {
+        const toggle = document.getElementById('sidebar-toggle');
+        const root = document.querySelector('.app.layout');
+        toggle?.addEventListener('click', function() {
+            root.classList.toggle('sidebar-collapsed');
+        });
+    })();
+
+    // Sidebar tabs: simple accessible tabs + persistence
+    (function(){
+        const TAB_KEY = 'soilcompanion.sidebarTab';
+        const tabs = Array.from(document.querySelectorAll('#sidebar .tablist [role="tab"]'));
+        const panels = Array.from(document.querySelectorAll('#sidebar [role="tabpanel"]'));
+        if (!tabs.length) return;
+
+        function getTabById(id){ return tabs.find(t => t.id === id); }
+        function getPanelByTab(tab){ const id = tab && tab.getAttribute('aria-controls'); return id ? document.getElementById(id) : null; }
+
+        function activateTab(tab, opts){
+            if (!tab) return;
+            tabs.forEach(t => {
+                const selected = (t === tab);
+                t.setAttribute('aria-selected', selected ? 'true' : 'false');
+                t.setAttribute('tabindex', selected ? '0' : '-1');
+                const p = getPanelByTab(t);
+                if (p) {
+                    if (selected) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
+                }
+            });
+            if (!opts || opts.persist !== false) {
+                try { localStorage.setItem(TAB_KEY, tab.id); } catch(e) {}
+            }
+            // Move focus if requested
+            if (opts && opts.focus) { tab.focus(); }
+        }
+
+        // Restore last tab
+        let initial = null;
+        try { const saved = localStorage.getItem(TAB_KEY); if (saved) initial = getTabById(saved); } catch(e) {}
+        if (initial) { activateTab(initial, { persist: false }); }
+
+        tabs.forEach((t, idx) => {
+            t.addEventListener('click', () => activateTab(t));
+            t.addEventListener('keydown', (ev) => {
+                const key = ev.key;
+                if (key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Home' || key === 'End') {
+                    ev.preventDefault();
+                    let nextIndex = idx;
+                    if (key === 'ArrowRight') nextIndex = (idx + 1) % tabs.length;
+                    if (key === 'ArrowLeft') nextIndex = (idx - 1 + tabs.length) % tabs.length;
+                    if (key === 'Home') nextIndex = 0;
+                    if (key === 'End') nextIndex = tabs.length - 1;
+                    activateTab(tabs[nextIndex], { focus: true });
+                }
+            });
+        });
+    })();
+
+    // Theme management: light / dark / system (icon button)
+    (function(){
+        const THEME_KEY = 'soilcompanion.theme';
+        const root = document.documentElement; // we'll set data-theme here
+        const themeBtn = document.getElementById('btn-theme');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+        const media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+
+        function systemPref() { return media && media.matches ? 'dark' : 'light'; }
+
+        function applyTheme(choice) {
+            const t = (choice === 'system') ? systemPref() : (choice || 'light');
+            root.setAttribute('data-theme', t);
+            // Hint for form controls on supported browsers
+            root.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+        }
+
+        function savedChoice() {
+            try { return localStorage.getItem(THEME_KEY) || 'system'; } catch(e) { return 'system'; }
+        }
+
+        function persistChoice(choice) {
+            try { localStorage.setItem(THEME_KEY, choice); } catch(e) {}
+        }
+
+        function updateThemeButton(choice) {
+            if (!themeBtn || !themeIcon || !themeText) return;
+            let iconClass = 'fa-circle-half-stroke';
+            let label = 'System';
+            if (choice === 'light') { iconClass = 'fa-sun'; label = 'Light'; }
+            if (choice === 'dark') { iconClass = 'fa-moon'; label = 'Dark'; }
+            themeIcon.className = 'fa-solid ' + iconClass;
+            themeBtn.title = `Theme: ${label}`;
+            themeBtn.setAttribute('aria-label', `Theme: ${label}`);
+            themeText.textContent = `${label} theme`;
+        }
+
+        function onMediaChange(){
+            const choice = savedChoice();
+            if (choice === 'system') applyTheme('system');
+        }
+
+        // Init
+        const initial = savedChoice();
+        applyTheme(initial);
+        updateThemeButton(initial);
+        if (themeBtn) {
+            const order = ['system', 'light', 'dark'];
+            themeBtn.addEventListener('click', function(){
+                const current = savedChoice();
+                const idx = order.indexOf(current);
+                const next = order[(idx + 1) % order.length];
+                persistChoice(next);
+                applyTheme(next);
+                updateThemeButton(next);
+            });
+        }
+        if (media && media.addEventListener) media.addEventListener('change', onMediaChange);
+        else if (media && media.addListener) media.addListener(onMediaChange);
+    })();
+</script>
+</body>
+</html>

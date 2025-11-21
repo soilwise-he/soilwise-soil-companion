@@ -20,6 +20,10 @@ object SoilCompanionServer extends MainRoutes {
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
   private val homePath = os.pwd / "chatbot" / "js" / "static"
 
+  // Process start time for health reporting
+  private val startTimeMillis: Long = System.currentTimeMillis()
+  private def uptimeSeconds(): Long = (System.currentTimeMillis() - startTimeMillis) / 1000L
+
   // Ensure the server binds to all interfaces inside Docker
   override def host: String = Config.appConfig.host
 
@@ -99,6 +103,82 @@ object SoilCompanionServer extends MainRoutes {
           case t: Throwable => logger.error("Session expiration task failed", t)
     }
     sch.scheduleAtFixedRate(task, intervalSec.toLong, intervalSec.toLong, TimeUnit.SECONDS)
+  }
+
+  // Periodic WebSocket heartbeat to keep connections alive behind proxies/ingress
+  // Many Kubernetes ingress controllers (Nginx/ALB) will drop idle WS after ~60s.
+  // Send a lightweight event every 15 seconds to keep the pipe warm.
+  private val heartbeatIntervalSeconds = 15
+  private val heartbeatScheduler = Executors.newSingleThreadScheduledExecutor()
+  heartbeatScheduler.scheduleAtFixedRate(new Runnable {
+    override def run(): Unit =
+      try
+        val it = wsConnections.entrySet().iterator()
+        while (it.hasNext) do
+          val e = it.next()
+          val sid = e.getKey
+          val conn = e.getValue
+          try
+            // Best-effort: if send fails, the next Close handler will clean up
+            conn.send(Ws.Text(upickle.default.write(QueryEvent("heartbeat", None))))
+          catch
+            case _: Throwable => ()
+      catch
+        case t: Throwable => logger.debug("WebSocket heartbeat tick failed", t)
+  }, heartbeatIntervalSeconds.toLong, heartbeatIntervalSeconds.toLong, TimeUnit.SECONDS)
+
+  // --- Health Endpoints (for Kubernetes probes) ---
+  // Liveness: lightweight and always OK while process is running
+  @get("/healthz")
+  def getHealthz() = {
+    val json = ujson.Obj(
+      "status" -> "ok",
+      "uptimeSeconds" -> uptimeSeconds(),
+      "version" -> Config.appConfig.version,
+      "now" -> java.time.Instant.now().toString
+    )
+    upickle.default.write(json)
+  }
+
+  // Readiness: verify that core configuration and critical secrets are present
+  // Keep it fast: do not perform any network calls
+  @get("/readyz")
+  def getReadyz() = {
+    val cfgOk = try {
+      // Accessing these will throw on catastrophic config failures (already loaded at startup)
+      val app = Config.appConfig
+      val llm = Config.llmProviderConfig
+      app.host != null && app.port > 0 && llm != null
+    } catch {
+      case _: Throwable => false
+    }
+
+    // Consider LLM API key a hard requirement for readiness in this app
+    val openAiKeyPresent = Option(Config.llmProviderConfig.apiKey).exists(_.trim.nonEmpty)
+
+    // Basic internal metrics (do not fail readiness on these)
+    val wsCount = wsConnections.size()
+    val sessionsCount = assistants.size()
+
+    val ready = cfgOk && openAiKeyPresent
+
+    val payload = ujson.Obj(
+      "status" -> (if ready then "ready" else "not_ready"),
+      "uptimeSeconds" -> uptimeSeconds(),
+      "version" -> Config.appConfig.version,
+      "metrics" -> ujson.Obj(
+        "wsConnections" -> wsCount,
+        "sessions" -> sessionsCount
+      ),
+      "checks" -> ujson.Obj(
+        "configLoaded" -> cfgOk,
+        "llmApiKeyPresent" -> openAiKeyPresent
+      )
+    )
+
+    // Return JSON with appropriate status code (200 or 503)
+    if (ready) cask.Response(upickle.default.write(payload), statusCode = 200)
+    else cask.Response(upickle.default.write(payload), statusCode = 503)
   }
 
   // Simple sanitization and validation for uploaded text
@@ -469,7 +549,7 @@ object SoilCompanionServer extends MainRoutes {
    *
    * @return The file system path to the directory containing static resources.
    */
-  @staticFiles("/soilcompanion")
+  @staticFiles("/app")
   def serveStatic(): String = {
     val homePathStr = homePath.toString
     logger.info(s"Serving static files from $homePathStr...")

@@ -44,6 +44,48 @@ The Soil Companion is a full‑stack Scala / Scala.js application. Key technolog
 - JDK 17+ (tested 17–25)
 - Docker for containerized runs
 
+### Health endpoints and Kubernetes probes
+- The backend exposes lightweight health endpoints at the server root:
+  - `GET /healthz` — liveness: always returns 200 OK with JSON `{ status, uptimeSeconds, version, now }` while the process is running.
+  - `GET /readyz` — readiness: returns 200 OK when core config is loaded and the LLM API key is present; otherwise returns 503 with JSON payload including `checks` and simple `metrics`.
+
+Example responses:
+
+```
+GET /healthz -> 200 OK
+{"status":"ok","uptimeSeconds":123,"version":"1.0.0","now":"2025-11-21T13:45:00Z"}
+
+GET /readyz -> 200 OK or 503 Service Unavailable
+{"status":"ready","uptimeSeconds":123,"version":"1.0.0","metrics":{"wsConnections":0,"sessions":0},"checks":{"configLoaded":true,"llmApiKeyPresent":true}}
+```
+
+Kubernetes probe examples:
+
+```
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+```
+
+Notes:
+- Readiness depends on `llm-provider-config.apiKey` being non-empty (e.g., `OPENAI_API_KEY`).
+- Probes are fast and do not perform external network calls.
+- WebSocket keep-alive heartbeats are sent every 15s; ensure ingress timeouts are configured accordingly (see Kubernetes runbook below).
+
 ## Configuration
 - An *application.conf* resource file is used to configure the application.
 - An OpenAI API key is needed, and must be provided as an environment variable (OPENAI_API_KEY).
@@ -377,5 +419,5 @@ Notes:
 - You can adjust the port via env var `SOIL_COMPANION_PORT`.
 
 Open in your browser:
-- http://localhost:8080/soilcompanion/index.html
+- http://localhost:8080/app/index.html
 

@@ -52,6 +52,13 @@ object SoilCompanionApp extends App {
   private var sessionId: Option[String] = None
   // Track the current server-generated questionId to correlate UI messages and feedback
   private var currentQuestionId: Option[String] = None
+  // Track WebSocket connection and activity
+  private var ws: Option[WebSocket] = None
+  private var wsConnected: Boolean = false
+  private var wsReconnectBackoffMs: Int = 1000
+  private var lastWsMessageAt: Double = js.Date.now()
+  // Watchdog timer to surface errors if no events arrive after sending a question
+  private var pendingResponseTimer: Option[Int] = None
   
   // Share auth state with plain JS (toolbar.js) and persist across UI changes
   private def setAuthState(authed: Boolean): Unit = {
@@ -99,6 +106,52 @@ object SoilCompanionApp extends App {
     val d = new js.Date()
     def two(n: Int): String = if (n < 10) s"0$n" else n.toString
     s"${two(d.getHours().toInt)}:${two(d.getMinutes().toInt)}"
+  }
+
+  // --- Helper: ensure there's a bot bubble to render into ---
+  private def ensureBotPlaceholder(): Unit = {
+    val messageContainer = dom.document.getElementById("messages")
+    val last = messageContainer.lastElementChild
+    val needsNew = Option(last).forall(!_.classList.contains("bot-message"))
+    if (needsNew) addMessage("AI", "", allowFeedback = true)
+  }
+
+  // --- Helper: show a friendly error in the last bot message and stop spinners ---
+  private def showErrorInLastBotMessage(rawDetail: Option[String]): Unit = {
+    ensureBotPlaceholder()
+    val messageContainer = dom.document.getElementById("messages")
+    val last = messageContainer.lastElementChild
+    val detail = rawDetail.getOrElse("")
+
+    // Detect context-length style errors to tailor the message
+    val lowered = detail.toLowerCase
+    val isContextLen = lowered.contains("context_length_exceeded") ||
+      lowered.contains("maximum context length") || lowered.contains("context length")
+
+    val userMsg =
+      if (isContextLen)
+        "Sorry, your message is too long for the AI to process. Please shorten it (or remove extra context) and try again."
+      else if (detail.nonEmpty)
+        s"Sorry, I couldn't complete the request: $detail"
+      else
+        "Sorry, something went wrong while generating the answer. Please try again."
+
+    Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
+      val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
+      if (contentEl != null) {
+        // Clear possible typing indicator and set sanitized message
+        contentEl.innerHTML = ""
+        el.setAttribute("data-raw-content", userMsg)
+        val parsed = marked.parse(userMsg)
+        val sanitized = DOMPurify.sanitize(parsed)
+        contentEl.innerHTML = sanitized
+        hljs.highlightAll()
+        val msgContainer = dom.document.getElementById("messages")
+        msgContainer.scrollTop = msgContainer.scrollHeight
+      }
+    }
+    // Always hide the global spinner defensively
+    try { hideSpinner() } catch { case _: Throwable => () }
   }
 
   // --- Location map state ---
@@ -864,6 +917,14 @@ object SoilCompanionApp extends App {
       if (info != null && info.textContent.trim().isEmpty) setLoginInfo("Please login to start chatting.")
       return
     }
+    // Ensure WebSocket is connected; if not, try to reconnect and inform the user
+    if (!wsConnected) {
+      ensureBotPlaceholder()
+      showErrorInLastBotMessage(Some("Realtime connection not ready. Reconnecting… Please try again in a moment."))
+      // attempt reconnect if we have a session
+      sessionId.foreach(connectWebSocket)
+      return
+    }
     val questionElement = dom.document.getElementById("question").asInstanceOf[dom.html.TextArea]
     val raw = questionElement.value
     val question = raw.take(400)
@@ -878,8 +939,32 @@ object SoilCompanionApp extends App {
       }
       fetch(s"$httpBase/query", request)
         .toFuture
-        .foreach { _ =>
-          hideSpinner()
+        .flatMap { resp =>
+          // If backend says no active session (due to WS dropped on server), surface an error and trigger reconnect
+          if (!resp.ok) then
+            resp.text().toFuture.map { body =>
+              val lowered = Option(body).getOrElse("").toLowerCase
+              if (lowered.contains("no active session")) {
+                ensureBotPlaceholder()
+                showErrorInLastBotMessage(Some("Session connection lost. Reconnecting… Please resend your question."))
+                sessionId.foreach(connectWebSocket)
+              } else {
+                showErrorInLastBotMessage(Some(s"Server error (${resp.status}): ${body}"))
+              }
+              ()
+            }
+          else {
+            // Start a watchdog: if no tokens or events arrive within 25s, show a helpful error
+            pendingResponseTimer.foreach(dom.window.clearTimeout)
+            pendingResponseTimer = Some(dom.window.setTimeout(() => {
+              showErrorInLastBotMessage(Some("The answer is taking unusually long. This can happen if the connection was interrupted by the network or gateway. Please try again."))
+            }, 25000))
+            // Hide spinner after request is accepted; streaming comes over WebSocket
+            scala.concurrent.Future.successful(hideSpinner())
+          }
+        }
+        .recover { case _ =>
+          showErrorInLastBotMessage(Some("Failed to send question. Please check your connection and try again."))
         }
 
       // Clear input and reset counter/size after sending
@@ -1191,61 +1276,31 @@ object SoilCompanionApp extends App {
    *
    * @param sessionId The unique identifier for the session used to establish the WebSocket connection.
    */
-  def connectWebSocket(sessionId: String) = {
-    val ws = new WebSocket(s"$wsBase/subscribe/$sessionId")
+  def connectWebSocket(sessionId: String): Unit = {
+    // Close any previous socket first
+    ws.foreach(s => scala.util.Try(s.close()))
+    val socket = new WebSocket(s"$wsBase/subscribe/$sessionId")
+    ws = Some(socket)
 
     def updateStatusFooter(text: String): Unit = {
       val el = dom.document.getElementById("status-text").asInstanceOf[dom.html.Element]
       if (el != null) el.textContent = text
     }
 
-    // Ensure there is a bot bubble to render content into
-    def ensureBotPlaceholder(): Unit = {
-      val messageContainer = dom.document.getElementById("messages")
-      val last = messageContainer.lastElementChild
-      val needsNew = Option(last).forall(!_.classList.contains("bot-message"))
-      if (needsNew) addMessage("AI", "", allowFeedback = true)
+    def scheduleReconnect(): Unit = {
+      val delay = math.min(wsReconnectBackoffMs, 30000)
+      dom.window.setTimeout(() => connectWebSocket(sessionId), delay)
+      wsReconnectBackoffMs = math.min(delay * 2, 30000)
     }
 
-    // Stop the typing indicator and render a friendly error in the last bot message
-    def showErrorInLastBotMessage(rawDetail: Option[String]): Unit = {
-      ensureBotPlaceholder()
-      val messageContainer = dom.document.getElementById("messages")
-      val last = messageContainer.lastElementChild
-      val detail = rawDetail.getOrElse("")
-
-      // Detect context-length style errors to tailor the message
-      val lowered = detail.toLowerCase
-      val isContextLen = lowered.contains("context_length_exceeded") ||
-        lowered.contains("maximum context length") || lowered.contains("context length")
-
-      val userMsg =
-        if (isContextLen)
-          "Sorry, your message is too long for the AI to process. Please shorten it (or remove extra context) and try again."
-        else if (detail.nonEmpty)
-          s"Sorry, I couldn't complete the request: $detail"
-        else
-          "Sorry, something went wrong while generating the answer. Please try again."
-
-      Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
-        val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
-        if (contentEl != null) {
-          // Clear possible typing indicator and set sanitized message
-          contentEl.innerHTML = ""
-          el.setAttribute("data-raw-content", userMsg)
-          val parsed = marked.parse(userMsg)
-          val sanitized = DOMPurify.sanitize(parsed)
-          contentEl.innerHTML = sanitized
-          hljs.highlightAll()
-          val msgContainer = dom.document.getElementById("messages")
-          msgContainer.scrollTop = msgContainer.scrollHeight
-        }
-      }
-      // Always hide the global spinner defensively
-      try { hideSpinner() } catch { case _: Throwable => () }
+    socket.onopen = { (_: dom.Event) =>
+      wsConnected = true
+      wsReconnectBackoffMs = 1000
+      updateStatusFooter("Connected.")
     }
 
-    ws.onmessage = { (e: MessageEvent) =>
+    socket.onmessage = { (e: MessageEvent) =>
+      lastWsMessageAt = js.Date.now()
       val data = e.data.toString
       // Try to decode as QueryEvent first; if that fails, treat as token chunk
       scala.util.Try(read[QueryEvent](data)).toOption match {
@@ -1260,6 +1315,9 @@ object SoilCompanionApp extends App {
               currentQuestionId = evt.questionId.orElse(currentQuestionId)
               ensureBotPlaceholder()
               updateStatusFooter(evt.detail.getOrElse("AI is thinking…"))
+              // Cancel pending watchdog once activity starts
+              pendingResponseTimer.foreach(dom.window.clearTimeout)
+              pendingResponseTimer = None
               // show typing indicator inside the bot bubble (content empty)
               val messages = dom.document.getElementById("messages")
               val last = messages.lastElementChild
@@ -1277,6 +1335,7 @@ object SoilCompanionApp extends App {
               ensureBotPlaceholder()
               updateStatusFooter(evt.detail.getOrElse("Searching SoilWise catalog via Solr…"))
             case "generating" => updateStatusFooter(evt.detail.getOrElse("Generating answer…"))
+            case "heartbeat" => () // ignore in UI
             case "unauthorized" =>
               isAuthenticated = false
               setAuthState(false)
@@ -1321,10 +1380,14 @@ object SoilCompanionApp extends App {
               }
               // Clear currentQuestionId after finishing, so a next question will set a new one
               currentQuestionId = None
+              pendingResponseTimer.foreach(dom.window.clearTimeout)
+              pendingResponseTimer = None
             case "error" =>
               // Stop spinner/typing and show a friendly message in the bubble
               updateStatusFooter(evt.detail.getOrElse("An error occurred."))
               showErrorInLastBotMessage(evt.detail)
+              pendingResponseTimer.foreach(dom.window.clearTimeout)
+              pendingResponseTimer = None
             case other => updateStatusFooter(evt.detail.getOrElse(other))
           }
         case None =>
@@ -1342,16 +1405,27 @@ object SoilCompanionApp extends App {
               el.setAttribute("data-raw-content", "")
             }
           }
+          // We received content; cancel watchdog
+          pendingResponseTimer.foreach(dom.window.clearTimeout)
+          pendingResponseTimer = None
           processPartialMessage(qpr)
       }
     }
 
-    window.onbeforeunload = _ => ws.close()
+    window.onbeforeunload = _ => socket.close()
 
     // Also handle transport-level errors defensively
-    ws.onerror = { (_: dom.Event) =>
+    socket.onerror = { (_: dom.Event) =>
+      wsConnected = false
       updateStatusFooter("Connection error while generating.")
       showErrorInLastBotMessage(Some("Connection error while generating."))
+      scheduleReconnect()
+    }
+
+    socket.onclose = { (_: dom.Event) =>
+      wsConnected = false
+      updateStatusFooter("Connection closed. Reconnecting…")
+      scheduleReconnect()
     }
   }
 

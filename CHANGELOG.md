@@ -1,3 +1,10 @@
+## [1.0.2](https://git.wur.nl/soilwise/soil-companion/compare/1.0.1...1.0.2) (2025-11-24)
+
+
+### Bug Fixes
+
+* Adds CORS for file upload and UI sidebar auto-hide. ([ae70b36](https://git.wur.nl/soilwise/soil-companion/commit/ae70b36d2f80d7293f387a40eec7339d4c4bb2ac))
+
 ## [1.0.1](https://git.wur.nl/soilwise/soil-companion/compare/1.0.0...1.0.1) (2025-11-21)
 
 

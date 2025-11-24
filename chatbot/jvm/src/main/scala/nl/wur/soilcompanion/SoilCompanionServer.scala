@@ -95,8 +95,9 @@ object SoilCompanionServer extends MainRoutes {
                     conn.send(Ws.Text(upickle.default.write(QueryEvent("session_expired", Some(msg)))))
                   catch case _: Throwable => ()
                 }
-                // reset activity timestamp to avoid repeated clearing until new activity
-                touchActivity(sid)
+                // Remove from activity tracking so this session only expires once.
+                // It will be re-added on the next real user activity (e.g., new WS subscribe or query).
+                lastActivity.remove(sid)
               }
             }
         catch
@@ -109,6 +110,21 @@ object SoilCompanionServer extends MainRoutes {
   // Many Kubernetes ingress controllers (Nginx/ALB) will drop idle WS after ~60s.
   // Send a lightweight event every 15 seconds to keep the pipe warm.
   private val heartbeatIntervalSeconds = 15
+
+  // --- Basic CORS helpers ---------------------------------------------------
+  // We keep CORS permissive for API endpoints that are called from the web UI.
+  // If you want to restrict origins, replace "*" with a reflection of the
+  // request's Origin header after checking against an allow‑list from config.
+  private val commonCorsHeaders: Seq[(String, String)] = Seq(
+    "Access-Control-Allow-Origin" -> "*",
+    "Access-Control-Allow-Methods" -> "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers" -> "Content-Type, Accept",
+    // Cache preflight for a day to reduce OPTIONS traffic via ingress
+    "Access-Control-Max-Age" -> "86400"
+  )
+
+  private def corsOkJson(body: String, status: Int = 200): cask.Response[String] =
+    cask.Response(body, statusCode = status, headers = commonCorsHeaders)
   private val heartbeatScheduler = Executors.newSingleThreadScheduledExecutor()
   heartbeatScheduler.scheduleAtFixedRate(new Runnable {
     override def run(): Unit =
@@ -452,8 +468,14 @@ object SoilCompanionServer extends MainRoutes {
    *
    * Returns JSON: { "flipAllowed": true }
    */
+  // Preflight for uploads (CORS)
+  @options("/upload")
+  def optionsUpload(): cask.Response[String] =
+    // return no body, just headers to satisfy CORS preflight
+    corsOkJson("")
+
   @postJson("/upload")
-  def postUpload(sessionId: String, filename: String, content: String): String =
+  def postUpload(sessionId: String, filename: String, content: String): cask.Response[String] =
     // Validate auth
     val authed = Option(authenticatedSessions.get(sessionId)).exists(_.booleanValue())
     if (!authed) then
@@ -461,7 +483,7 @@ object SoilCompanionServer extends MainRoutes {
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("unauthorized", Some("Please login before uploading files.")))))
         catch case _: Throwable => ()
       }
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "unauthorized"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "unauthorized")))
 
     touchActivity(sessionId)
     val safeName = sanitizeFilename(filename)
@@ -471,7 +493,7 @@ object SoilCompanionServer extends MainRoutes {
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("upload_error", Some("Only .txt or .md files are allowed.")))))
         catch case _: Throwable => ()
       }
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_extension"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_extension")))
 
     // Basic size checks (chars, not bytes)
     if (content == null || content.isEmpty) then
@@ -479,7 +501,7 @@ object SoilCompanionServer extends MainRoutes {
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("upload_error", Some("The file is empty.")))))
         catch case _: Throwable => ()
       }
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "empty"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "empty")))
 
     val maxChars = Config.appConfig.uploadMaxChars
     val hardLimit = maxChars * 2 // rough guard against extremely large inputs
@@ -489,7 +511,7 @@ object SoilCompanionServer extends MainRoutes {
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("upload_error", Some(s"File too large (hard limit ${hardLimit} characters).")))))
         catch case _: Throwable => ()
       }
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "too_large"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "too_large")))
 
     // Sanitize content to reduce prompt-injection attempts (also caps to maxChars)
     val sanitized = sanitizeText(content, maxChars)
@@ -504,11 +526,11 @@ object SoilCompanionServer extends MainRoutes {
       catch case _: Throwable => ()
     }
 
-    upickle.default.write(ujson.Obj(
+    corsOkJson(upickle.default.write(ujson.Obj(
       "ok" -> true,
       "filename" -> safeName,
       "chars" -> sanitized.length
-    ))
+    )))
 
   @postJson("/feedback")
   def postFeedback(req: cask.Request, sessionId: String, deviceId: String, messageId: String, vote: String, reason: Option[String], questionId: Option[String]): String =
@@ -574,22 +596,32 @@ object SoilCompanionServer extends MainRoutes {
    * or to clear: { "sessionId": "...", "clear": true }
    */
   @postJson("/location")
-  def postLocation(sessionId: String,
-                   lat: Option[Double],
-                   lon: Option[Double],
-                   zoom: Option[Int],
-                   countryName: Option[String],
-                   countryCode: Option[String],
-                   displayName: Option[String],
-                   bestLabel: Option[String],
-                   addressJson: Option[String],
-                   clear: Option[Boolean]): String =
-    // Entry log for diagnostics
+  def postLocation(
+      sessionId: String,
+      // Explicitly accept the fields sent by the frontend to avoid Cask's
+      // "Unknown arguments" / "Missing argument" binding errors.
+      clear: Boolean = false,
+      lat: Option[Double] = None,
+      lon: Option[Double] = None,
+      zoom: Option[Int] = None,
+      countryName: Option[String] = None,
+      countryCode: Option[String] = None,
+      displayName: Option[String] = None,
+      bestLabel: Option[String] = None,
+      addressJson: Option[String] = None
+  ): String =
+    val isClear = clear
     val authed = Option(authenticatedSessions.get(sessionId)).exists(_.booleanValue())
-    logger.info(s"/location called: sessionId=${sessionId}, clear=${clear.getOrElse(false)}, authed=${authed}")
-    // Validate auth like other endpoints
-    if (!authed) then
-      logger.warn(s"Unauthorized attempt to set/clear location for session ${sessionId}")
+
+    logger.info(s"/location called: sessionId=${sessionId}, clear=${isClear}, authed=${authed}")
+
+    if (sessionId.isEmpty) then
+      logger.warn("/location missing required sessionId")
+      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "missing_sessionId"))
+
+    // Auth policy: allow CLEAR even when not authenticated; require auth to STORE
+    if (!authed && !isClear) then
+      logger.warn(s"Unauthorized attempt to set location for session ${sessionId}")
       Option(wsConnections.get(sessionId)).foreach { conn =>
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("unauthorized", Some("Please login to set a location.")))))
         catch case _: Throwable => ()
@@ -597,31 +629,38 @@ object SoilCompanionServer extends MainRoutes {
       return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "unauthorized"))
 
     touchActivity(sessionId)
-    clear match
-      case Some(true) =>
-        locationContexts.remove(sessionId)
-        logger.info(s"Cleared location context for session ${sessionId}")
-        upickle.default.write(ujson.Obj("ok" -> true, "cleared" -> true))
-      case _ =>
-        (lat, lon) match
-          case (Some(la), Some(lo)) =>
-            val json = ujson.Obj(
-              "lat" -> la,
-              "lon" -> lo,
-              "zoom" -> zoom.getOrElse(0),
-              "countryName" -> countryName.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-              "countryCode" -> countryCode.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-              "displayName" -> displayName.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-              "bestLabel" -> bestLabel.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-              // addressJson is already a JSON string produced client-side; keep as-is for simplicity
-              "addressJson" -> addressJson.fold[ujson.Value](ujson.Null)(ujson.Str(_))
-            )
-            val serialized = upickle.default.write(json)
-            locationContexts.put(sessionId, serialized)
-            logger.info(s"Stored location context for session $sessionId: $serialized")
-            upickle.default.write(ujson.Obj("ok" -> true))
-          case _ =>
-            upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_coordinates"))
+
+    if (isClear) then
+      locationContexts.remove(sessionId)
+      logger.info(s"Cleared location context for session ${sessionId}")
+      upickle.default.write(ujson.Obj("ok" -> true, "cleared" -> true))
+    else
+      (lat, lon) match
+        case (Some(la), Some(lo)) =>
+          val z = zoom
+          val countryName0 = countryName
+          val countryCode0 = countryCode
+          val displayName0 = displayName
+          val bestLabel0 = bestLabel
+          val addressJson0 = addressJson
+
+          val json = ujson.Obj(
+            "lat" -> la,
+            "lon" -> lo,
+            "zoom" -> z.getOrElse(0),
+            "countryName" -> countryName0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "countryCode" -> countryCode0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "displayName" -> displayName0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "bestLabel" -> bestLabel0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            // addressJson is already a JSON string produced client-side; keep as-is for simplicity
+            "addressJson" -> addressJson0.fold[ujson.Value](ujson.Null)(ujson.Str(_))
+          )
+          val serialized = upickle.default.write(json)
+          locationContexts.put(sessionId, serialized)
+          logger.info(s"Stored location context for session $sessionId: $serialized")
+          upickle.default.write(ujson.Obj("ok" -> true))
+        case _ =>
+          upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_coordinates"))
 
   // Kick off ingestion of core knowledge documents and start the Cask server
   logger.info("Starting ingestion of core knowledge documents ...")

@@ -388,9 +388,13 @@ For development, the server and client components can be run separately with sbt
   - run
 - $ sbt (in another terminal)
   - project chatbotJS
-  - ~fastOptJS (to transpile and watch for changes)
+  - ~fastOptJS (to transpile and watch for changes (while developing))
 
-The chatbot will be available at http://localhost:8080/soilcompanion/index.html
+Note that for final versions the fullOptJS build is recommended since it produces smaller, faster 
+JavaScript bundles. Also, latest ScalaJS is renaming the commands to fastLinkJS and fullLinkJS, with
+output written to folders in the target directory (adjust Dockerfile accordingly).
+
+The chatbot will be available at http://localhost:8080/app/index.html
 
 ### Run with Docker
 Build the image (from the project root):

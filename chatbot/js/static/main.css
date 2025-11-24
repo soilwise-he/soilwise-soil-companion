@@ -147,6 +147,31 @@ body::after {
     box-sizing: border-box;
 }
 
+/*
+ Responsive behavior: auto-collapse sidebar on narrow viewports
+ - Below 900px, hide the sidebar by default to give space to chat.
+ - Keep the existing toggle button functional by inverting the
+   meaning of the 'sidebar-collapsed' class at small sizes so that
+   clicking the button will SHOW the sidebar instead of hiding it.
+ - This is CSS-only; no JS changes required.
+*/
+@media (max-width: 900px) {
+    /* hide sidebar by default on small screens */
+    .sidebar { display: none; }
+
+    /* when user toggles, show the sidebar */
+    .sidebar-collapsed .sidebar { display: block; }
+
+    /* ensure layout remains tidy when sidebar appears */
+    .sidebar {
+        max-width: 100vw; /* allow full width if needed on small screens */
+        margin-right: 0;  /* avoid squeezing main when shown */
+    }
+
+    /* main area should use full width when sidebar is hidden */
+    .main-area { padding-left: 0; }
+}
+
 .explainer {
     display: flex;
     flex-direction: column;

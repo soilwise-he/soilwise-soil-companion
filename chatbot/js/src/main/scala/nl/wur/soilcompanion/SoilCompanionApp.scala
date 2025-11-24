@@ -60,6 +60,9 @@ object SoilCompanionApp extends App {
   // Watchdog timer to surface errors if no events arrive after sending a question
   private var pendingResponseTimer: Option[Int] = None
   
+  // When user clicks "Clear" before a sessionId is available, remember intent
+  private var pendingClearLocation: Boolean = false
+  
   // Share auth state with plain JS (toolbar.js) and persist across UI changes
   private def setAuthState(authed: Boolean): Unit = {
     val root = dom.document.querySelector(".app.layout").asInstanceOf[dom.html.Element]
@@ -277,15 +280,25 @@ object SoilCompanionApp extends App {
   }
 
   private def clearLocationContext(): Unit = {
-    val sid = sessionId.getOrElse("")
-    if (sid.isEmpty) return
-    // If not authenticated, just clear any pending selection locally
-    if (!isAuthenticated) {
-      dom.console.log("[DEBUG_LOG] Clearing pending location context (not authenticated)")
-      pendingLocation = None
+    // Try in-memory sessionId first, then fall back to persisted one
+    val sid = sessionId.filter(_.nonEmpty)
+      .orElse(Option(dom.window.localStorage.getItem("soilcompanion.sessionId")).filter(s => s != null && s.nonEmpty))
+      .getOrElse("")
+    if (sid.isEmpty) {
+      // No session yet: request one and clear as soon as it arrives
+      dom.console.log("[DEBUG_LOG] Clear location requested but no session yet. Will clear after session is ready.")
+      pendingClearLocation = true
+      getSession()
       return
     }
-    dom.console.log("[DEBUG_LOG] Clearing location context on server")
+    // Always clear server-side location context if we have a session.
+    // Also clear any locally pending selection (in case user isn't authenticated yet).
+    if (!isAuthenticated) {
+      dom.console.log("[DEBUG_LOG] Clearing pending location context (not authenticated) and requesting server clear as privacy-first action")
+      pendingLocation = None
+    } else {
+      dom.console.log("[DEBUG_LOG] Clearing location context on server (authenticated)")
+    }
     val payload = ujson.Obj(
       "sessionId" -> sid,
       "clear" -> true
@@ -1263,6 +1276,12 @@ object SoilCompanionApp extends App {
           // session is ready: enable login UI if previously disabled
           updateLoginUi()
           connectWebSocket(session)
+          // If user clicked clear before session was ready, honor it now
+          if (pendingClearLocation) {
+            dom.console.log("[DEBUG_LOG] Performing deferred location clear now that session is ready")
+            pendingClearLocation = false
+            clearLocationContext()
+          }
         case Failure(e) =>
           dom.console.log(s"Error fetching server session: $e")
           setLoginInfo("Failed to prepare session. Please reload the page.", Some("error"))

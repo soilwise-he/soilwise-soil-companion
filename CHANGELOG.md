@@ -1,3 +1,10 @@
+## [1.0.4](https://git.wur.nl/soilwise/soil-companion/compare/1.0.3...1.0.4) (2025-11-24)
+
+
+### Bug Fixes
+
+* Removes localhost reference in toolbar, adds version number to footer in UI. ([0ef750b](https://git.wur.nl/soilwise/soil-companion/commit/0ef750bfcee9946d53449e4d495b23d0c9648582))
+
 ## [1.0.3](https://git.wur.nl/soilwise/soil-companion/compare/1.0.2...1.0.3) (2025-11-24)
 
 

@@ -238,17 +238,15 @@
 
     function isAuthenticated(){
       try {
-        // Primary source: explicit auth flag shared by Scala.js
+        // Only trust explicit auth signals set by the app logic.
+        // 1) Primary: localStorage flag set on successful login
         var flag = localStorage.getItem('soilcompanion.auth');
         if (flag === '1') return true;
-        // Secondary: data attribute on root (in case localStorage is blocked)
+        // 2) Secondary: data attribute on the root (in case storage is unavailable)
         var root = document.querySelector('.app.layout');
         if (root && root.getAttribute('data-auth') === '1') return true;
-        // Fallback (legacy): visibility of logout button
-        if (!logoutBtn) return false;
-        var cs = window.getComputedStyle(logoutBtn);
-        var visible = logoutBtn.offsetParent !== null && cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0';
-        return !!visible;
+        // Do not infer auth from UI visibility heuristics (can be stale/incorrect)
+        return false;
       } catch(e) { return false; }
     }
 

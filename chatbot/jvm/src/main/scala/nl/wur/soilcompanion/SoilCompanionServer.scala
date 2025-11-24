@@ -118,7 +118,8 @@ object SoilCompanionServer extends MainRoutes {
   private val commonCorsHeaders: Seq[(String, String)] = Seq(
     "Access-Control-Allow-Origin" -> "*",
     "Access-Control-Allow-Methods" -> "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers" -> "Content-Type, Accept",
+    // Allow common headers used by fetch/XHR; extend as needed
+    "Access-Control-Allow-Headers" -> "Content-Type, Accept, X-Requested-With, Authorization",
     // Cache preflight for a day to reduce OPTIONS traffic via ingress
     "Access-Control-Max-Age" -> "86400"
   )
@@ -440,8 +441,13 @@ object SoilCompanionServer extends MainRoutes {
    *
    * Expects JSON body: { "sessionId": "..." }
    */
+  // Preflight for clear (CORS)
+  @options("/clear")
+  def optionsClear(): cask.Response[String] =
+    corsOkJson("")
+
   @postJson("/clear")
-  def postClear(sessionId: String): String =
+  def postClear(sessionId: String): cask.Response[String] =
     touchActivity(sessionId)
     // clear uploaded context as well
     uploadedTexts.remove(sessionId)
@@ -452,13 +458,13 @@ object SoilCompanionServer extends MainRoutes {
         logger.info(s"Clearing chat memory for session $sessionId (preserving location=${hasLocation})")
         // create a new assistant for the session
         assistants.put(sessionId, AssistantLive())
-        upickle.default.write("cleared")
+        corsOkJson(upickle.default.write("cleared"))
       case None =>
         val hasLocation = Option(locationContexts.get(sessionId)).exists(s => s != null && s.nonEmpty)
         logger.info(s"No assistant for session $sessionId yet, creating one (preserving location=${hasLocation}) ...")
         // If no assistant yet (e.g., ws not connected), create one anyway
         assistants.put(sessionId, AssistantLive())
-        upickle.default.write("initialized")
+        corsOkJson(upickle.default.write("initialized"))
 
   /**
    * Records feedback for a specific bot message.
@@ -595,6 +601,11 @@ object SoilCompanionServer extends MainRoutes {
    * }
    * or to clear: { "sessionId": "...", "clear": true }
    */
+  // Preflight for location (CORS)
+  @options("/location")
+  def optionsLocation(): cask.Response[String] =
+    corsOkJson("")
+
   @postJson("/location")
   def postLocation(
       sessionId: String,
@@ -609,7 +620,7 @@ object SoilCompanionServer extends MainRoutes {
       displayName: Option[String] = None,
       bestLabel: Option[String] = None,
       addressJson: Option[String] = None
-  ): String =
+  ): cask.Response[String] =
     val isClear = clear
     val authed = Option(authenticatedSessions.get(sessionId)).exists(_.booleanValue())
 
@@ -617,7 +628,7 @@ object SoilCompanionServer extends MainRoutes {
 
     if (sessionId.isEmpty) then
       logger.warn("/location missing required sessionId")
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "missing_sessionId"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "missing_sessionId")))
 
     // Auth policy: allow CLEAR even when not authenticated; require auth to STORE
     if (!authed && !isClear) then
@@ -626,14 +637,14 @@ object SoilCompanionServer extends MainRoutes {
         try conn.send(Ws.Text(upickle.default.write(QueryEvent("unauthorized", Some("Please login to set a location.")))))
         catch case _: Throwable => ()
       }
-      return upickle.default.write(ujson.Obj("ok" -> false, "error" -> "unauthorized"))
+      return corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "unauthorized")))
 
     touchActivity(sessionId)
 
     if (isClear) then
       locationContexts.remove(sessionId)
       logger.info(s"Cleared location context for session ${sessionId}")
-      upickle.default.write(ujson.Obj("ok" -> true, "cleared" -> true))
+      corsOkJson(upickle.default.write(ujson.Obj("ok" -> true, "cleared" -> true)))
     else
       (lat, lon) match
         case (Some(la), Some(lo)) =>
@@ -658,9 +669,9 @@ object SoilCompanionServer extends MainRoutes {
           val serialized = upickle.default.write(json)
           locationContexts.put(sessionId, serialized)
           logger.info(s"Stored location context for session $sessionId: $serialized")
-          upickle.default.write(ujson.Obj("ok" -> true))
+          corsOkJson(upickle.default.write(ujson.Obj("ok" -> true)))
         case _ =>
-          upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_coordinates"))
+          corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_coordinates")))
 
   // Kick off ingestion of core knowledge documents and start the Cask server
   logger.info("Starting ingestion of core knowledge documents ...")

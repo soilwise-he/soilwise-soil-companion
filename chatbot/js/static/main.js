@@ -18302,6 +18302,7 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.getSession__V();
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V(this);
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setAuthState__Z__V(this, false);
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V(this, false);
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V(this);
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V(this, false);

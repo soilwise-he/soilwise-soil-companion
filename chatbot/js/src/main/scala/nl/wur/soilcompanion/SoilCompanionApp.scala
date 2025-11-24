@@ -1473,6 +1473,8 @@ object SoilCompanionApp extends App {
   getSession()
   setupEventListeners()
   isAuthenticated = false
+  // Ensure any stale auth indicators from previous visits are cleared
+  setAuthState(false)
   setChatEnabled(false)
   updateLoginUi()
   // On initial load when not authenticated: disable Location tab and force About tab

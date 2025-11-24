@@ -1,5 +1,9 @@
 // Lightweight handlers for the chat toolbar
 (function(){
+  // Resolve backend base URL from the current page origin (protocol + host)
+  // Do NOT include pathname, APIs are served at server root (e.g., "/clear", "/upload").
+  var loc = window.location;
+  var API_BASE = loc.protocol + '//' + loc.host;
   function byId(id){ return document.getElementById(id); }
 
   function showToast(msg){
@@ -139,7 +143,7 @@
     try {
       var sessionId = localStorage.getItem('soilcompanion.sessionId') || '';
       if (!sessionId) { showToast('No active session to clear'); return; }
-      fetch('http://localhost:8080/clear', {
+      fetch(API_BASE + '/clear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: sessionId })
@@ -309,7 +313,7 @@
               ind0.style.removeProperty && ind0.style.removeProperty('display');
             }
           } catch(e) { /* ignore */ }
-          fetch('http://localhost:8080/upload', {
+          fetch(API_BASE + '/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: sessionId, filename: name, content: text })

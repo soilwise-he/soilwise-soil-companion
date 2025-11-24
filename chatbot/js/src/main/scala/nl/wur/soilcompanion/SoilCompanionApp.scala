@@ -1466,9 +1466,34 @@ object SoilCompanionApp extends App {
   private def hideSpinner(): Unit =
     dom.document.getElementById("spinner").asInstanceOf[dom.html.Div].style.display = "none"
 
+  // Fetch backend health info and render the app version (prefer gitTag over version)
+  private def renderVersionFromHealthz(): Unit = {
+    val el = dom.document.getElementById("version-text").asInstanceOf[dom.html.Element]
+    if (el == null) return
+    val url = s"$httpBase/healthz"
+    fetch(url).toFuture
+      .flatMap(_.text().toFuture)
+      .foreach { txt =>
+        try
+          val dyn = js.JSON.parse(txt).asInstanceOf[js.Dynamic]
+          def optStr(v: js.Dynamic): Option[String] =
+            if (js.isUndefined(v) || v == null) None else Option(v.asInstanceOf[String]).filter(_.trim.nonEmpty)
+
+          val tag = optStr(dyn.selectDynamic("gitTag"))
+          val ver = optStr(dyn.selectDynamic("version"))
+          val chosen = tag.orElse(ver).getOrElse("")
+          val display = if (chosen.nonEmpty && !chosen.startsWith("v")) s"v$chosen" else chosen
+          el.textContent = display
+        catch
+          case _: Throwable => ()
+      }
+  }
+
   // --- Main ---
 
   dom.console.log("Soil Companion App is running!")
+  // Render version in footer (right-aligned)
+  renderVersionFromHealthz()
   // Initialize session and UI
   getSession()
   setupEventListeners()

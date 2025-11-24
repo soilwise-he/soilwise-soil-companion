@@ -147,11 +147,37 @@ object SoilCompanionServer extends MainRoutes {
   // --- Health Endpoints (for Kubernetes probes) ---
   // Liveness: lightweight and always OK while process is running
   @get("/healthz")
-  def getHealthz() = {
+  def getHealthz(): String = {
+    // Determine the latest Git tag if available. Prefer CI-provided env vars,
+    // then fall back to local git (if present), and finally to the app version.
+    def latestGitTag(): String =
+      val env = System.getenv()
+      val candidateKeys = List(
+        "CI_COMMIT_TAG",   // GitLab CI when building from a tag
+        "RELEASE_TAG",     // custom/semantic‑release pipelines
+        "GIT_TAG",         // generic
+        "SEMREL_VERSION",  // semantic-release provided version
+        "SEMVER_TAG"       // other CI conventions
+      )
+
+      candidateKeys
+        .flatMap(k => Option(env.get(k)).map(_.trim))
+        .find(_.nonEmpty)
+        .getOrElse {
+          // Try to ask git (may not exist in container image)
+          try
+            val res = os.proc("git", "describe", "--tags", "--abbrev=0").call(cwd = os.pwd, check = false)
+            if res.exitCode == 0 then res.out.text().trim
+            else Config.appConfig.version
+          catch
+            case _: Throwable => Config.appConfig.version
+        }
+
     val json = ujson.Obj(
       "status" -> "ok",
       "uptimeSeconds" -> uptimeSeconds(),
       "version" -> Config.appConfig.version,
+      "gitTag" -> latestGitTag(),
       "now" -> java.time.Instant.now().toString
     )
     upickle.default.write(json)
@@ -160,7 +186,7 @@ object SoilCompanionServer extends MainRoutes {
   // Readiness: verify that core configuration and critical secrets are present
   // Keep it fast: do not perform any network calls
   @get("/readyz")
-  def getReadyz() = {
+  def getReadyz(): Response[String] = {
     val cfgOk = try {
       // Accessing these will throw on catastrophic config failures (already loaded at startup)
       val app = Config.appConfig

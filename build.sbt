@@ -35,13 +35,13 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
       "ch.qos.logback"           % "logback-classic"  % "1.5.21",
       // java langchain4j
-      "dev.langchain4j" % "langchain4j"             % "1.8.0",
-      "dev.langchain4j" % "langchain4j-open-ai"     % "1.8.0",
-      "dev.langchain4j" % "langchain4j-agentic"     % "1.8.0-beta15",
-      "dev.langchain4j" % "langchain4j-embeddings"  % "1.8.0-beta15",
-      "dev.langchain4j" % "langchain4j-easy-rag"    % "1.8.0-beta15",
+      "dev.langchain4j" % "langchain4j"             % "1.9.1",
+      "dev.langchain4j" % "langchain4j-open-ai"     % "1.9.1",
+      "dev.langchain4j" % "langchain4j-agentic"     % "1.9.1-beta17",
+      "dev.langchain4j" % "langchain4j-embeddings"  % "1.9.1-beta17",
+      "dev.langchain4j" % "langchain4j-easy-rag"    % "1.9.1-beta17",
       // probably already pulled in by easy-rag ...
-      "dev.langchain4j" % "langchain4j-document-parser-apache-tika" % "1.8.0-beta15"
+      "dev.langchain4j" % "langchain4j-document-parser-apache-tika" % "1.9.1-beta17"
     )
   )
 

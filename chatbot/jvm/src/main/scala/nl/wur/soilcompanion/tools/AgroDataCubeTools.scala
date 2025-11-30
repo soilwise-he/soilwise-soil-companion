@@ -1,6 +1,7 @@
-package nl.wur.soilcompanion
+package nl.wur.soilcompanion.tools
 
 import dev.langchain4j.agent.tool.{P, Tool}
+import nl.wur.soilcompanion.Config
 
 /**
  * LLM tools for interacting with WUR AgroDataCube v2 REST API.
@@ -11,7 +12,7 @@ import dev.langchain4j.agent.tool.{P, Tool}
  * - This initial implementation focuses on looking up a single field by location
  *   using a WKT POINT geometry in EPSG:4326 and the previous year by default.
  */
-private class AgroDataCubeTools {
+class AgroDataCubeTools {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 

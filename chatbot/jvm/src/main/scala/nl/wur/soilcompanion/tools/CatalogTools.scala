@@ -1,12 +1,13 @@
-package nl.wur.soilcompanion
+package nl.wur.soilcompanion.tools
 
-import java.util
-import java.util.Base64
 import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
+import nl.wur.soilcompanion.Config.SolrSearchConfig
+import nl.wur.soilcompanion.*
 import upickle.default.*
-import Config.*
 
 import java.net.URLEncoder
+import java.util
+import java.util.Base64
 
 // --- classes for content payload ---
 
@@ -113,7 +114,7 @@ private def parseSolrResponse(response: String): SolrResponse = {
  * This class is designed to query Solr for datasets and journal papers
  * and return metadata or content based on search criteria or unique identifiers.
  */
-private class CatalogTools {
+class CatalogTools {
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
   private val limit = Config.appConfig.catalogRetrieverMaxResults
 

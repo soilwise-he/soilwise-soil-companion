@@ -1,7 +1,9 @@
-package nl.wur.soilcompanion
+package nl.wur.soilcompanion.tools
 
 import dev.langchain4j.agent.tool.{P, Tool}
+import nl.wur.soilcompanion.Config
 import upickle.default.*
+
 import java.net.URLEncoder
 
 /**
@@ -13,7 +15,7 @@ import java.net.URLEncoder
  * - Always interpret results as indicative. For decisions with real-world impact, verify with local data
  *   and professional advice.
  */
-private class SoilGridsTools {
+class SoilGridsTools {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 

@@ -1,6 +1,7 @@
 package nl.wur.soilcompanion
 
 import os.*
+
 import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser
 import dev.langchain4j.data.document.source.FileSystemSource
 import dev.langchain4j.data.document.{Document, DocumentLoader}
@@ -17,6 +18,8 @@ import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer
 import dev.langchain4j.service.{AiServices, SystemMessage, TokenStream, UserMessage}
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore
+
+import nl.wur.soilcompanion.tools.*
 
 import scala.jdk.CollectionConverters.*
 
@@ -183,7 +186,7 @@ object AssistantLive {
     AiServices.builder(classOf[Assistant])
       .streamingChatModel(streamingChatModel)
       .chatMemory(MessageWindowChatMemory.withMaxMessages(Config.appConfig.chatMaxMemorySize))
-      .tools(new CatalogTools(), new SoilGridsTools(), new AgroDataCubeTools()) // new OpenAgroKpiTools()
+      .tools(new CatalogTools(), new SoilGridsTools(), new AgroDataCubeTools(), new OpenAgroKpiTools())
       .retrievalAugmentor(augmentor)
       .maxSequentialToolsInvocations(5)
       .build()

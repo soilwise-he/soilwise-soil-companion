@@ -226,6 +226,8 @@ openagro-config: {
   user-agent: "SoilCompanionBot/0.1 (+https://soilwise-he.eu)"
   docs-url: "https://openagrokpi.wur.nl/api/v1/docs/"
   allow-unauthenticated: false                           // set to true only if endpoint is public
+  // Optional curated list of supported '/fields-{layer}' layers to help the LLM when offline
+  // known-layers: ["greenness", "soil", "soil-physical", "soilmap-benchmark", "reference-values", "crop-rotation"]
 }
 ```
 
@@ -234,11 +236,17 @@ Notes and cautions:
 - Authentication: OpenAgroKPI expects the API key in HTTP header `x-api-key` (no `Bearer` prefix). Provide it via env var `OPENAGRO_ACCESS_TOKEN`.
 - Endpoints and schemas may evolve; the tool includes defensive parsing and logs helpful debug info.
 
-Available tool methods:
-- `getFieldData(lat, lon, countryCode, layer, year, extentMeters)` — find fields near a location (and optionally fetch a KPI by `layer` and `year`).
-- `getFieldDataFromLocationContext(locationContextJson, layer, year, extentMeters)` — same but using a stored location context JSON with `lat`, `lon`, and optionally `countryCode`.
+Offline usage and guidance:
+- The chatbot does not require live access to the external API docs. Use the overview tool below to see how to call the API and which layers are configured.
 
-The tool returns a compact summary listing found field IDs and, if requested and available, a sample KPI for the first field. It also returns links to the API docs and includes auth notes.
+Available tool methods (OpenAgroKPI):
+- `describeOpenAgroKpiFieldsApi()` — describes how to call `/api/v1/fields-*` endpoints, authentication, parameters, and lists configured layers if provided.
+- `getOpenAgroKpiForField(fieldId, layer, year, countryCode)` — fetch KPIs for a single NL field. `layer` maps to `fields-{layer}`; parameters: `field_id`, optional `year`.
+- `getOpenAgroKpiForFields(fieldIdsCsv, layer, year, countryCode)` — fetch KPIs for multiple NL fields. Uses `field_ids` CSV and optional `year`.
+
+Usage flow:
+1. Use AgroDataCube tools to resolve NL field id(s) for a location: `getAgroDataCubeFieldByLocation(...)` or `getAgroDataCubeFieldFromLocationContext(...)`.
+2. Call the appropriate OpenAgroKPI tool with `countryCode = "NL"` and the desired `layer` (see `describeOpenAgroKpiFieldsApi` or `openagro-config.known-layers`).
 
 ### AgroDataCube (NL) tools configuration
 The chatbot includes LLM tools to query WUR AgroDataCube v2 REST for crop parcel (field) information in The Netherlands only. It can look up the field for a given WGS84 location and retrieve soil/crop related information and KPI datapackages for that field. If data for the current year is not yet available, the tools default to the previous calendar year.

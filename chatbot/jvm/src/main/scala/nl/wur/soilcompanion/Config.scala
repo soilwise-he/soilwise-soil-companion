@@ -87,7 +87,9 @@ object Config {
                              timeoutMs: Int,
                              userAgent: String,
                              docsUrl: String,
-                              allowUnauthenticated: Boolean
+                             allowUnauthenticated: Boolean,
+                             // Optional curated list of supported fields-* layers to help the LLM when offline
+                             knownLayers: List[String] = Nil
                            ) derives ConfigReader
 
   case class AgroDataCubeConfig(

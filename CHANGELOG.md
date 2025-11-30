@@ -1,3 +1,10 @@
+## [1.0.5](https://git.wur.nl/soilwise/soil-companion/compare/1.0.4...1.0.5) (2025-11-30)
+
+
+### Bug Fixes
+
+* Some needed refactorings ([560b30d](https://git.wur.nl/soilwise/soil-companion/commit/560b30d4b9371dbb68f77b158afe5bec19a1525a))
+
 ## [1.0.4](https://git.wur.nl/soilwise/soil-companion/compare/1.0.3...1.0.4) (2025-11-24)
 
 

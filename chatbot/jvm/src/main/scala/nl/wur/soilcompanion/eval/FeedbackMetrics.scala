@@ -1,4 +1,4 @@
-package nl.wur.soilcompanion.tools
+package nl.wur.soilcompanion.eval
 
 import scala.util.Try
 import ujson.*

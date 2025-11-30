@@ -426,10 +426,10 @@ Open in your browser:
 - http://localhost:8080/app/index.html
 
 
-## Logs and Feedback Export
+## Eval: Logs and Feedback Export
 To analyze conversations and user feedback, the project includes a small Scala CLI tool that merges runtime logs with feedback JSONL entries into a single JSON file.
 
-- Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/tools/LogFeedbackExporter.scala`
+- Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/eval/LogFeedbackExporter.scala`
 - Inputs (defaults, relative to project root):
   - Log file: `./data/logs/soil-companion.log`
   - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl`)
@@ -472,13 +472,13 @@ Minimal example of one exported record:
 From the project root (sbt is already configured with the required libraries):
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.LogFeedbackExporter"
 ```
 
 Specify explicit paths and output filename if needed:
 
 ```
-  sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter \
+  sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.LogFeedbackExporter \
   --log ./data/logs/soil-companion.log \
   --feedback-dir ./data/feedback-logs \
   --out ./data/feedback-logs/merged.json"
@@ -487,7 +487,7 @@ Specify explicit paths and output filename if needed:
 Write CSV to an explicit path (otherwise a CSV is written next to the JSON output by default):
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter \
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.LogFeedbackExporter \
   --log ./data/logs/soil-companion.log \
   --feedback-dir ./data/feedback-logs \
   --out ./data/feedback-logs/feedback-export.json \
@@ -498,10 +498,10 @@ Notes:
 - The parser expects log lines like `Received query for session ..., questionId=...: ...`, `[AI_FINAL] Q:` / `[AI_FINAL] A:` blocks, and `Query for session ... completed`.
 - Retrieval/tool context is collected heuristically from lines that include metadata such as `file_name` and `index` when present.
 
-### Feedback metrics
+### Eval: Feedback metrics
 A companion CLI computes quality metrics from the feedback JSONL files.
 
-- Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/tools/FeedbackMetrics.scala`
+- Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/eval/FeedbackMetrics.scala`
 - Inputs (defaults, relative to project root):
   - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl`)
 - Output:
@@ -521,37 +521,37 @@ What it reports
 How to run (similar to LogFeedbackExporter)
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics"
 ```
 
 Specify a feedback directory explicitly:
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics --feedback-dir ./data/feedback-logs"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --feedback-dir ./data/feedback-logs"
 ```
 
 Run for a single JSONL file:
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics --file ./data/feedback-logs/feedback-2025-11-29.jsonl"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --file ./data/feedback-logs/feedback-2025-11-29.jsonl"
 ```
 
 Write the textual report to a file as well as stdout:
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics --feedback-dir ./data/feedback-logs --out ./data/feedback-logs/metrics.txt"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --feedback-dir ./data/feedback-logs --out ./data/feedback-logs/metrics.txt"
 ```
 
 Write a JSON metrics report (alongside the console/table output):
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics --feedback-dir ./data/feedback-logs --json-out ./data/feedback-logs/metrics.json"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --feedback-dir ./data/feedback-logs --json-out ./data/feedback-logs/metrics.json"
 ```
 
 Turn off ANSI colors (useful for CI logs or when redirecting output):
 
 ```
-sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.FeedbackMetrics --no-color"
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --no-color"
 ```
 
 Notes:

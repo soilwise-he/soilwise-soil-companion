@@ -1,4 +1,4 @@
-package nl.wur.soilcompanion.tools
+package nl.wur.soilcompanion.eval
 
 import java.nio.charset.StandardCharsets
 import java.time.{Instant, ZoneId, ZonedDateTime}

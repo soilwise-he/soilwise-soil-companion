@@ -1,3 +1,10 @@
+## [1.0.6](https://git.wur.nl/soilwise/soil-companion/compare/1.0.5...1.0.6) (2025-12-01)
+
+
+### Bug Fixes
+
+* Corrects Solr query expansion. ([fc2e261](https://git.wur.nl/soilwise/soil-companion/commit/fc2e261cf0917f4afb589bb0f1edabf43f732432))
+
 ## [1.0.5](https://git.wur.nl/soilwise/soil-companion/compare/1.0.4...1.0.5) (2025-11-30)
 
 

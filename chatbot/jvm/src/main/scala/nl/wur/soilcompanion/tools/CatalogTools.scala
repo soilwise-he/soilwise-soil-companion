@@ -149,7 +149,7 @@ class CatalogTools {
         fields.map(field => s"$field:($words)").mkString(" OR ")
       }
       .map(tq => s"($tq)")
-      .mkString("(", " AND ", ")") + s" AND type:(${docTypes.mkString(" OR ")})"
+      .mkString("(", " OR ", ")") + s" AND type:(${docTypes.mkString(" OR ")})"
   }
 
   /**

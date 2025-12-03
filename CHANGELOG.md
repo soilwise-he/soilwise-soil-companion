@@ -1,3 +1,10 @@
+## [1.1.0](https://git.wur.nl/soilwise/soil-companion/compare/1.0.6...1.1.0) (2025-12-03)
+
+
+### Features
+
+* Updates towards a more mobile friendly version. ([a0138c5](https://git.wur.nl/soilwise/soil-companion/commit/a0138c5bbf4d9697b29341a3983bf4ca87686b69))
+
 ## [1.0.6](https://git.wur.nl/soilwise/soil-companion/compare/1.0.5...1.0.6) (2025-12-01)
 
 

@@ -10,6 +10,28 @@ body {
     overflow: hidden;
 }
 
+/* Global layout tokens */
+:root {
+    /* Fixed chrome sizes */
+    --header-h: 56px;            /* height of the fixed header */
+    --footer-h: 44px;            /* height of the fixed footer */
+    /* Responsive chrome gap tokens */
+    --chrome-gap-sm: 6px;        /* small screens */
+    --chrome-gap-md: 8px;        /* default */
+    --chrome-gap-lg: 12px;       /* large screens */
+    /* Active chrome gap (overridden via media queries) */
+    --chrome-gap: var(--chrome-gap-md);           /* small equal gap above and below content */
+    --sidebar-w: 340px;          /* default sidebar width */
+}
+
+/* Responsive activation of chrome gap */
+@media (max-width: 768px) {
+    :root { --chrome-gap: var(--chrome-gap-sm); }
+}
+@media (min-width: 1600px) {
+    :root { --chrome-gap: var(--chrome-gap-lg); }
+}
+
 /* Utility: hide only visually (keep for screen readers) */
 .visually-hidden {
     position: absolute !important;
@@ -59,22 +81,40 @@ body::after {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px; /* small margin between header/content/footer */
+    gap: 0; /* header/footer are fixed; manage gaps via content padding */
+    box-sizing: border-box;
 }
 
 .top-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+    box-sizing: border-box; /* include padding within fixed height */
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
     background: rgba(239, 231, 218, 0.9);
     backdrop-filter: blur(2px);
     border-bottom: 1px solid #d2c7b8;
+    z-index: 110; /* above content and footer */
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
 .logo-small { height: 32px; }
 .app-title { font-size: 1.2rem; margin: 0; color: #3a2f24; }
+
+/* On very small widths, hide the long title and project link to keep tools fitting */
+@media (max-width: 640px) {
+    .top-banner .app-title,
+    .top-banner .project-link {
+        display: none;
+    }
+}
 
 .sidebar-toggle {
     background: transparent;
@@ -87,6 +127,17 @@ body::after {
 
 /* Theme select in header */
 .header-tools { display: inline-flex; align-items: center; gap: 8px; }
+.btn-logout {
+    color: #8b1e1e; /* red tint */
+    border: 1px solid rgba(139, 30, 30, 0.25);
+}
+.btn-logout:hover {
+    background: rgba(139, 30, 30, 0.08);
+}
+.btn-logout:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 30, 30, 0.25);
+}
 .theme-select {
     appearance: none;
     -webkit-appearance: none;
@@ -102,27 +153,65 @@ body::after {
 .theme-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(194,155,114,0.25); }
 
 .content {
-    flex: 1;
+    /* Pin the content area exactly between the fixed header and footer */
+    position: fixed;
+    top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + var(--chrome-gap));
+    bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px) + var(--chrome-gap));
+    left: 0;
+    right: 0;
     display: flex;
     min-height: 0; /* allow children to shrink for overflow */
-    overflow: hidden; /* prevent children from stretching under the sticky footer */
-    padding-left: 10px; /* small gap from the left browser edge */
+    overflow: hidden; /* internal panes handle their own scroll */
+    /* side paddings for small gaps from the browser edges */
+    padding-left: 10px;
+    padding-right: 10px;
     box-sizing: border-box;
 }
 
+/* Standalone full-page login (hidden when authenticated) */
+#login-page.login-page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Use small viewport unit when supported to avoid iOS URL-bar jumps */
+    min-height: 100vh;
+    min-height: 100svh;
+    width: 100%;
+    /* Ensure there is always a gap from window borders, even on tiny screens */
+    padding: 24px 16px; /* fallback */
+    /* Safe-area aware paddings so content never touches screen edges */
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: max(24px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    overflow: auto; /* allow scrolling when content is taller than viewport */
+}
+
+.login-explainer {
+    width: 100%;
+    max-width: 760px;
+}
+
 .sidebar {
-    width: 340px;
+    width: var(--sidebar-w);
+    flex: 0 0 var(--sidebar-w);
     max-width: 90vw;
     background: #efe7da;
     border-right: 1px solid #d2c7b8;
     box-sizing: border-box;
     padding: 10px 12px;
     overflow: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
     border-radius: 10px; /* match chat window corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* match chat window shadow */
-    margin-top: 10px;  /* match chat-area top gap to header */
-    margin-bottom: 10px; /* match chat-area bottom gap to footer */
     margin-right: 8px; /* small gap to the main area */
+    /* Make the sidebar stretch between header and fixed footer */
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
     /* Stronger de-emphasis so focus stays on chat */
     /* Sidebar tone tokens (light theme defaults) */
     --sb-text: rgba(58, 47, 36, 0.62);       /* base body text */
@@ -142,8 +231,9 @@ body::after {
 .main-area {
     flex: 1;
     display: flex;
+    min-height: 0; /* allow chat container to become a scroll area */
     min-width: 0;
-    padding: 10px;
+    padding: 0 10px; /* horizontal only; avoid extra top/bottom gap vs. sidebar */
     box-sizing: border-box;
 }
 
@@ -333,7 +423,7 @@ body::after {
 
 .chat-container {
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; /* transcript (messages) will manage its own scroll */
     flex: 1;
     background-color: #f5f1e8;
     padding: 0 20px;
@@ -343,14 +433,19 @@ body::after {
     align-self: stretch;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* allow internal scroll areas to size correctly */
+    /* Reserve space inside the scroll area so the last message isn't hidden under the input card */
+    --input-clear: 96px; /* approximate input card height + margins; adjust if input grows more */
 }
 
 .messages {
     flex: 1;
     min-height: 0;
-    overflow: auto;
+    overflow-y: auto; /* make only the transcript scroll */
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
     margin-bottom: 0;
-    padding: 16px 8px 80px 8px; /* bottom padding to clear input bar */
+    /* bottom padding to clear input card; last items remain visible above the composer */
+    padding: 16px 8px calc(var(--input-clear)) 8px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -390,14 +485,17 @@ body::after {
 
 .input-container {
     display: flex;
-    position: absolute;
+    position: absolute; /* anchor within the chat container */
     bottom: 0;
     left: 0;
     right: 0;
-    margin: 20px;
+    margin: 12px; /* small margin around the input card */
+    /* Respect device safe areas (iOS) for the bottom inset */
+    margin-bottom: max(12px, env(safe-area-inset-bottom, 0px));
     gap: 10px;
     align-items: stretch; /* textarea full width */
     flex-direction: column; /* stack textarea and actions row */
+    z-index: 2; /* keep input above scrolling chat content */
 }
 
 /* Visual card around the input, ChatGPT-like */
@@ -686,6 +784,23 @@ body::after {
     gap: 10px;
 }
 
+/* Arrange username/password neatly on one row (stack on small screens) */
+.login-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: stretch;
+}
+.login-row .login-input {
+    flex: 1 1 0;
+    width: auto; /* override 100% to allow side-by-side layout */
+    min-width: 0; /* allow shrinking inside flex row */
+}
+@media (max-width: 560px) {
+    .login-row { flex-direction: column; }
+    .login-row .login-input { width: 100%; }
+}
+
 .login-section h3 {
     margin: 0 0 2px 0;
     color: #3a2f24;
@@ -807,17 +922,23 @@ body::after {
 
 /* Sticky status footer (flex item at bottom, always visible) */
 .status-footer {
-    flex: 0 0 auto;
-    width: 100%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
     background: rgba(239, 231, 218, 0.9);
     border-top: 1px solid #d2c7b8;
     padding: 6px 12px;
+    /* respect device bottom safe area */
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     color: #3a2f24;
     font-size: 0.9rem;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between; /* status on the left, version on the right */
+    z-index: 100;
 }
 
 /* Subtle pulse effect for status updates (non-intrusive) */
@@ -1274,6 +1395,15 @@ html[data-theme="dark"] .toolbar-btn {
 html[data-theme="dark"] .toolbar-btn:hover { background: #3a2f24; }
 html[data-theme="dark"] .toolbar-btn i { color: inherit; }
 
+/* Dark theme: red-tinted logout button */
+html[data-theme="dark"] .btn-logout {
+    color: #ff6b6b; /* brighter red for dark bg */
+    border-color: rgba(255, 107, 107, 0.35);
+}
+html[data-theme="dark"] .btn-logout:hover {
+    background: rgba(255, 107, 107, 0.14);
+}
+
 /* Login buttons */
 html[data-theme="dark"] .login-button {
     background: #2b231b;
@@ -1350,8 +1480,9 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #5b4736; }
     .header-tools { flex-wrap: wrap; gap: 6px; }
 
     .content { padding-left: 6px; }
-    .sidebar { margin: 8px 0 8px 0; }
-    .main-area { padding: 6px; }
+    /* Sidebar should still stretch between header and fixed footer on small screens */
+    .sidebar { margin: 0; }
+    .main-area { padding: 0 6px; }
     .chat-container { padding: 0 12px; }
     .messages {
         padding: 12px 6px calc(72px + env(safe-area-inset-bottom, 0px)) 6px;

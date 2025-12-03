@@ -16547,6 +16547,66 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__nowTimeString__T($thiz) {
   var d = new Date();
   return (($p_Lnl_wur_soilcompanion_SoilCompanionApp$__two$1__I__T($thiz, $doubleToInt($uD(d.getHours()))) + ":") + $p_Lnl_wur_soilcompanion_SoilCompanionApp$__two$1__I__T($thiz, $doubleToInt($uD(d.getMinutes()))));
 }
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($thiz, container) {
+  try {
+    if ((container === null)) {
+      return (void 0);
+    }
+    var anchors = container.querySelectorAll("a");
+    var i = 0;
+    while ((i < $uI(anchors.length))) {
+      var a = anchors[i];
+      if ((a !== null)) {
+        a.setAttribute("target", "_blank");
+        var this$1 = $n($m_s_Option$().apply__O__s_Option($as_T(a.getAttribute("rel"))));
+        var existingRel = $as_T((this$1.isEmpty__Z() ? "" : this$1.get__O()));
+        var $x_2 = $m_s_Predef$();
+        var this$2 = $n(existingRel);
+        var xs = $f_T__split__T__I__AT(this$2, "\\s+", 0);
+        var $x_1 = $m_s_reflect_ClassTag$();
+        var this$6 = $n(xs);
+        var this$7 = $objectGetClass(this$6);
+        var evidence$1 = $x_1.apply__jl_Class__s_reflect_ClassTag(this$7.data.getComponentType());
+        var capacity = 0;
+        var size = 0;
+        var jsElems = null;
+        var elementClass = $n(evidence$1).runtimeClass__jl_Class();
+        capacity = 0;
+        size = 0;
+        var isCharArrayBuilder = (elementClass === $d_C.getClassOf());
+        jsElems = [];
+        var i$1 = 0;
+        while ((i$1 < $n(xs).u.length)) {
+          var x1 = i$1;
+          var x = $n(xs).get(x1);
+          var this$12 = $n(x);
+          if ((!(this$12 === ""))) {
+            var unboxedElem = (isCharArrayBuilder ? $uC(x) : ((x === null) ? $n(elementClass).data.zero : x));
+            jsElems.push(unboxedElem);
+          }
+          i$1 = ((1 + i$1) | 0);
+        }
+        var elemRuntimeClass = ((elementClass === $d_V.getClassOf()) ? $d_jl_Void.getClassOf() : (((elementClass === $d_sr_Null$.getClassOf()) || (elementClass === $d_sr_Nothing$.getClassOf())) ? $d_O.getClassOf() : elementClass));
+        var this$13 = $n($x_2.wrapRefArray__AO__scm_ArraySeq$ofRef($asArrayOf_O($n(elemRuntimeClass).data.getArrayOf().wrapArray(jsElems), 1)));
+        var tokens = $as_scm_Buffer($m_scm_Buffer$().from__sc_IterableOnce__sc_SeqOps(this$13));
+        var this$14 = $n(tokens);
+        if ((!$f_sc_SeqOps__contains__O__Z(this$14, "noopener"))) {
+          var this$15 = $n(tokens);
+          this$15.addOne__O__scm_Growable("noopener");
+        }
+        var this$16 = $n(tokens);
+        if ((!$f_sc_SeqOps__contains__O__Z(this$16, "noreferrer"))) {
+          var this$17 = $n(tokens);
+          this$17.addOne__O__scm_Growable("noreferrer");
+        }
+        var this$18 = $n(tokens);
+        a.setAttribute("rel", $f_T__trim__T($n($f_sc_IterableOnceOps__mkString__T__T__T__T(this$18, "", " ", ""))));
+      }
+      i = ((1 + i) | 0);
+    }
+  } catch (e) {
+  }
+}
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureBotPlaceholder__V($thiz) {
   var messageContainer = document.getElementById("messages");
   var last = messageContainer.lastElementChild;
@@ -16567,44 +16627,6 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationSummary__T__V($t
     el.textContent = text;
   }
 }
-function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V($thiz, tabId, persist, focus) {
-  try {
-    var tabs = document.querySelectorAll("#sidebar .tablist [role='tab']");
-    document.querySelectorAll("#sidebar [role='tabpanel']");
-    var target = document.getElementById(tabId);
-    if (((tabs !== null) && (target !== null))) {
-      var i = 0;
-      while ((i < $uI(tabs.length))) {
-        var t = tabs[i];
-        var selected = ($as_T(t.id) === tabId);
-        t.setAttribute("aria-selected", (selected ? "true" : "false"));
-        t.setAttribute("tabindex", (selected ? "0" : "-1"));
-        var panelId = $as_T(t.getAttribute("aria-controls"));
-        if ((panelId !== null)) {
-          var p = document.getElementById(panelId);
-          if ((p !== null)) {
-            if (selected) {
-              p.removeAttribute("hidden");
-            } else {
-              p.setAttribute("hidden", "");
-            }
-          }
-        }
-        i = ((1 + i) | 0);
-      }
-      if (persist) {
-        try {
-          window.localStorage.setItem("soilcompanion.sidebarTab", tabId);
-        } catch (e) {
-        }
-      }
-      if (focus) {
-        target.focus();
-      }
-    }
-  } catch (e$3) {
-  }
-}
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V($thiz, enabled) {
   var tab = document.getElementById("tab-location");
   if ((tab !== null)) {
@@ -16620,9 +16642,51 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V
     }
   }
 }
-function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureAboutIfUnauthed__V($thiz) {
-  if ((!$thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated)) {
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V($thiz, "tab-about", true, false);
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V($thiz) {
+  var loginPage = document.getElementById("login-page");
+  var appShell = document.getElementById("app-shell");
+  if ((loginPage !== null)) {
+    loginPage.removeAttribute("hidden");
+    try {
+      loginPage.style.display = "";
+    } catch (e) {
+    }
+  }
+  if ((appShell !== null)) {
+    appShell.setAttribute("hidden", "");
+    try {
+      appShell.style.display = "none";
+    } catch (e$3) {
+    }
+  }
+}
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showAppContent__V($thiz) {
+  var loginPage = document.getElementById("login-page");
+  var appShell = document.getElementById("app-shell");
+  if ((loginPage !== null)) {
+    loginPage.setAttribute("hidden", "");
+    try {
+      loginPage.style.display = "none";
+    } catch (e) {
+    }
+  }
+  if ((appShell !== null)) {
+    appShell.removeAttribute("hidden");
+    try {
+      appShell.style.display = "block";
+    } catch (e$3) {
+    }
+  }
+  try {
+    window.setTimeout((() => {
+      var lp = document.getElementById("login-page");
+      var as = document.getElementById("app-shell");
+      if ((lp !== null)) {
+        lp.setAttribute("hidden", "");
+      }
+      return ((as !== null) ? (as.removeAttribute("hidden"), (void 0)) : (void 0));
+    }), 50.0);
+  } catch (e$5) {
   }
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__saveLocationContext__D__D__I__s_Option__s_Option__s_Option__s_Option__s_Option__V($thiz, lat, lon, zoom, countryName, countryCode, displayName, bestLabel, addressJson) {
@@ -16715,8 +16779,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__saveLocationContext__D__D__
     var $x_5 = this$52.get__O();
   }
   $x_8.log(((((((((((("[DEBUG_LOG] Saving location context: lat=" + lat) + ", lon=") + lon) + ", zoom=") + zoom) + ", country=") + $x_7) + "/") + $x_6) + ", label=") + $x_5));
-  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), obj, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$3) => {
-    $as_Lujson_Value(_$3);
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), obj, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$4) => {
+    $as_Lujson_Value(_$4);
     console.log("[DEBUG_LOG] /location saved successfully");
   })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((e) => {
     var e$1 = $as_jl_Throwable(e);
@@ -16729,8 +16793,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearLocationContext__V($th
     var $x_1 = true;
   } else {
     var x0 = this$1.get__O();
-    var _$4 = $as_T(x0);
-    var this$4 = $n(_$4);
+    var _$5 = $as_T(x0);
+    var this$4 = $n(_$5);
     var $x_1 = (!(this$4 === ""));
   }
   if ($x_1) {
@@ -16788,8 +16852,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearLocationContext__V($th
     map.put__O__O__s_Option($n(i).T2__f__1, $n(i).T2__f__2);
   }
   var payload = new $c_Lujson_Obj(map);
-  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), payload, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$5) => {
-    $as_Lujson_Value(_$5);
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), payload, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$6) => {
+    $as_Lujson_Value(_$6);
   })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((e) => {
     var e$1 = $as_jl_Throwable(e);
     console.error("[DEBUG_LOG] Failed to clear location context", e$1);
@@ -16799,8 +16863,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__reverseGeocode__D__D__I__F5
   var detailZoom = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clamp$1__I__I__I__I($thiz, ((mapZoom >= 17) ? 18 : ((mapZoom >= 15) ? 17 : ((mapZoom >= 13) ? 15 : ((mapZoom >= 11) ? 13 : ((mapZoom >= 9) ? 11 : ((mapZoom >= 7) ? 9 : 5)))))), 3, 18);
   var url = (((((("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat) + "&lon=") + lon) + "&zoom=") + detailZoom) + "&addressdetails=1&accept-language=en");
   var p = fetch(url);
-  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$6) => {
-    var p$1 = _$6.text();
+  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$7) => {
+    var p$1 = _$7.text();
     return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext())).foreach__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((txt) => {
     var txt$1 = $as_T(txt);
@@ -16816,8 +16880,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__reverseGeocode__D__D__I__F5
           var ccode = $m_s_None$();
         } else {
           var x0 = this$5.get__O();
-          var _$8 = $as_T(x0);
-          var this$6 = $n(_$8);
+          var _$9 = $as_T(x0);
+          var this$6 = $n(_$9);
           var ccode = new $c_s_Some($as_T(this$6.toUpperCase()));
         }
       } else {
@@ -16915,8 +16979,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__forwardGeocode__T__F1__V($t
   }
   var url = ("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q=" + $as_T(encodeURIComponent($f_T__trim__T($n(query)))));
   var p = fetch(url);
-  $n($n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$9) => {
-    var p$1 = _$9.json();
+  $n($n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$10) => {
+    var p$1 = _$10.json();
     return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext())).map__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((data) => {
     if (($uI(data.length) === 0)) {
@@ -17159,7 +17223,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
     }), 200.0);
     var clearBtn = document.getElementById("location-clear");
     if ((clearBtn !== null)) {
-      clearBtn.addEventListener("click", ((_$16) => {
+      clearBtn.addEventListener("click", ((_$17) => {
         if (($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker !== null)) {
           $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker.remove();
         }
@@ -17303,7 +17367,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
       })));
     }));
     if ((searchBtn !== null)) {
-      searchBtn.addEventListener("click", ((_$17) => doSearch.apply__O()));
+      searchBtn.addEventListener("click", ((_$18) => doSearch.apply__O()));
     }
     if ((searchInput !== null)) {
       searchInput.addEventListener("keydown", ((e$4$1) => (($as_T(e$4$1.key) === "Enter") ? doSearch.apply__O() : (void 0))));
@@ -17438,8 +17502,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__isSessionReady__Z($thiz) {
   var this$1 = $n($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_nl$wur$soilcompanion$SoilCompanionApp$$$sessionId);
   if ((!this$1.isEmpty__Z())) {
     var x0 = this$1.get__O();
-    var _$18 = $as_T(x0);
-    var this$4 = $n(_$18);
+    var _$19 = $as_T(x0);
+    var this$4 = $n(_$19);
     return (!(this$4 === ""));
   } else {
     return false;
@@ -17474,6 +17538,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($thiz) {
   var logoutBtn = document.getElementById("logout-button");
   document.getElementById("login-info");
   if ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated) {
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showAppContent__V($thiz);
     if ((u !== null)) {
       u.disabled = true;
     }
@@ -17490,6 +17555,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($thiz) {
     }
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V($thiz, "Logged in.", new $c_s_Some("ok"));
   } else {
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V($thiz);
     var sessionReady = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__isSessionReady__Z($thiz);
     if ((u !== null)) {
       u.disabled = false;
@@ -17583,21 +17649,23 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__handleLogin__V($thiz) {
         var this$30 = $m_s_None$();
       } else {
         var x0$3 = this$29.get__O();
-        var _$21 = $as_Lujson_Value(x0$3);
-        var this$30 = new $c_s_Some($f_Lujson_Value__str__T($n(_$21)));
+        var _$22 = $as_Lujson_Value(x0$3);
+        var this$30 = new $c_s_Some($f_Lujson_Value__str__T($n(_$22)));
       }
       var name = $as_T((this$30.isEmpty__Z() ? "User" : this$30.get__O()));
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V($thiz, "Logged in.", new $c_s_Some("ok"));
+      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showAppContent__V($thiz);
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($thiz);
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V($thiz, true);
+      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V($thiz);
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V($thiz, "AI", (("Welcome, " + name) + "! You can start chatting now."), false);
       var this$32 = $n($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingLocation);
       if ((!this$32.isEmpty__Z())) {
         var x0$4 = this$32.get__O();
         var pl = $as_Lujson_Obj(x0$4);
         console.log("[DEBUG_LOG] Pushing pending location selection after login");
-        $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), ($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), pl, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$22) => {
-          $as_Lujson_Value(_$22);
+        $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), ($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/location"), pl, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$23) => {
+          $as_Lujson_Value(_$23);
           console.log("[DEBUG_LOG] Pending location saved successfully after login");
           $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingLocation = $m_s_None$();
         })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((e) => {
@@ -17637,22 +17705,24 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__handleLogout__V($thiz) {
     map.put__O__O__s_Option($n(i).T2__f__1, $n(i).T2__f__2);
   }
   var payload = new $c_Lujson_Obj(map);
-  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/logout"), payload, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$23) => {
-    $as_Lujson_Value(_$23);
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__F1__F1__V($thiz, ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/logout"), payload, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$24) => {
+    $as_Lujson_Value(_$24);
     $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setAuthState__Z__V($thiz, false);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V($thiz, false);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($thiz);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V($thiz, false);
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V($thiz, "tab-about", true, false);
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V($thiz);
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V($thiz);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V($thiz, "AI", "You have been logged out. Please login again to continue chatting.", false);
-  })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$24) => {
-    $as_jl_Throwable(_$24);
-    $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V($thiz, false);
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($thiz);
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V($thiz, false);
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V($thiz, "tab-about", true, false);
+  })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$25) => {
+    $as_jl_Throwable(_$25);
+    $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), false);
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), false);
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
   })));
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thiz) {
@@ -17664,7 +17734,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thi
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__autoResize$1__Lorg_scalajs_dom_HTMLTextAreaElement__V($thiz, questionElement);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateCounter$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLTextAreaElement__I__I__V($thiz, counterEl, questionElement, 400, 40);
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateComposerSafeArea$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLElement__V($thiz, messagesEl, inputContainer);
-    questionElement.addEventListener("input", ((_$25) => {
+    questionElement.addEventListener("input", ((_$26) => {
       var this$2 = $n($as_T(questionElement.value));
       if ((this$2.length > 400)) {
         var this$3 = $n($as_T(questionElement.value));
@@ -17679,10 +17749,10 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thi
     }));
     questionElement.addEventListener("keydown", ((e) => ((($as_T(e.key) === "Enter") && (!$uZ(e.shiftKey))) ? (e.preventDefault(), $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendQuestion__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$()), (void 0)) : (void 0))));
   }
-  window.addEventListener("resize", ((_$26) => {
+  window.addEventListener("resize", ((_$27) => {
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateComposerSafeArea$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLElement__V($thiz, messagesEl, inputContainer);
   }));
-  window.addEventListener("orientationchange", ((_$27) => {
+  window.addEventListener("orientationchange", ((_$28) => {
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateComposerSafeArea$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLElement__V($thiz, messagesEl, inputContainer);
   }));
   try {
@@ -17693,7 +17763,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thi
       var $x_1 = false;
     }
     if ($x_1) {
-      var ro = new ResizeObserver(((entries, _$28) => {
+      var ro = new ResizeObserver(((entries, _$29) => {
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateComposerSafeArea$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLElement__V($thiz, messagesEl, inputContainer);
       }));
       ro.observe(inputContainer);
@@ -17702,29 +17772,137 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thi
   }
   var sendButton = document.getElementById("send-button");
   if ((sendButton !== null)) {
-    sendButton.addEventListener("click", ((_$29) => {
+    sendButton.addEventListener("click", ((_$30) => {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendQuestion__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
     }));
   }
-  var this$5 = $n($m_s_Option$().apply__O__s_Option(document.getElementById("login-button")));
-  if ((!this$5.isEmpty__Z())) {
-    var x0 = this$5.get__O();
-    x0.addEventListener("click", ((_$30) => {
+  try {
+    var messagesContainer = document.getElementById("messages");
+    if ((messagesContainer !== null)) {
+      messagesContainer.addEventListener("click", ((e$4) => {
+        var isPrimary = ($uI(e$4.button) === 0);
+        var hasMods = ((($uZ(e$4.metaKey) || $uZ(e$4.ctrlKey)) || $uZ(e$4.shiftKey)) || $uZ(e$4.altKey));
+        if ((isPrimary && (!hasMods))) {
+          matchResult11: {
+            var nodeEl;
+            var x40 = e$4.target;
+            if ($uZ((x40 instanceof Element))) {
+              var nodeEl = x40;
+              break matchResult11;
+            }
+            var nodeEl = null;
+          }
+          while (true) {
+            if (((nodeEl !== null) && ($as_T(nodeEl.tagName) !== null))) {
+              var this$5 = $n($as_T(nodeEl.tagName));
+              var $x_2 = ($as_T(this$5.toLowerCase()) !== "a");
+            } else {
+              var $x_2 = false;
+            }
+            if ($x_2) {
+              var parent = nodeEl.parentNode;
+              nodeEl = (((parent !== null) && $uZ((parent instanceof Element))) ? parent : null);
+            } else {
+              break;
+            }
+          }
+          if ((nodeEl !== null)) {
+            var a = nodeEl;
+            var href = $as_T(a.getAttribute("href"));
+            if ((href !== null)) {
+              var x = $f_T__trim__T($n(href));
+              var this$8 = $n(x);
+              var $x_3 = (!(this$8 === ""));
+            } else {
+              var $x_3 = false;
+            }
+            if ($x_3) {
+              e$4.preventDefault();
+              a.setAttribute("target", "_blank");
+              var this$9 = $n($m_s_Option$().apply__O__s_Option($as_T(a.getAttribute("rel"))));
+              var existingRel = $as_T((this$9.isEmpty__Z() ? "" : this$9.get__O()));
+              var $x_5 = $m_s_Predef$();
+              var this$10 = $n(existingRel);
+              var xs = $f_T__split__T__I__AT(this$10, "\\s+", 0);
+              var $x_4 = $m_s_reflect_ClassTag$();
+              var this$14 = $n(xs);
+              var this$15 = $objectGetClass(this$14);
+              var evidence$1 = $x_4.apply__jl_Class__s_reflect_ClassTag(this$15.data.getComponentType());
+              var capacity = 0;
+              var size = 0;
+              var jsElems = null;
+              var elementClass = $n(evidence$1).runtimeClass__jl_Class();
+              capacity = 0;
+              size = 0;
+              var isCharArrayBuilder = (elementClass === $d_C.getClassOf());
+              jsElems = [];
+              var i = 0;
+              while ((i < $n(xs).u.length)) {
+                var x1 = i;
+                var x$1 = $n(xs).get(x1);
+                var this$20 = $n(x$1);
+                if ((!(this$20 === ""))) {
+                  var unboxedElem = (isCharArrayBuilder ? $uC(x$1) : ((x$1 === null) ? $n(elementClass).data.zero : x$1));
+                  jsElems.push(unboxedElem);
+                }
+                i = ((1 + i) | 0);
+              }
+              var elemRuntimeClass = ((elementClass === $d_V.getClassOf()) ? $d_jl_Void.getClassOf() : (((elementClass === $d_sr_Null$.getClassOf()) || (elementClass === $d_sr_Nothing$.getClassOf())) ? $d_O.getClassOf() : elementClass));
+              var this$21 = $n($x_5.wrapRefArray__AO__scm_ArraySeq$ofRef($asArrayOf_O($n(elemRuntimeClass).data.getArrayOf().wrapArray(jsElems), 1)));
+              var tokens = $as_scm_Buffer($m_scm_Buffer$().from__sc_IterableOnce__sc_SeqOps(this$21));
+              var this$22 = $n(tokens);
+              if ((!$f_sc_SeqOps__contains__O__Z(this$22, "noopener"))) {
+                var this$23 = $n(tokens);
+                this$23.addOne__O__scm_Growable("noopener");
+              }
+              var this$24 = $n(tokens);
+              if ((!$f_sc_SeqOps__contains__O__Z(this$24, "noreferrer"))) {
+                var this$25 = $n(tokens);
+                this$25.addOne__O__scm_Growable("noreferrer");
+              }
+              var this$26 = $n(tokens);
+              a.setAttribute("rel", $f_T__trim__T($n($f_sc_IterableOnceOps__mkString__T__T__T__T(this$26, "", " ", ""))));
+              var win = window.open(href, "_blank");
+              try {
+                if ((win !== null)) {
+                  win.opener = null;
+                  return (void 0);
+                } else {
+                  return (void 0);
+                }
+              } catch (e$2$1) {
+                return (void 0);
+              }
+            } else {
+              return (void 0);
+            }
+          } else {
+            return (void 0);
+          }
+        } else {
+          return (void 0);
+        }
+      }));
+    }
+  } catch (e$5) {
+  }
+  var this$27 = $n($m_s_Option$().apply__O__s_Option(document.getElementById("login-button")));
+  if ((!this$27.isEmpty__Z())) {
+    var x0 = this$27.get__O();
+    x0.addEventListener("click", ((_$32) => {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__handleLogin__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
     }));
   }
-  var this$6 = $n($m_s_Option$().apply__O__s_Option(document.getElementById("logout-button")));
-  if ((!this$6.isEmpty__Z())) {
-    var x0$1 = this$6.get__O();
-    x0$1.addEventListener("click", ((_$31) => {
+  var this$28 = $n($m_s_Option$().apply__O__s_Option(document.getElementById("logout-button")));
+  if ((!this$28.isEmpty__Z())) {
+    var x0$1 = this$28.get__O();
+    x0$1.addEventListener("click", ((_$33) => {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__handleLogout__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
     }));
   }
   var tabLocation = document.getElementById("tab-location");
   if ((tabLocation !== null)) {
-    tabLocation.addEventListener("click", ((_$32) => ((!$thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated) ? ($p_Lnl_wur_soilcompanion_SoilCompanionApp$__setStatus__T__V($thiz, "Login required for Location."), $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V($thiz, "Please login to select a location.", $m_s_None$()), $uI(window.setTimeout((() => {
-      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V($thiz, "tab-about", true, false);
-    }), 0.0))) : $uI(window.setTimeout((() => {
+    tabLocation.addEventListener("click", ((_$34) => ((!$thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated) ? ($p_Lnl_wur_soilcompanion_SoilCompanionApp$__setStatus__T__V($thiz, "Login required for Location."), $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V($thiz, "Please login to select a location.", $m_s_None$()), $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V($thiz), (void 0)) : $uI(window.setTimeout((() => {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
     }), 50.0)))));
   }
@@ -17891,6 +18069,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V($thi
     var baseContent = $x_2.format$extension__T__sci_Seq__T(x$3, $m_sr_ScalaRunTime$().genericWrapArray__O__sci_ArraySeq(new $ac_O([sanitized])));
     var feedbackHtml = $m_sc_StringOps$().stripMargin$extension__T__C__T("\n           |<div class=\"feedback\" role=\"group\" aria-label=\"Rate response\"> \n           |  <button class=\"thumb-up\" title=\"Helpful\" aria-label=\"Mark helpful\"> \n           |    <i class=\"fa-solid fa-thumbs-up\"></i>\n           |  </button>\n           |  <button class=\"thumb-down\" title=\"Not helpful\" aria-label=\"Mark not helpful\"> \n           |    <i class=\"fa-solid fa-thumbs-down\"></i>\n           |  </button>\n           |</div>\n           |", 124);
     newDiv.innerHTML = (allowFeedback ? (("" + baseContent) + feedbackHtml) : baseContent);
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($thiz, newDiv);
     hljs.highlightAll();
     var feedbackEl = newDiv.querySelector(".feedback");
     var upBtn = ((feedbackEl !== null) ? feedbackEl.querySelector(".thumb-up") : null);
@@ -17899,13 +18078,13 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V($thi
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__s_Option__V($thiz, newDiv, feedbackEl, upBtn, downBtn, $m_s_None$());
     }
     if ((upBtn !== null)) {
-      upBtn.addEventListener("click", ((_$36) => {
+      upBtn.addEventListener("click", ((_$38) => {
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__s_Option__V($thiz, newDiv, feedbackEl, upBtn, downBtn, new $c_s_Some("up"));
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_Element__T__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__T__s_Option__V($thiz, feedbackEl, newDiv, msgId, upBtn, downBtn, "up", $m_s_None$());
       }));
     }
     if ((downBtn !== null)) {
-      downBtn.addEventListener("click", ((_$37) => {
+      downBtn.addEventListener("click", ((_$39) => {
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderReasons$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__T__V($thiz, feedbackEl, newDiv, upBtn, downBtn, msgId);
       }));
     }
@@ -17941,8 +18120,10 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__processPartialMessage__Lnl_
     var contentEl = x0$1.querySelector(".message-content");
     if ((contentEl !== null)) {
       contentEl.innerHTML = sanitized;
+      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), contentEl);
     } else {
       x0$1.innerHTML = (((("<div class=\"message-header\"><i class=\"fa-solid fa-robot\"></i></div><div class=\"message-time\">" + $p_Lnl_wur_soilcompanion_SoilCompanionApp$__nowTimeString__T($m_Lnl_wur_soilcompanion_SoilCompanionApp$())) + "</div><div class=\"message-content\">") + sanitized) + "</div>");
+      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), x0$1);
       $m_Lnl_wur_soilcompanion_SoilCompanionApp$package$().refreshFaIcons__V();
     }
     hljs.highlightAll();
@@ -17956,6 +18137,44 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showSpinner__V($thiz) {
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__hideSpinner__V($thiz) {
   document.getElementById("spinner").style.display = "none";
 }
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V($thiz) {
+  try {
+    var this$1 = $n($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer);
+    if ((!this$1.isEmpty__Z())) {
+      var x0 = this$1.get__O();
+      var handle = $uI(x0);
+      window.clearTimeout(handle);
+    }
+    $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
+  } catch (e) {
+  }
+  $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_currentQuestionId = $m_s_None$();
+  try {
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__hideSpinner__V($thiz);
+  } catch (e$3) {
+  }
+  try {
+    var container = document.getElementById("messages");
+    if ((container !== null)) {
+      container.innerHTML = "";
+    }
+  } catch (e$5) {
+  }
+  try {
+    var questionElement = document.getElementById("question");
+    if ((questionElement !== null)) {
+      questionElement.value = "";
+      questionElement.style.height = "auto";
+    }
+    var counterEl = document.getElementById("char-counter");
+    if ((counterEl !== null)) {
+      counterEl.textContent = "400 left";
+      counterEl.classList.remove("warn");
+    }
+  } catch (e$7) {
+  }
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V($thiz, $m_s_None$());
+}
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V($thiz) {
   var el = document.getElementById("version-text");
   if ((el === null)) {
@@ -17963,8 +18182,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V
   }
   var url = ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/healthz");
   var p = fetch(url);
-  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$48) => {
-    var p$1 = _$48.text();
+  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$50) => {
+    var p$1 = _$50.text();
     return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext())).foreach__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((txt) => {
     var txt$1 = $as_T(txt);
@@ -18008,8 +18227,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$1__sjs_js_Dynamic__s
       var $x_1 = true;
     } else {
       var x0 = this$2.get__O();
-      var _$7 = $as_T(x0);
-      var this$5 = $n(_$7);
+      var _$8 = $as_T(x0);
+      var this$5 = $n(_$8);
       var $x_1 = (!(this$5 === ""));
     }
     if ($x_1) {
@@ -18152,9 +18371,9 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__pxToDouble$2__T__D($thiz, p
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__s_Option__V($thiz, newDiv$2, feedbackEl$1, upBtn$1, downBtn$1, voteOpt) {
   if ((voteOpt instanceof $c_s_Some)) {
-    var x45 = $as_s_Some(voteOpt);
-    var x46 = $as_T($n(x45).s_Some__f_value);
-    if ((x46 === "up")) {
+    var x47 = $as_s_Some(voteOpt);
+    var x48 = $as_T($n(x47).s_Some__f_value);
+    if ((x48 === "up")) {
       newDiv$2.setAttribute("data-vote", "up");
       feedbackEl$1.classList.remove("voted-down");
       feedbackEl$1.classList.add("voted-up");
@@ -18162,7 +18381,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalaj
       downBtn$1.setAttribute("aria-pressed", "false");
       return (void 0);
     }
-    if ((x46 === "down")) {
+    if ((x48 === "down")) {
       newDiv$2.setAttribute("data-vote", "down");
       feedbackEl$1.classList.remove("voted-up");
       feedbackEl$1.classList.add("voted-down");
@@ -18189,15 +18408,15 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalaj
   if ((feedbackEl$2 === null)) {
     return (void 0);
   }
-  matchResult15: {
+  matchResult16: {
     var _1 = $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_nl$wur$soilcompanion$SoilCompanionApp$$$sessionId;
     var _2 = $m_s_Option$().apply__O__s_Option($p_Lnl_wur_soilcompanion_SoilCompanionApp$__getOrCreateDeviceId__T($thiz));
     if ((_1 instanceof $c_s_Some)) {
-      var x53 = $as_s_Some(_1);
-      var sid = $as_T($n(x53).s_Some__f_value);
+      var x55 = $as_s_Some(_1);
+      var sid = $as_T($n(x55).s_Some__f_value);
       if ((_2 instanceof $c_s_Some)) {
-        var x51 = $as_s_Some(_2);
-        var did = $as_T($n(x51).s_Some__f_value);
+        var x53 = $as_s_Some(_2);
+        var did = $as_T($n(x53).s_Some__f_value);
         var this$2 = $n($m_s_Option$().apply__O__s_Option($as_T(newDiv$4.getAttribute("data-question-id"))));
         if (this$2.isEmpty__Z()) {
           var $x_1 = true;
@@ -18262,19 +18481,19 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalaj
           var this$40 = $n($n($f_Lujson_Value__obj__Lupickle_core_LinkedHashMap($n(resp$1))).get__O__s_Option("flipAllowed"));
           if ((!this$40.isEmpty__Z())) {
             var x0$4 = this$40.get__O();
-            var _$33 = $as_Lujson_Value(x0$4);
-            var flip = $f_Lujson_Value__bool__Z($n(_$33));
+            var _$35 = $as_Lujson_Value(x0$4);
+            var flip = $f_Lujson_Value__bool__Z($n(_$35));
           } else {
             var flip = false;
           }
           if (flip) {
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setButtonsDisabled$1__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__Z__V($thiz, upBtn$3, downBtn$3, false);
           }
-        })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$34) => {
-          $as_jl_Throwable(_$34);
+        })), new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$36) => {
+          $as_jl_Throwable(_$36);
           $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setButtonsDisabled$1__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__Z__V($thiz, upBtn$3, downBtn$3, false);
         })));
-        break matchResult15;
+        break matchResult16;
       }
     }
     console.warn("[DEBUG_LOG] No session/device id; cannot send feedback");
@@ -18296,7 +18515,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderReasons$1__Lorg_scala
     var b = document.createElement("button");
     b.textContent = r;
     b.classList.add("reason-option");
-    b.addEventListener("click", ((container, r, newDiv$5, feedbackEl$3, upBtn$4, downBtn$4, msgId$2) => ((_$35) => {
+    b.addEventListener("click", ((container, r, newDiv$5, feedbackEl$3, upBtn$4, downBtn$4, msgId$2) => ((_$37) => {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__s_Option__V($thiz, newDiv$5, feedbackEl$3, upBtn$4, downBtn$4, new $c_s_Some("down"));
       container.remove();
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_Element__T__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__T__s_Option__V($thiz, feedbackEl$3, newDiv$5, msgId$2, upBtn$4, downBtn$4, "down", new $c_s_Some(r));
@@ -18346,8 +18565,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s
       var $x_1 = true;
     } else {
       var x0 = this$2.get__O();
-      var _$49 = $as_T(x0);
-      var x = $f_T__trim__T($n(_$49));
+      var _$51 = $as_T(x0);
+      var x = $f_T__trim__T($n(_$51));
       var this$5 = $n(x);
       var $x_1 = (!(this$5 === ""));
     }
@@ -18411,10 +18630,8 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V(this, false);
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V(this);
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V(this, false);
-  window.setTimeout((() => {
-    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureAboutIfUnauthed__V(this);
-  }), 0.0);
-  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", "Welcome to Soil Companion. Please login in the left sidebar to start chatting.", false);
+  window.setTimeout((() => ((!this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated) ? ($p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V(this), (void 0)) : (void 0))), 0.0);
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", "Welcome to Soil Companion. Please login to start chatting.", false);
   try {
     updateFooterStatus = $m_sjs_js_Any$().fromFunction1__F1__sjs_js_Function1(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((msg) => {
       var msg$1 = $as_T(msg);
@@ -18491,6 +18708,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.nl$wur$soilcompanion$SoilCo
       var parsed = $as_T(marked.parse(userMsg));
       var sanitized = $as_T(DOMPurify.sanitize(parsed));
       contentEl.innerHTML = sanitized;
+      $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), contentEl);
       hljs.highlightAll();
       var msgContainer = document.getElementById("messages");
       var x = $uI(msgContainer.scrollHeight);
@@ -18511,23 +18729,23 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.getSession__V = (function()
     return this$1;
   })();
   var p = fetch((this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/session"), request);
-  $n($n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$39) => {
-    var p$1 = _$39.text();
+  $n($n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$41) => {
+    var p$1 = _$41.text();
     return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
-  })), this.given_ExecutionContext__s_concurrent_ExecutionContext())).map__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$40) => {
-    var _$40$1 = $as_T(_$40);
+  })), this.given_ExecutionContext__s_concurrent_ExecutionContext())).map__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$42) => {
+    var _$42$1 = $as_T(_$42);
     var this$9 = $m_Lupickle_default$();
-    var s = new $c_Lujson_Readable$fromTransformer(_$40$1, $m_Lujson_StringParser$());
+    var s = new $c_Lujson_Readable$fromTransformer(_$42$1, $m_Lujson_StringParser$());
     $m_Lupickle_default$();
     var trace = false;
     var evidence$1 = $m_Lupickle_default$().Lupickle_default$__f_StringReader;
     return $as_T($f_Lupickle_Api__read__Lujson_Readable__Z__Lupickle_core_Types$Reader__O(this$9, s, trace, evidence$1));
   })), this.given_ExecutionContext__s_concurrent_ExecutionContext())).onComplete__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((x$1) => {
     var x$1$1 = $as_s_util_Try(x$1);
-    matchResult16: {
+    matchResult17: {
       if ((x$1$1 instanceof $c_s_util_Success)) {
-        var x58 = $as_s_util_Success(x$1$1);
-        var session = $as_T($n(x58).s_util_Success__f_value);
+        var x60 = $as_s_util_Success(x$1$1);
+        var session = $as_T($n(x60).s_util_Success__f_value);
         console.log(("Server session fetched: " + session));
         $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_nl$wur$soilcompanion$SoilCompanionApp$$$sessionId = new $c_s_Some(session);
         window.localStorage.setItem("soilcompanion.sessionId", session);
@@ -18538,18 +18756,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.getSession__V = (function()
           console.log("[DEBUG_LOG] Performing deferred location clear now that session is ready");
           $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingClearLocation = false;
           $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearLocationContext__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$());
-          break matchResult16;
+          break matchResult17;
         } else {
-          break matchResult16;
+          break matchResult17;
         }
       }
       if ((x$1$1 instanceof $c_s_util_Failure)) {
-        var x56 = $as_s_util_Failure(x$1$1);
-        var e = $n(x56).s_util_Failure__f_exception;
+        var x58 = $as_s_util_Failure(x$1$1);
+        var e = $n(x58).s_util_Failure__f_exception;
         console.log(("Error fetching server session: " + e));
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), "Failed to prepare session. Please reload the page.", new $c_s_Some("error"));
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), new $c_s_Some("Failed to prepare session"));
-        break matchResult16;
+        break matchResult17;
       }
       throw new $c_s_MatchError(x$1$1);
     }
@@ -18573,7 +18791,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
   }
   var socket = new WebSocket(((this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsBase + "/subscribe/") + sessionId));
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_ws = new $c_s_Some(socket);
-  socket.onopen = ((_$41) => {
+  socket.onopen = ((_$43) => {
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsConnected = true;
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsReconnectBackoffMs = 1000;
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__cancelReconnectTimer$1__V(this);
@@ -18582,7 +18800,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
   socket.onmessage = ((e$1) => {
     $uD(Date.now());
     var data = $dp_toString__T($n(e$1.data));
-    matchResult18: {
+    matchResult19: {
       try {
         var this$8 = $m_Lupickle_default$();
         var s = new $c_Lujson_Readable$fromTransformer(data, $m_Lujson_StringParser$());
@@ -18602,18 +18820,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
           throw ((e$2$1 instanceof $c_sjs_js_JavaScriptException) ? e$2$1.sjs_js_JavaScriptException__f_exception : e$2$1);
         }
       }
-      var x61 = $x_1.toOption__s_Option();
-      if ((x61 instanceof $c_s_Some)) {
-        var x62 = $as_s_Some(x61);
-        var evt = $as_Lnl_wur_soilcompanion_domain_QueryEvent($n(x62).s_Some__f_value);
-        var x60 = $n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_event;
-        switch (x60) {
+      var x63 = $x_1.toOption__s_Option();
+      if ((x63 instanceof $c_s_Some)) {
+        var x64 = $as_s_Some(x63);
+        var evt = $as_Lnl_wur_soilcompanion_domain_QueryEvent($n(x64).s_Some__f_value);
+        var x62 = $n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_event;
+        switch (x62) {
           case "received": {
             var this$9 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_questionId);
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_currentQuestionId = (this$9.isEmpty__Z() ? $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_currentQuestionId : this$9);
             var this$10 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$10.isEmpty__Z() ? "Received." : this$10.get__O())));
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "thinking": {
@@ -18654,12 +18872,12 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               }
               if ($x_3) {
                 contentEl.innerHTML = $m_sc_StringOps$().stripMargin$extension__T__C__T("\n                    |<div class='typing-indicator' aria-label='Assistant is thinking'>\n                    |  <span class='dot'></span><span class='dot'></span><span class='dot'></span>\n                    |</div>\n                    |", 124);
-                break matchResult18;
+                break matchResult19;
               } else {
-                break matchResult18;
+                break matchResult19;
               }
             } else {
-              break matchResult18;
+              break matchResult19;
             }
             break;
           }
@@ -18667,17 +18885,17 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureBotPlaceholder__V(this);
             var this$19 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$19.isEmpty__Z() ? "Searching SoilWise catalog via Solr\u2026" : this$19.get__O())));
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "generating": {
             var this$20 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$20.isEmpty__Z() ? "Generating answer\u2026" : this$20.get__O())));
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "heartbeat": {
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "unauthorized": {
@@ -18686,12 +18904,13 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V(this, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V(this);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V(this, false);
-            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V(this, "tab-about", true, false);
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V(this);
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V(this);
             var this$21 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             var msg = $as_T((this$21.isEmpty__Z() ? "Login required to chat." : this$21.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "logged_out": {
@@ -18700,30 +18919,28 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V(this, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V(this);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V(this, false);
-            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V(this, "tab-about", true, false);
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V(this);
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V(this);
             var this$22 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             var msg$2 = $as_T((this$22.isEmpty__Z() ? "You have been logged out." : this$22.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg$2, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "session_expired": {
-            var container = document.getElementById("messages");
-            if ((container !== null)) {
-              container.innerHTML = "";
-            }
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V(this);
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setAuthState__Z__V(this, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setChatEnabled__Z__V(this, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateLoginUi__V(this);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationTabEnabled__Z__V(this, false);
-            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__activateSidebarTab__T__Z__Z__V(this, "tab-about", true, false);
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showLoginPage__V(this);
             var this$23 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             var msg$3 = $as_T((this$23.isEmpty__Z() ? "Your session expired due to inactivity. Please login to start a new chat." : this$23.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg$3, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "done": {
@@ -18758,7 +18975,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               window.clearTimeout(handle$1);
             }
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
-            break matchResult18;
+            break matchResult19;
             break;
           }
           case "error": {
@@ -18772,18 +18989,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               window.clearTimeout(handle$2);
             }
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
-            break matchResult18;
+            break matchResult19;
             break;
           }
           default: {
             var this$29 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
-            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$29.isEmpty__Z() ? x60 : this$29.get__O())));
-            break matchResult18;
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$29.isEmpty__Z() ? x62 : this$29.get__O())));
+            break matchResult19;
           }
         }
       }
       var x = $m_s_None$();
-      if ((x === x61)) {
+      if ((x === x63)) {
         var this$32 = $m_Lupickle_default$();
         var s$1 = new $c_Lujson_Readable$fromTransformer(data, $m_Lujson_StringParser$());
         $m_Lupickle_default$();
@@ -18822,23 +19039,23 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
         }
         this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__processPartialMessage__Lnl_wur_soilcompanion_domain_QueryPartialResponse__V(this, qpr);
-        break matchResult18;
+        break matchResult19;
       }
-      throw new $c_s_MatchError(x61);
+      throw new $c_s_MatchError(x63);
     }
   });
-  window.onbeforeunload = ((_$45) => {
+  window.onbeforeunload = ((_$47) => {
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__cancelReconnectTimer$1__V(this);
     socket.close();
   });
-  socket.onerror = ((_$46) => {
+  socket.onerror = ((_$48) => {
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsConnected = false;
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_ws = $m_s_None$();
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, "Connection error");
     this.nl$wur$soilcompanion$SoilCompanionApp$$$showErrorInLastBotMessage__s_Option__V(new $c_s_Some("Connection error while generating."));
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__scheduleReconnect$1__T__V(this, sessionId);
   });
-  socket.onclose = ((_$47) => {
+  socket.onclose = ((_$49) => {
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsConnected = false;
     this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_ws = $m_s_None$();
     $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
@@ -46159,6 +46376,18 @@ function $isArrayOf_sci_MapOps$ImmutableKeySet(obj, depth) {
 }
 function $asArrayOf_sci_MapOps$ImmutableKeySet(obj, depth) {
   return (($isArrayOf_sci_MapOps$ImmutableKeySet(obj, depth) || (obj === null)) ? obj : $throwArrayCastException(obj, "Lscala.collection.immutable.MapOps$ImmutableKeySet;", depth));
+}
+function $is_scm_Buffer(obj) {
+  return (!(!((obj && obj.$classData) && obj.$classData.ancestors.scm_Buffer)));
+}
+function $as_scm_Buffer(obj) {
+  return (($is_scm_Buffer(obj) || (obj === null)) ? obj : $throwClassCastException(obj, "scala.collection.mutable.Buffer"));
+}
+function $isArrayOf_scm_Buffer(obj, depth) {
+  return (!(!(((obj && obj.$classData) && (obj.$classData.arrayDepth === depth)) && obj.$classData.arrayBase.ancestors.scm_Buffer)));
+}
+function $asArrayOf_scm_Buffer(obj, depth) {
+  return (($isArrayOf_scm_Buffer(obj, depth) || (obj === null)) ? obj : $throwArrayCastException(obj, "Lscala.collection.mutable.Buffer;", depth));
 }
 function $f_Lupickle_AttributeTagged__upickle$AttributeTagged$$isTagName__T__O__Z($thiz, tagKey, i) {
   if ((i instanceof $c_Lupickle_core_BufferedValue$Str)) {

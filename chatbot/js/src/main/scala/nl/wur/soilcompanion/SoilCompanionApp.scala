@@ -115,6 +115,29 @@ object SoilCompanionApp extends App {
     s"${two(d.getHours().toInt)}:${two(d.getMinutes().toInt)}"
   }
 
+  // Ensure that all hyperlinks inside the given container open in a new tab
+  // and use safe rel attributes. Call this after inserting sanitized HTML.
+  private def fixExternalLinks(container: dom.Element | Null): Unit = {
+    try {
+      if (container == null) return
+      val scope = container.asInstanceOf[dom.Element]
+      val anchors = scope.querySelectorAll("a")
+      var i = 0
+      while (i < anchors.length) {
+        val a = anchors(i).asInstanceOf[dom.html.Anchor]
+        if (a != null) {
+          a.setAttribute("target", "_blank")
+          val existingRel = Option(a.getAttribute("rel")).getOrElse("")
+          val tokens = existingRel.split("\\s+").filter(_.nonEmpty).toBuffer
+          if (!tokens.contains("noopener")) tokens += "noopener"
+          if (!tokens.contains("noreferrer")) tokens += "noreferrer"
+          a.setAttribute("rel", tokens.mkString(" ").trim)
+        }
+        i += 1
+      }
+    } catch { case _: Throwable => () }
+  }
+
   // --- Helper: ensure there's a bot bubble to render into ---
   private def ensureBotPlaceholder(): Unit = {
     val messageContainer = dom.document.getElementById("messages")
@@ -152,6 +175,8 @@ object SoilCompanionApp extends App {
         val parsed = marked.parse(userMsg)
         val sanitized = DOMPurify.sanitize(parsed)
         contentEl.innerHTML = sanitized
+        // Make links open in a new tab safely
+        fixExternalLinks(contentEl)
         hljs.highlightAll()
         val msgContainer = dom.document.getElementById("messages")
         msgContainer.scrollTop = msgContainer.scrollHeight
@@ -225,11 +250,41 @@ object SoilCompanionApp extends App {
     }
   }
 
-  // If unauthenticated, make sure the About tab is active
-  private def ensureAboutIfUnauthed(): Unit = {
-    if (!isAuthenticated) {
-      activateSidebarTab("tab-about", persist = true, focus = false)
+  // Toggle between standalone login page and main app content
+  private def showLoginPage(): Unit = {
+    val loginPage = dom.document.getElementById("login-page").asInstanceOf[dom.html.Element]
+    val appShell = dom.document.getElementById("app-shell").asInstanceOf[dom.html.Element]
+    if (loginPage != null) {
+      loginPage.removeAttribute("hidden")
+      // Also assert display for browsers that cache inline styles differently
+      try loginPage.asInstanceOf[dom.html.Element].style.display = "" catch { case _: Throwable => () }
     }
+    if (appShell != null) {
+      appShell.setAttribute("hidden", "")
+      try appShell.asInstanceOf[dom.html.Element].style.display = "none" catch { case _: Throwable => () }
+    }
+  }
+
+  private def showAppContent(): Unit = {
+    val loginPage = dom.document.getElementById("login-page").asInstanceOf[dom.html.Element]
+    val appShell = dom.document.getElementById("app-shell").asInstanceOf[dom.html.Element]
+    if (loginPage != null) {
+      loginPage.setAttribute("hidden", "")
+      try loginPage.asInstanceOf[dom.html.Element].style.display = "none" catch { case _: Throwable => () }
+    }
+    if (appShell != null) {
+      appShell.removeAttribute("hidden")
+      // Ensure it becomes visible immediately
+      try appShell.asInstanceOf[dom.html.Element].style.display = "block" catch { case _: Throwable => () }
+    }
+    // As a defensive measure, re-assert visibility shortly after in case late code toggles attributes
+    try dom.window.setTimeout(() => {
+      val lp = dom.document.getElementById("login-page").asInstanceOf[dom.html.Element]
+      val as = dom.document.getElementById("app-shell").asInstanceOf[dom.html.Element]
+      if (lp != null) lp.setAttribute("hidden", "")
+      if (as != null) as.removeAttribute("hidden")
+    }, 50)
+    catch { case _: Throwable => () }
   }
 
   private def saveLocationContext(
@@ -705,12 +760,16 @@ object SoilCompanionApp extends App {
     val logoutBtn = dom.document.getElementById("logout-button").asInstanceOf[dom.html.Button]
     val info = dom.document.getElementById("login-info").asInstanceOf[dom.html.Element]
     if (isAuthenticated) {
+      // swap to main app content
+      showAppContent()
       if (u != null) u.disabled = true
       if (p != null) p.disabled = true
       if (loginBtn != null) { loginBtn.style.display = "none"; loginBtn.disabled = true }
       if (logoutBtn != null) { logoutBtn.style.display = "inline-block"; logoutBtn.disabled = false }
       setLoginInfo("Logged in.", Some("ok"))
     } else {
+      // show login page exclusively
+      showLoginPage()
       val sessionReady = isSessionReady
       if (u != null) { u.disabled = false; if (u.value.isEmpty) u.placeholder = "Email or username" }
       if (p != null) { p.disabled = false; if (p.value.isEmpty) p.placeholder = "Password" }
@@ -755,9 +814,13 @@ object SoilCompanionApp extends App {
         setChatEnabled(true)
         val name = v.obj.get("displayName").map(_.str).getOrElse("User")
         setLoginInfo("Logged in.", Some("ok"))
+        // Immediately switch to the app content to avoid any race with late init timers
+        showAppContent()
         updateLoginUi()
         // Re-enable the Location tab when logged in
         setLocationTabEnabled(true)
+        // Ensure any previous informational bubbles (e.g., "logged out") are removed
+        clearChat()
         addMessage("AI", s"Welcome, $name! You can start chatting now.")
         // If there was a location selected before login, push it now
         pendingLocation.foreach { pl =>
@@ -793,14 +856,16 @@ object SoilCompanionApp extends App {
       updateLoginUi()
       // Disable Location tab and bring user to About after logout
       setLocationTabEnabled(false)
-      activateSidebarTab("tab-about")
+      clearChat()
+      showLoginPage()
       addMessage("AI", "You have been logged out. Please login again to continue chatting.")
     }, { _ =>
       isAuthenticated = false
       setChatEnabled(false)
       updateLoginUi()
       setLocationTabEnabled(false)
-      activateSidebarTab("tab-about")
+      clearChat()
+      showLoginPage()
     })
   }
 
@@ -905,6 +970,46 @@ object SoilCompanionApp extends App {
       })
     }
 
+    // Delegated link handling inside chat messages: ensure left-clicks on links
+    // open in a new tab, even if attributes are missing or DOM was re-rendered.
+    try {
+      val messagesContainer = dom.document.getElementById("messages").asInstanceOf[dom.html.Element]
+      if (messagesContainer != null) {
+        messagesContainer.addEventListener("click", (e: dom.MouseEvent) => {
+          // Only intercept primary-button clicks without modifier keys
+          val isPrimary = e.button == 0
+          val hasMods = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey
+          if (isPrimary && !hasMods) {
+            // Find the closest anchor for the event target (walk up using parentNode)
+            var nodeEl: dom.Element | Null = e.target match
+              case t: dom.Element => t
+              case _              => null
+            while (nodeEl != null && nodeEl.tagName != null && nodeEl.tagName.toLowerCase() != "a") do
+              val parent = nodeEl.parentNode
+              nodeEl = if parent != null && parent.isInstanceOf[dom.Element] then parent.asInstanceOf[dom.Element] else null
+            if (nodeEl != null) {
+              val a = nodeEl.asInstanceOf[dom.html.Anchor]
+              val href = a.getAttribute("href")
+              if (href != null && href.trim.nonEmpty) {
+                // Prevent in-page navigation and open safely in a new tab/window
+                e.preventDefault()
+                // Ensure attributes are set for accessibility and safety
+                a.setAttribute("target", "_blank")
+                val existingRel = Option(a.getAttribute("rel")).getOrElse("")
+                val tokens = existingRel.split("\\s+").filter(_.nonEmpty).toBuffer
+                if (!tokens.contains("noopener")) tokens += "noopener"
+                if (!tokens.contains("noreferrer")) tokens += "noreferrer"
+                a.setAttribute("rel", tokens.mkString(" ").trim)
+
+                val win = dom.window.open(href, "_blank")
+                try { if (win != null) win.opener = null } catch { case _: Throwable => () }
+              }
+            }
+          }
+        })
+      }
+    } catch { case _: Throwable => () }
+
     // Login / Logout buttons
     Option(dom.document.getElementById("login-button")).foreach { el =>
       el.addEventListener("click", (_: dom.MouseEvent) => handleLogin())
@@ -917,12 +1022,12 @@ object SoilCompanionApp extends App {
     val tabLocation = dom.document.getElementById("tab-location").asInstanceOf[dom.html.Element]
     if (tabLocation != null) {
       tabLocation.addEventListener("click", (_: dom.MouseEvent) => {
-        // If not authenticated, prevent using Location and switch back to About
+        // If not authenticated, prevent using Location and show login page
         if (!isAuthenticated) {
           setStatus("Login required for Location.")
           setLoginInfo("Please login to select a location.")
-          // Ensure About tab stays active
-          dom.window.setTimeout(() => activateSidebarTab("tab-about"), 0)
+          // Show login page
+          showLoginPage()
         } else {
           // The panel becomes visible via HTML tab system; init map
           dom.window.setTimeout(() => initLocationMap(), 50)
@@ -1106,6 +1211,8 @@ object SoilCompanionApp extends App {
            |""".stripMargin
 
       newDiv.innerHTML = if (allowFeedback) baseContent + feedbackHtml else baseContent
+      // Ensure links in AI messages open in a new tab safely
+      fixExternalLinks(newDiv)
       hljs.highlightAll()
 
       // Wire feedback handlers (only if feedback UI is present)
@@ -1255,9 +1362,12 @@ object SoilCompanionApp extends App {
         val contentEl = messageElement.querySelector(".message-content").asInstanceOf[dom.html.Element]
         if (contentEl != null) {
           contentEl.innerHTML = sanitized
+          // Fix links on each streaming update
+          fixExternalLinks(contentEl)
         } else {
           // fallback: set entire content (older structure)
           messageElement.innerHTML = s"<div class=\"message-header\"><i class=\"fa-solid fa-robot\"></i></div><div class=\"message-time\">${nowTimeString()}</div><div class=\"message-content\">$sanitized</div>"
+          fixExternalLinks(messageElement.asInstanceOf[dom.Element])
           refreshFaIcons()
         }
         hljs.highlightAll()
@@ -1401,7 +1511,8 @@ object SoilCompanionApp extends App {
               setChatEnabled(false)
               updateLoginUi()
               setLocationTabEnabled(false)
-              activateSidebarTab("tab-about")
+              clearChat()
+              showLoginPage()
               val msg = evt.detail.getOrElse("Login required to chat.")
               addMessage("AI", msg)
               updateFooterStatus(None)
@@ -1411,20 +1522,20 @@ object SoilCompanionApp extends App {
               setChatEnabled(false)
               updateLoginUi()
               setLocationTabEnabled(false)
-              activateSidebarTab("tab-about")
+              clearChat()
+              showLoginPage()
               val msg = evt.detail.getOrElse("You have been logged out.")
               addMessage("AI", msg)
               updateFooterStatus(None)
             case "session_expired" =>
               // Clear chat UI and require login again
-              val container = dom.document.getElementById("messages").asInstanceOf[dom.html.Element]
-              if (container != null) container.innerHTML = ""
+              clearChat()
               isAuthenticated = false
               setAuthState(false)
               setChatEnabled(false)
               updateLoginUi()
               setLocationTabEnabled(false)
-              activateSidebarTab("tab-about")
+              showLoginPage()
               val msg = evt.detail.getOrElse("Your session expired due to inactivity. Please login to start a new chat.")
               addMessage("AI", msg)
               updateFooterStatus(None)
@@ -1517,6 +1628,49 @@ object SoilCompanionApp extends App {
   private def hideSpinner(): Unit =
     dom.document.getElementById("spinner").asInstanceOf[dom.html.Div].style.display = "none"
 
+  /**
+   * Clears the chat UI and any pending chat state. Use this when logging out or when the
+   * session is automatically terminated/invalidated.
+   */
+  private def clearChat(): Unit =
+    try
+      // Cancel any watchdog timer
+      pendingResponseTimer.foreach(dom.window.clearTimeout)
+      pendingResponseTimer = None
+    catch
+      case _: Throwable => ()
+
+    // Reset current question context
+    currentQuestionId = None
+
+    // Hide spinner if visible
+    try hideSpinner() catch case _: Throwable => ()
+
+    // Empty messages container
+    try
+      val container = dom.document.getElementById("messages").asInstanceOf[dom.html.Element]
+      if (container != null) container.innerHTML = ""
+    catch
+      case _: Throwable => ()
+
+    // Reset input and counter
+    try
+      val questionElement = dom.document.getElementById("question").asInstanceOf[dom.html.TextArea]
+      if (questionElement != null) {
+        questionElement.value = ""
+        questionElement.style.height = "auto"
+      }
+      val counterEl = dom.document.getElementById("char-counter").asInstanceOf[dom.html.Element]
+      if (counterEl != null) {
+        counterEl.textContent = "400 left"
+        counterEl.classList.remove("warn")
+      }
+    catch
+      case _: Throwable => ()
+
+    // Clear footer activity/status
+    updateFooterStatus(None)
+
   // Fetch backend health info and render the app version (prefer gitTag over version)
   private def renderVersionFromHealthz(): Unit = {
     val el = dom.document.getElementById("version-text").asInstanceOf[dom.html.Element]
@@ -1553,11 +1707,11 @@ object SoilCompanionApp extends App {
   setAuthState(false)
   setChatEnabled(false)
   updateLoginUi()
-  // On initial load when not authenticated: disable Location tab and force About tab
+  // On initial load when not authenticated: disable Location tab and show login page
   setLocationTabEnabled(false)
-  // Defer tab activation to ensure it wins over inline tab persistence script
-  dom.window.setTimeout(() => ensureAboutIfUnauthed(), 0)
-  addMessage("AI", "Welcome to Soil Companion. Please login in the left sidebar to start chatting.")
+  // Ensure login page is visible (in case initial HTML showed content)
+  dom.window.setTimeout(() => if (!isAuthenticated) showLoginPage(), 0)
+  addMessage("AI", "Welcome to Soil Companion. Please login to start chatting.")
   // Expose a global hook for plain JS (toolbar.js) to refresh canonical footer status
   try {
     js.Dynamic.global.updateFooterStatus = (msg: String) => updateFooterStatus(Option(msg))

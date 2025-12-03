@@ -21,6 +21,39 @@
 </head>
 <body>
 <div class="app layout">
+    <div id="login-page" class="login-page">
+        <div class="explainer login-explainer">
+            <img
+                src="./img/soilwise-soil-companion-icon-512-transparant.png"
+                alt="Soil Companion icon"
+                class="about-logo"
+                width="96" height="96"
+            />
+            <div>
+                <p>This is a chatbot for the <a href="https://soilwise-he.eu">SoilWise</a> project.</p>
+                <br/>
+                <p>Ask it a soil related question, and you'll get answers based on the open access knowledge and data repository that the project collects.</p>
+                <br/>
+                <p>SoilWise aims to foster soil wisdom, advance agriculture, and build a legacy of greener, healthier soils. The chatbot will prefer giving answers that take these aims into account.</p>
+                <br/>
+                <p>The chat memory and any uploaded file will be erased 15 minutes after your last message. No information is kept or used for training models.</p>
+                <br/>
+                <p>You can voluntarily provide feedback by rating answers given by the chatbot, or by contacting SoilWise via this <a href="https://soilwise-he.eu/contact/">form</a>.</p>
+            </div>
+            <div class="login-section" aria-label="User login (demo)">
+                <div class="login-row">
+                    <input type="text" class="login-input" id="login-username" name="username" placeholder="Email or username" autocomplete="username">
+                    <input type="password" class="login-input" id="login-password" name="password" placeholder="Password" autocomplete="current-password">
+                </div>
+                <div class="login-actions">
+                    <button id="login-button" class="login-button" type="button" title="Login">Login</button>
+                    <span id="login-info" class="login-info" aria-live="polite"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-shell" hidden>
     <header class="top-banner">
         <div class="brand">
             <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar" aria-label="Toggle sidebar">
@@ -40,50 +73,20 @@
                 </button>
                 <button id="btn-copy" class="toolbar-btn" title="Copy chat" aria-label="Copy chat"><i class="fa-regular fa-copy"></i><span class="btn-label">Copy</span></button>
                 <button id="btn-clear" class="toolbar-btn" title="Clear chat" aria-label="Clear chat"><i class="fa-regular fa-trash-can"></i><span class="btn-label">Clear</span></button>
+                <button id="logout-button" class="toolbar-btn btn-logout" title="Logout" aria-label="Logout" style="display:none;">
+                    <i class="fa-solid fa-right-from-bracket"></i><span class="btn-label">Logout</span>
+                </button>
             </div>
         </div>
     </header>
-    <div class="content">
-        <aside id="sidebar" class="sidebar" aria-label="Information and login">
+    <div class="content" id="app-content">
+        <aside id="sidebar" class="sidebar" aria-label="Information">
             <div class="sidebar-tabs" role="region" aria-label="Sidebar tabs">
                 <div class="tablist" role="tablist" aria-label="Sidebar sections">
-                    <button role="tab" id="tab-about" aria-controls="panel-about" aria-selected="true" tabindex="0" class="tab">About</button>
-                    <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="false" tabindex="-1" class="tab">First use</button>
+                    <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="true" tabindex="0" class="tab">First use</button>
                     <button role="tab" id="tab-location" aria-controls="panel-location" aria-selected="false" tabindex="-1" class="tab">Location</button>
                 </div>
-                <div id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="tabpanel" tabindex="0">
-                    <div class="explainer">
-                        <img
-                            src="./img/soilwise-soil-companion-icon-512-transparant.png"
-                            alt="Soil Companion icon"
-                            class="about-logo"
-                            width="96" height="96"
-                        />
-                        <div>
-                            <p>This is a chatbot for the <a href="https://soilwise-he.eu">SoilWise</a> project.</p>
-                            <br/>
-                            <p>Ask it a soil related question, and you'll get answers based on the open access knowledge and data repository that the project collects.</p>
-                            <br/>
-                            <p>SoilWise aims to foster soil wisdom, advance agriculture, and build a legacy of greener, healthier soils. The chatbot will prefer giving answers that take these aims into account.</p>
-                            <br/>
-                            <p>The chat memory and any uploaded file will be erased 15 minutes after your last message. No information is kept or used for training models.</p>
-                            <br/>
-                            <p>You can voluntarily provide feedback by rating answers given by the chatbot, or by contacting SoilWise via this <a href="https://soilwise-he.eu/contact/">form</a>.</p>
-                        </div>
-                        <div class="login-section" aria-label="User login (demo)">
-                            <div class="login-row">
-                                <input type="text" class="login-input" id="login-username" name="username" placeholder="Email or username" autocomplete="username">
-                                <input type="password" class="login-input" id="login-password" name="password" placeholder="Password" autocomplete="current-password">
-                            </div>
-                            <div class="login-actions">
-                                <button id="login-button" class="login-button" type="button" title="Login">Login</button>
-                                <button id="logout-button" class="login-button" type="button" title="Logout" style="display:none;">Logout</button>
-                                <span id="login-info" class="login-info" aria-live="polite"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0" hidden>
+                <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0">
                     <div class="first-use">
                         <h3>Getting started</h3>
                         <ol>
@@ -317,7 +320,7 @@
                             </datalist>
                         </div>
                         <div id="map" style="height: 300px; border-radius: 8px; overflow: hidden;"></div>
-                        <button id="location-clear" class="login-button location-clear-btn" type="button" title="Clear selection">Clear</button>
+                        <button id="location-clear" class="login-button location-clear-btn" type="button" title="Clear selection">Forget</button>
                         <div class="location-card" role="status" aria-live="polite" aria-atomic="true">
                             <div class="location-card-header">
                                 <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
@@ -370,6 +373,7 @@
         <div id="status-text">Ready.</div>
         <div id="version-text" aria-label="App version" title="Application version"></div>
     </footer>
+    </div> <!-- /#app-shell -->
 </div>
 <script src="./main.js"></script>
 <script src="./toolbar.js"></script>
@@ -493,6 +497,35 @@
         }
         if (media && media.addEventListener) media.addEventListener('change', onMediaChange);
         else if (media && media.addListener) media.addListener(onMediaChange);
+    })();
+
+    // Ensure links inside chat messages always open in a new tab (safety net in plain JS)
+    (function(){
+        const container = document.getElementById('messages');
+        if (!container) return;
+        container.addEventListener('click', function(ev){
+            // If already handled by another listener, skip
+            if (ev.defaultPrevented) return;
+            // Only primary button without modifier keys
+            if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+            let node = ev.target;
+            while (node && node.tagName && node.tagName.toLowerCase() !== 'a') {
+                node = node.parentElement;
+            }
+            if (!node) return;
+            const a = node;
+            const href = a.getAttribute('href');
+            if (!href) return;
+            ev.preventDefault();
+            // Ensure target and rel attributes are present
+            a.setAttribute('target', '_blank');
+            const rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+            if (!rel.includes('noopener')) rel.push('noopener');
+            if (!rel.includes('noreferrer')) rel.push('noreferrer');
+            a.setAttribute('rel', rel.join(' '));
+            const win = window.open(href, '_blank');
+            try { if (win) win.opener = null; } catch(e) {}
+        });
     })();
 </script>
 </body>

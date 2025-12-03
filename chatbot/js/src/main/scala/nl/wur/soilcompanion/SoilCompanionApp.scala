@@ -56,9 +56,13 @@ object SoilCompanionApp extends App {
   private var ws: Option[WebSocket] = None
   private var wsConnected: Boolean = false
   private var wsReconnectBackoffMs: Int = 1000
+  // Track a single scheduled reconnect timer to avoid concurrent reconnect attempts
+  private var wsReconnectTimer: Option[Int] = None
   private var lastWsMessageAt: Double = js.Date.now()
   // Watchdog timer to surface errors if no events arrive after sending a question
   private var pendingResponseTimer: Option[Int] = None
+  // Track whether chat input/actions are enabled (separate from auth/connectivity)
+  private var chatEnabled: Boolean = false
   
   // When user clicks "Clear" before a sessionId is available, remember intent
   private var pendingClearLocation: Boolean = false
@@ -640,8 +644,27 @@ object SoilCompanionApp extends App {
    * @return This method does not return anything.
    */
   private def setStatus(text: String): Unit = {
+    // Surface message as transient activity while preserving base connectivity/auth state
+    updateFooterStatus(Some(text))
+  }
+
+  // Compute and render footer status from current state; optional activity appended
+  private def updateFooterStatus(activity: Option[String] = None): Unit = {
     val el = dom.document.getElementById("status-text").asInstanceOf[dom.html.Element]
-    if (el != null) el.textContent = text
+    if (el == null) return
+    val base =
+      if (!isSessionReady) "Preparing session…"
+      else if (!wsConnected) {
+        if (wsReconnectTimer.nonEmpty) "Disconnected — reconnecting…" else "Offline — backend unavailable"
+      } else {
+        if (isAuthenticated) {
+          if (chatEnabled) "Logged in — chat enabled." else "Logged in — chat disabled."
+        } else "Not logged in."
+      }
+    val text = activity match
+      case Some(act) if act.trim.nonEmpty => s"${base} • ${act}"
+      case _ => base
+    el.textContent = text
   }
 
   private def setChatEnabled(enabled: Boolean): Unit = {
@@ -653,7 +676,8 @@ object SoilCompanionApp extends App {
     if (send != null) send.disabled = !enabled
     if (copy != null) copy.disabled = !enabled
     if (clear != null) clear.disabled = !enabled
-    if (!enabled) setStatus("Login required to chat.") else setStatus("Ready.")
+    chatEnabled = enabled
+    updateFooterStatus(None)
   }
 
   private def isSessionReady: Boolean = sessionId.exists(_.nonEmpty)
@@ -1275,6 +1299,7 @@ object SoilCompanionApp extends App {
           dom.window.localStorage.setItem("soilcompanion.sessionId", session)
           // session is ready: enable login UI if previously disabled
           updateLoginUi()
+          updateFooterStatus(None)
           connectWebSocket(session)
           // If user clicked clear before session was ready, honor it now
           if (pendingClearLocation) {
@@ -1285,6 +1310,7 @@ object SoilCompanionApp extends App {
         case Failure(e) =>
           dom.console.log(s"Error fetching server session: $e")
           setLoginInfo("Failed to prepare session. Please reload the page.", Some("error"))
+          updateFooterStatus(Some("Failed to prepare session"))
       }
   }
 
@@ -1301,21 +1327,35 @@ object SoilCompanionApp extends App {
     val socket = new WebSocket(s"$wsBase/subscribe/$sessionId")
     ws = Some(socket)
 
-    def updateStatusFooter(text: String): Unit = {
-      val el = dom.document.getElementById("status-text").asInstanceOf[dom.html.Element]
-      if (el != null) el.textContent = text
+    def updateStatusFooter(text: String): Unit = updateFooterStatus(Some(text))
+
+    def cancelReconnectTimer(): Unit = {
+      wsReconnectTimer.foreach(dom.window.clearTimeout)
+      wsReconnectTimer = None
+      // after cancelling, refresh footer to reflect current state
+      updateFooterStatus(None)
     }
 
     def scheduleReconnect(): Unit = {
-      val delay = math.min(wsReconnectBackoffMs, 30000)
-      dom.window.setTimeout(() => connectWebSocket(sessionId), delay)
-      wsReconnectBackoffMs = math.min(delay * 2, 30000)
+      // If a reconnect is already scheduled, do not schedule another
+      if (wsReconnectTimer.nonEmpty) return
+      val base = wsReconnectBackoffMs
+      val jitter = (math.random() * 0.3 * base).toInt // up to +30% jitter
+      val delay = math.min(base + jitter, 30000)
+      wsReconnectTimer = Some(dom.window.setTimeout(() => {
+        wsReconnectTimer = None
+        connectWebSocket(sessionId)
+      }, delay))
+      wsReconnectBackoffMs = math.min(base * 2, 30000)
+      // reflect reconnecting state
+      updateFooterStatus(None)
     }
 
     socket.onopen = { (_: dom.Event) =>
       wsConnected = true
       wsReconnectBackoffMs = 1000
-      updateStatusFooter("Connected.")
+      cancelReconnectTimer()
+      updateFooterStatus(None)
     }
 
     socket.onmessage = { (e: MessageEvent) =>
@@ -1364,6 +1404,7 @@ object SoilCompanionApp extends App {
               activateSidebarTab("tab-about")
               val msg = evt.detail.getOrElse("Login required to chat.")
               addMessage("AI", msg)
+              updateFooterStatus(None)
             case "logged_out" =>
               isAuthenticated = false
               setAuthState(false)
@@ -1373,6 +1414,7 @@ object SoilCompanionApp extends App {
               activateSidebarTab("tab-about")
               val msg = evt.detail.getOrElse("You have been logged out.")
               addMessage("AI", msg)
+              updateFooterStatus(None)
             case "session_expired" =>
               // Clear chat UI and require login again
               val container = dom.document.getElementById("messages").asInstanceOf[dom.html.Element]
@@ -1385,8 +1427,10 @@ object SoilCompanionApp extends App {
               activateSidebarTab("tab-about")
               val msg = evt.detail.getOrElse("Your session expired due to inactivity. Please login to start a new chat.")
               addMessage("AI", msg)
+              updateFooterStatus(None)
             case "done" =>
-              updateStatusFooter(evt.detail.getOrElse("Ready."))
+              // Clear activity; base state remains
+              updateFooterStatus(None)
               // Defensive: if a typing indicator is still visible with no content, clear it
               val messages = dom.document.getElementById("messages")
               val last = messages.lastElementChild
@@ -1431,19 +1475,26 @@ object SoilCompanionApp extends App {
       }
     }
 
-    window.onbeforeunload = _ => socket.close()
+    window.onbeforeunload = _ => {
+      cancelReconnectTimer()
+      socket.close()
+    }
 
     // Also handle transport-level errors defensively
     socket.onerror = { (_: dom.Event) =>
       wsConnected = false
-      updateStatusFooter("Connection error while generating.")
+      // ensure reference cleared so callers can see it's closed
+      ws = None
+      updateStatusFooter("Connection error")
       showErrorInLastBotMessage(Some("Connection error while generating."))
       scheduleReconnect()
     }
 
     socket.onclose = { (_: dom.Event) =>
       wsConnected = false
-      updateStatusFooter("Connection closed. Reconnecting…")
+       // clear socket reference and schedule a guarded reconnect
+      ws = None
+      updateFooterStatus(None)
       scheduleReconnect()
     }
   }
@@ -1507,4 +1558,10 @@ object SoilCompanionApp extends App {
   // Defer tab activation to ensure it wins over inline tab persistence script
   dom.window.setTimeout(() => ensureAboutIfUnauthed(), 0)
   addMessage("AI", "Welcome to Soil Companion. Please login in the left sidebar to start chatting.")
+  // Expose a global hook for plain JS (toolbar.js) to refresh canonical footer status
+  try {
+    js.Dynamic.global.updateFooterStatus = (msg: String) => updateFooterStatus(Option(msg))
+    js.Dynamic.global.SoilCompanionRefreshStatus = () => updateFooterStatus(None)
+  } catch
+    case _: Throwable => ()
 }

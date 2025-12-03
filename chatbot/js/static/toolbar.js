@@ -16,9 +16,12 @@
         // Briefly highlight status (CSS optional). Remove class after timeout if present.
         status.classList && status.classList.add('status-pulse');
         setTimeout(function(){
-          // Only reset to Ready if message hasn't changed since
+          // Restore canonical footer state if message hasn't changed since
           if (status.textContent === msg) {
-            status.textContent = 'Ready.';
+            try {
+              var refresh = window && window.SoilCompanionRefreshStatus;
+              if (typeof refresh === 'function') refresh();
+            } catch(_) {}
           }
           status.classList && status.classList.remove('status-pulse');
         }, 3000);
@@ -262,8 +265,10 @@
       } else {
         clearUploadIndicator();
       }
-      var status = document.getElementById('status-text');
-      if (status) status.textContent = authed ? 'Logged in — chat enabled.' : 'Please login to enable chat.';
+      try {
+        var refresh = window && window.SoilCompanionRefreshStatus;
+        if (typeof refresh === 'function') refresh();
+      } catch(_) {}
     }
 
     if (saveBtn) saveBtn.addEventListener('click', function(){

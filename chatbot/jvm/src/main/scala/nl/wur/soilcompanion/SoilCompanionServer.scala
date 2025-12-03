@@ -304,19 +304,23 @@ object SoilCompanionServer extends MainRoutes {
   def subscribe(sessionId: String): WsHandler = {
     logger.info(s"New WebSocket connection for session $sessionId")
     WsHandler { connection =>
-      // remember connection and an Assistant for this session
+      // If there's an existing WS for this session, close it to prevent fan-out/duplication.
+      Option(wsConnections.get(sessionId)).foreach { prev =>
+        try prev.send(Ws.Close(1000, "Replaced by a new connection"))
+        catch case _: Throwable => ()
+      }
+
+      // remember the new connection
       wsConnections.put(sessionId, connection)
-      assistants.put(sessionId, AssistantLive())
+      // Only create an Assistant if none exists yet; keep state across WS reconnects
+      if (!assistants.containsKey(sessionId) || assistants.get(sessionId) == null) then
+        assistants.put(sessionId, AssistantLive())
       touchActivity(sessionId)
       // return actor that handles websocket messages
       WsActor {
         case Ws.Close(_, _) =>
+          // On transport close, only release the WS connection. Keep session state so a reconnect resumes cleanly.
           wsConnections.remove(sessionId)
-          assistants.remove(sessionId)
-          uploadedTexts.remove(sessionId)
-          uploadedFilenames.remove(sessionId)
-          lastActivity.remove(sessionId)
-          authenticatedSessions.remove(sessionId)
       }
     }
   }

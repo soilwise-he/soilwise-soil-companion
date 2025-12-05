@@ -1,0 +1,59 @@
+{
+  "generated_at": "2025-12-04T09:47:08.211021Z",
+  "inputs": [
+    "/Users/robknapen/Projects/Work/soilwise/soil-companion/eval/emsw2025_brussels/feedback-logs/feedback-2025-12-02.jsonl"
+  ],
+  "overall": {
+    "n": 20,
+    "ups": 16,
+    "downs": 4,
+    "like_rate": 0.8,
+    "nsat": 0.6,
+    "wilson_lower_95": 0.5839782779742402
+  },
+  "downvote_reasons": [
+    {
+      "reason": "too generic",
+      "count": 3
+    },
+    {
+      "reason": "other",
+      "count": 1
+    }
+  ],
+  "per_session": [
+    {
+      "session_id": "5fbe5b6d-01c4-4ee0-ae91-0063cbae3e38",
+      "n": 7,
+      "ups": 6,
+      "downs": 1,
+      "like_rate": 0.8571428571428571
+    },
+    {
+      "session_id": "3ba6265a-b7ec-45a0-92c0-58cec06fa20d",
+      "n": 12,
+      "ups": 10,
+      "downs": 2,
+      "like_rate": 0.8333333333333334
+    },
+    {
+      "session_id": "f0f17051-795f-470a-8fe3-6f1bd09d31a8",
+      "n": 1,
+      "ups": 0,
+      "downs": 1,
+      "like_rate": 0
+    }
+  ],
+  "session_weighted_lr": 0.5634920634920635,
+  "per_model": [
+    {
+      "model": "gpt-4o-mini-2024-07-18",
+      "n": 20,
+      "ups": 16,
+      "downs": 4,
+      "like_rate": 0.8,
+      "nsat": 0.6,
+      "wilson_lower_95": 0.5839782779742402
+    }
+  ]
+}

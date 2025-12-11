@@ -89,6 +89,12 @@ object SoilCompanionApp extends App {
   dom.console.log(s"[DEBUG_LOG] API base resolved to: ${httpBase}")
   private var isAuthenticated: Boolean = false
 
+  // --- App version/update polling ---
+  // Keep track of the initially loaded backend app version tag to detect updates
+  private var initialVersionTag: Option[String] = None
+  // Handle to a periodic timer used for polling /healthz
+  private var versionPollTimer: Option[Int] = None
+
   // execution context for futures
   given ExecutionContext = ExecutionContext.Implicits.global
 
@@ -1671,6 +1677,20 @@ object SoilCompanionApp extends App {
     // Clear footer activity/status
     updateFooterStatus(None)
 
+  // Helper: parse a selected version label from /healthz JSON (prefer gitTag over version)
+  private def extractVersionLabel(jsonText: String): String =
+    try
+      val dyn = js.JSON.parse(jsonText).asInstanceOf[js.Dynamic]
+      def optStr(v: js.Dynamic): Option[String] =
+        if (js.isUndefined(v) || v == null) None else Option(v.asInstanceOf[String]).filter(_.trim.nonEmpty)
+      val tag = optStr(dyn.selectDynamic("gitTag"))
+      val ver = optStr(dyn.selectDynamic("version"))
+      val chosen = tag.orElse(ver).getOrElse("")
+      // normalize with leading v for display consistency
+      if (chosen.nonEmpty && !chosen.startsWith("v")) s"v$chosen" else chosen
+    catch
+      case _: Throwable => ""
+
   // Fetch backend health info and render the app version (prefer gitTag over version)
   private def renderVersionFromHealthz(): Unit = {
     val el = dom.document.getElementById("version-text").asInstanceOf[dom.html.Element]
@@ -1679,26 +1699,99 @@ object SoilCompanionApp extends App {
     fetch(url).toFuture
       .flatMap(_.text().toFuture)
       .foreach { txt =>
-        try
-          val dyn = js.JSON.parse(txt).asInstanceOf[js.Dynamic]
-          def optStr(v: js.Dynamic): Option[String] =
-            if (js.isUndefined(v) || v == null) None else Option(v.asInstanceOf[String]).filter(_.trim.nonEmpty)
-
-          val tag = optStr(dyn.selectDynamic("gitTag"))
-          val ver = optStr(dyn.selectDynamic("version"))
-          val chosen = tag.orElse(ver).getOrElse("")
-          val display = if (chosen.nonEmpty && !chosen.startsWith("v")) s"v$chosen" else chosen
+        val display = extractVersionLabel(txt)
+        if (display.nonEmpty) {
           el.textContent = display
-        catch
-          case _: Throwable => ()
+          if (initialVersionTag.isEmpty) initialVersionTag = Some(display)
+        }
       }
   }
+
+  // Create and show a non-intrusive banner prompting the user to reload
+  private def showUpdateBanner(newVersion: String): Unit =
+    // Avoid duplicating the banner
+    if (dom.document.getElementById("update-banner") != null) return
+
+    val banner = dom.document.createElement("div").asInstanceOf[dom.html.Div]
+    banner.id = "update-banner"
+    banner.setAttribute("role", "status")
+    banner.setAttribute("aria-live", "polite")
+    // Styling inline to avoid touching CSS files
+    banner.style.position = "fixed"
+    banner.style.left = "0"
+    banner.style.right = "0"
+    banner.style.bottom = "56px" // sit above the status footer
+    banner.style.zIndex = "1000"
+    banner.style.backgroundColor = "#fff3cd" // warning-like
+    banner.style.color = "#533f03"
+    banner.style.borderTop = "1px solid #ffe69c"
+    banner.style.borderBottom = "1px solid #ffe69c"
+    banner.style.boxShadow = "0 -2px 6px rgba(0,0,0,0.08)"
+    banner.style.padding = "10px 12px"
+    banner.style.display = "flex"
+    banner.style.setProperty("align-items", "center")
+    banner.style.setProperty("justify-content", "space-between")
+
+    val text = dom.document.createElement("div").asInstanceOf[dom.html.Div]
+    text.textContent = (if (newVersion.nonEmpty) s"A new version is available ($newVersion)."
+                        else "A new version is available.") + " Please reload to update."
+
+    val btn = dom.document.createElement("button").asInstanceOf[dom.html.Button]
+    btn.className = "toolbar-btn"
+    btn.textContent = "Reload"
+    btn.title = "Reload to update to the latest version"
+    btn.setAttribute("aria-label", "Reload to update to the latest version")
+    btn.onclick = { (_: dom.MouseEvent) =>
+      try
+        // Try a cache-busting reload
+        val href = dom.window.location.href
+        val sep = if (href.contains("?")) "&" else "?"
+        dom.window.location.href = href + sep + s"_r=${js.Date.now().toLong}"
+      catch
+        case _: Throwable => dom.window.location.reload()
+    }
+
+    banner.appendChild(text)
+    banner.appendChild(btn)
+
+    // Attach near the footer; append to body
+    dom.document.body.appendChild(banner)
+
+    // Also reflect new version in the footer text element if present
+    try
+      val verEl = dom.document.getElementById("version-text").asInstanceOf[dom.html.Element]
+      if (verEl != null && newVersion.nonEmpty) verEl.textContent = newVersion
+    catch
+      case _: Throwable => ()
+
+  // Periodically poll /healthz and compare with initial version
+  private def startVersionPolling(intervalMs: Int = 120000): Unit =
+    // Do not start if already started
+    if (versionPollTimer.nonEmpty) return
+    val url = s"$httpBase/healthz"
+    val handle = dom.window.setInterval({ () =>
+      fetch(url).toFuture
+        .flatMap(_.text().toFuture)
+        .foreach { txt =>
+          val current = extractVersionLabel(txt)
+          initialVersionTag.foreach { init =>
+            if (current.nonEmpty && current != init) then
+              // Stop polling and show the update banner
+              versionPollTimer.foreach(dom.window.clearInterval)
+              versionPollTimer = None
+              showUpdateBanner(current)
+          }
+        }
+    }, intervalMs)
+    versionPollTimer = Some(handle)
 
   // --- Main ---
 
   dom.console.log("Soil Companion App is running!")
   // Render version in footer (right-aligned)
   renderVersionFromHealthz()
+  // Start background polling to detect newer versions and prompt for reload
+  startVersionPolling(60000)
   // Initialize session and UI
   getSession()
   setupEventListeners()

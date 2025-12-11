@@ -1,0 +1,24 @@
+{
+  "name": "SoilWise - Soil Companion",
+  "short_name": "SoilCompanion",
+  "description": "AI chatbot for soil related questions (SoilWise project)",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6b4e2e",
+  "icons": [
+    {
+      "src": "./img/soilwise-soil-companion-icon-512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./img/soilwise-soil-companion-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

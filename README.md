@@ -46,14 +46,14 @@ The Soil Companion is a full‑stack Scala / Scala.js application. Key technolog
 
 ### Health endpoints and Kubernetes probes
 - The backend exposes lightweight health endpoints at the server root:
-  - `GET /healthz` — liveness: always returns 200 OK with JSON `{ status, uptimeSeconds, version, now }` while the process is running.
+  - `GET /healthz` — liveness: always returns 200 OK with JSON `{ status, uptimeSeconds, version, gitTag, now }` while the process is running.
   - `GET /readyz` — readiness: returns 200 OK when core config is loaded and the LLM API key is present; otherwise returns 503 with JSON payload including `checks` and simple `metrics`.
 
 Example responses:
 
 ```
 GET /healthz -> 200 OK
-{"status":"ok","uptimeSeconds":123,"version":"1.0.0","now":"2025-11-21T13:45:00Z"}
+{"status":"ok","uptimeSeconds":123,"version":"1.0.0","gitTag":"v1.0.0","now":"2025-11-21T13:45:00Z"}
 
 GET /readyz -> 200 OK or 503 Service Unavailable
 {"status":"ready","uptimeSeconds":123,"version":"1.0.0","metrics":{"wsConnections":0,"sessions":0},"checks":{"configLoaded":true,"llmApiKeyPresent":true}}
@@ -85,6 +85,34 @@ Notes:
 - Readiness depends on `llm-provider-config.apiKey` being non-empty (e.g., `OPENAI_API_KEY`).
 - Probes are fast and do not perform external network calls.
 - WebSocket keep-alive heartbeats are sent every 15s; ensure ingress timeouts are configured accordingly (see Kubernetes runbook below).
+
+### Frontend version display and safe auto-update
+
+To avoid users staying on an outdated client after a new deployment, the frontend is version-aware and politely prompts for a reload when a newer version is available.
+
+How it works:
+
+- On startup, the UI calls `GET /healthz` and displays a version label in the footer (element `#version-text`).
+  - It prefers the `gitTag` returned by `/healthz`; if absent, it falls back to `version`.
+  - The label is normalized to include a leading `v` when missing (e.g., `v1.2.3`).
+- The initial value is remembered by the client.
+- In the background, the client polls `/healthz` periodically and compares the current `gitTag`/`version` to the initial one.
+  - Default polling interval: 60 seconds.
+  - When a change is detected, a small, accessible banner appears above the footer asking the user to reload.
+  - Clicking “Reload” performs a cache-busting reload by appending a query parameter to the URL to ensure fresh assets are fetched.
+
+Operational details:
+
+- Backend `GET /healthz` includes both `version` and `gitTag`. The server determines `gitTag` from CI-provided environment variables when available (e.g., `CI_COMMIT_TAG`, `RELEASE_TAG`, `GIT_TAG`, `SEMREL_VERSION`, `SEMVER_TAG`) and falls back to the application `version` if necessary.
+- The UI logic lives in `chatbot/js/src/main/scala/nl/wur/soilcompanion/SoilCompanionApp.scala`:
+  - Functions: `renderVersionFromHealthz`, `extractVersionLabel`, `startVersionPolling`, `showUpdateBanner`.
+  - Polling is started during app initialization via `startVersionPolling(60000)`.
+- To change the polling interval, adjust the argument to `startVersionPolling(...)` (milliseconds) in `SoilCompanionApp.scala`.
+- No server configuration is required for this feature; ensure `/healthz` is reachable from the client.
+
+Accessibility and UX:
+
+- The update banner uses `role="status"` and `aria-live="polite"` and appears only once per update detection. It remains visible until the user reloads.
 
 ## Configuration
 - An *application.conf* resource file is used to configure the application.

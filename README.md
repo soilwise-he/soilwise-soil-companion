@@ -467,8 +467,8 @@ To analyze conversations and user feedback, the project includes a small Scala C
 
 - Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/eval/LogFeedbackExporter.scala`
 - Inputs (defaults, relative to project root):
-  - Log file: `./data/logs/soil-companion.log`
-  - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl`)
+  - Logs directory: `./data/logs` (reads `soil-companion.log` plus rollover files, including `.gz`)
+  - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl` or `feedback-YYYY-MM-DD.jsonl.gz`)
 - Output:
   - JSON file written to `./data/feedback-logs/feedback-export-<timestamp>.json` (overridable via `--out`)
   - CSV file written alongside the JSON by default (same basename with `.csv`), or to a custom path via `--csv-out`
@@ -515,7 +515,7 @@ Specify explicit paths and output filename if needed:
 
 ```
   sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.LogFeedbackExporter \
-  --log ./data/logs/soil-companion.log \
+  --log ./data/logs \
   --feedback-dir ./data/feedback-logs \
   --out ./data/feedback-logs/merged.json"
   ```
@@ -524,13 +524,15 @@ Write CSV to an explicit path (otherwise a CSV is written next to the JSON outpu
 
 ```
 sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.LogFeedbackExporter \
-  --log ./data/logs/soil-companion.log \
+  --log ./data/logs \
   --feedback-dir ./data/feedback-logs \
   --out ./data/feedback-logs/feedback-export.json \
   --csv-out ./data/feedback-logs/feedback-export.csv"
 ```
 
 Notes:
+- The exporter accepts `--log` as either a single file path or a directory. When a directory is provided (default), it scans files whose names start with `soil-companion.log` (including gzipped rollovers ending with `.gz`) and processes them in chronological order.
+- Feedback files in `--feedback-dir` may be plain `*.jsonl` or gzipped `*.jsonl.gz`.
 - The parser expects log lines like `Received query for session ..., questionId=...: ...`, `[AI_FINAL] Q:` / `[AI_FINAL] A:` blocks, and `Query for session ... completed`.
 - Retrieval/tool context is collected heuristically from lines that include metadata such as `file_name` and `index` when present.
 
@@ -539,7 +541,7 @@ A companion CLI computes quality metrics from the feedback JSONL files.
 
 - Source: `chatbot/jvm/src/main/scala/nl/wur/soilcompanion/eval/FeedbackMetrics.scala`
 - Inputs (defaults, relative to project root):
-  - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl`)
+  - Feedback directory: `./data/feedback-logs` (files like `feedback-YYYY-MM-DD.jsonl` or `feedback-YYYY-MM-DD.jsonl.gz`)
 - Output:
   - Human‑readable, colorized table report printed to stdout; optionally written to a text file with `--out`
   - Optional structured JSON report written with `--json-out`
@@ -558,6 +560,20 @@ How to run (similar to LogFeedbackExporter)
 
 ```
 sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics"
+```
+
+Examples:
+
+- Directory with mixed plain and gzipped feedback files:
+
+```
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --feedback-dir ./data/feedback-logs"
+```
+
+- Single gzipped feedback file:
+
+```
+sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --file ./data/feedback-logs/feedback-2025-11-29.jsonl.gz"
 ```
 
 Specify a feedback directory explicitly:

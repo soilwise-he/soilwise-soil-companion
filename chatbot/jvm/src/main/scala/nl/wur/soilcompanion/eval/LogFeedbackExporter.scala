@@ -12,7 +12,7 @@ import ujson.*
  * Utility to merge chatbot runtime logs (soil-companion.log) with feedback JSONL files into a single JSON export.
  *
  * Inputs (defaults relative to project root):
- * - log file: ./data/logs/soil-companion.log
+ * - logs directory: ./data/logs (reads soil-companion.log and rollovers, including .gz)
  * - feedback directory: ./data/feedback-logs
  *
  * Output:
@@ -20,7 +20,7 @@ import ujson.*
  *
  * Usage examples:
  *   sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter"
- *   sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter --log ./data/logs/soil-companion.log --feedback-dir ./data/feedback-logs --out ./data/feedback-logs/merged.json"
+ *   sbt "chatbotJVM/runMain nl.wur.soilcompanion.tools.LogFeedbackExporter --log ./data/logs --feedback-dir ./data/feedback-logs --out ./data/feedback-logs/merged.json"
  */
 object LogFeedbackExporter:
   private case class Feedback(
@@ -63,7 +63,7 @@ object LogFeedbackExporter:
     // Resolve all relative paths against the repository root (directory containing build.sbt)
     val repoRoot = findRepoRoot()
     def resolve(p: String): Path = os.Path(p, repoRoot)
-    val logPath = resolve(argMap.getOrElse("--log", "./data/logs/soil-companion.log"))
+    val logPath = resolve(argMap.getOrElse("--log", "./data/logs"))
     val fbDir   = resolve(argMap.getOrElse("--feedback-dir", "./data/feedback-logs"))
     val outPath = resolve(argMap.getOrElse("--out", s"./data/feedback-logs/feedback-export-${timeStampNow()}.json"))
     // CSV output path: explicit via --csv-out, otherwise alongside JSON with .csv extension
@@ -80,7 +80,7 @@ object LogFeedbackExporter:
       }
 
     if !os.exists(logPath) then
-      System.err.println(s"[LogFeedbackExporter] Log file not found: $logPath")
+      System.err.println(s"[LogFeedbackExporter] Log file/dir not found: $logPath")
       System.exit(2)
 
     if !os.isDir(fbDir) then
@@ -122,8 +122,7 @@ object LogFeedbackExporter:
     DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(ZonedDateTime.now(ZoneId.systemDefault()))
 
   private def parseLog(logPath: Path): Map[String, QARecord] =
-    val lines = os.read.lines(logPath)
-
+    // State across files/lines
     var qaById = Map.empty[String, QARecord]
     var currentBySession = Map.empty[String, String] // sessionId -> questionId
     var collectingQ: Option[String] = None // questionId currently collecting Q lines
@@ -152,7 +151,8 @@ object LogFeedbackExporter:
       val rec = ensureRecord(qid)
       qaById = qaById.updated(qid, rec.copy(logsInSpan = rec.logsInSpan :+ line))
 
-    lines.foreach {
+    // Helper to process a single log line
+    def processLine(lineIn: String): Unit = lineIn match
       case line@receivedRx(sessionId, questionId, msg) =>
         // timestamp
         val ts = tsPrefix.findFirstMatchIn(line).map(_.group(1))
@@ -224,7 +224,16 @@ object LogFeedbackExporter:
           if isRetrievalOrToolLine(line) then appendRetrieval(qid, line)
           else if isSpanRelevant(line) then appendSpanLog(qid, line)
         }
-    }
+    
+    // Iterate lines from file or a directory (including gzipped rollover files)
+    if os.isDir(logPath) then
+      val dir = logPath
+      val files = os.list(dir)
+        .filter(p => p.toIO.isFile && p.last.startsWith("soil-companion.log"))
+        .sortBy(p => os.mtime(p))
+      files.foreach(readLogFileLines(_, processLine))
+    else
+      readLogFileLines(logPath, processLine)
 
     qaById
 
@@ -249,22 +258,44 @@ object LogFeedbackExporter:
     RetrievalHit(fileName, idx, raw = line)
 
   private def readFeedbackFiles(dir: Path): Map[String, List[Feedback]] =
-    if !os.exists(dir) then return Map.empty
-    val files = os.list(dir).filter(p => p.toIO.isFile && feedbackFileNameRx.matches(p.last))
-    val buf = scala.collection.mutable.Map.empty[String, List[Feedback]]
-    files.sorted.foreach { f =>
-      val src = scala.io.Source.fromFile(f.toIO)(using scala.io.Codec.UTF8)
-      try
-        src.getLines().foreach { ln =>
-          val fb = parseFeedbackJsonlLine(ln)
-          fb.question_id.foreach { qid =>
-            val lst = buf.getOrElse(qid, Nil)
-            buf.update(qid, lst :+ fb)
+    if !os.exists(dir) then Map.empty
+    else
+      val files = os.list(dir).filter { p =>
+        p.toIO.isFile && (feedbackFileNameRx.matches(p.last) || feedbackFileNameRxGz.matches(p.last))
+      }
+      val buf = scala.collection.mutable.Map.empty[String, List[Feedback]]
+      files.sorted.foreach { f =>
+        val src = openMaybeGz(f)
+        try
+          src.getLines().foreach { ln =>
+            val fb = parseFeedbackJsonlLine(ln)
+            fb.question_id.foreach { qid =>
+              val lst = buf.getOrElse(qid, Nil)
+              buf.update(qid, lst :+ fb)
+            }
           }
-        }
-      finally src.close()
-    }
-    buf.toMap
+        finally src.close()
+      }
+      buf.toMap
+
+  // Support optional gzip extension for feedback files
+  private val feedbackFileNameRxGz = "feedback-\\d{4}-\\d{2}-\\d{2}.*\\.jsonl\\.gz$".r
+
+  // Open a file as UTF-8 text, supporting .gz compressed files
+  private def openMaybeGz(p: Path): scala.io.BufferedSource =
+    import java.util.zip.GZIPInputStream
+    if p.last.toLowerCase.endsWith(".gz") then
+      val fis = new java.io.FileInputStream(p.toIO)
+      val gis = new GZIPInputStream(fis)
+      scala.io.Source.fromInputStream(gis)(using scala.io.Codec.UTF8)
+    else
+      scala.io.Source.fromFile(p.toIO)(using scala.io.Codec.UTF8)
+
+  // Read a log file (plain or .gz) and send each line to consumer
+  private def readLogFileLines(p: Path, consume: String => Unit): Unit =
+    val src = openMaybeGz(p)
+    try src.getLines().foreach(consume)
+    finally src.close()
 
   private def parseFeedbackJsonlLine(line: String): Feedback =
     val js = Try(ujson.read(line)).toOption.getOrElse(ujson.Obj())
@@ -333,7 +364,13 @@ object LogFeedbackExporter:
   private def buildCsv(records: List[Map[String, ujson.Value]]): String =
     val header = List("device_id", "session_id", "received_ts", "completed_ts", "query", "ai_response", "feedback_vote", "feedback_reason").mkString(",")
 
-    def q(v: String): String = '"' + v.replace("\"", "\"\"") + '"'
+    // Quote a CSV value and normalize any embedded newlines to spaces to keep one physical line per record
+    def q(v: String): String =
+      val sanitized = v
+        .replace("\r\n", " ")
+        .replace('\n', ' ')
+        .replace('\r', ' ')
+      '"' + sanitized.replace("\"", "\"\"") + '"'
 
     def strOf(js: ujson.Value): String = js match
       case ujson.Str(s) => s

@@ -56,7 +56,8 @@ object FeedbackMetrics:
         val margin = z * math.sqrt((p*(1.0-p) + (z*z)/(4.0*n)) / n)
         (center - margin) / denom
 
-  private val feedbackFileNameRx = "feedback-\\d{4}-\\d{2}-\\d{2}.*\\.jsonl$".r
+  private val feedbackFileNameRx    = "feedback-\\d{4}-\\d{2}-\\d{2}.*\\.jsonl$".r
+  private val feedbackFileNameRxGz  = "feedback-\\d{4}-\\d{2}-\\d{2}.*\\.jsonl\\.gz$".r
 
   def main(args: Array[String]): Unit =
     val argMap = parseArgs(args.toList)
@@ -78,7 +79,9 @@ object FeedbackMetrics:
           val dir = resolve(argMap.getOrElse("--feedback-dir", "./data/feedback-logs"))
           if !os.exists(dir) || !os.isDir(dir) then
             System.err.println(s"[FeedbackMetrics] Feedback dir not found: $dir"); System.exit(2)
-          val files = os.list(dir).filter(p => p.toIO.isFile && feedbackFileNameRx.matches(p.last)).sorted
+          val files = os.list(dir).filter { p =>
+            p.toIO.isFile && (feedbackFileNameRx.matches(p.last) || feedbackFileNameRxGz.matches(p.last))
+          }.sorted
           if files.isEmpty then
             System.err.println(s"[FeedbackMetrics] No feedback-*.jsonl files found in $dir"); System.exit(2)
           (files.flatMap(readRowsFromFile).toVector, files.toVector)
@@ -123,9 +126,19 @@ object FeedbackMetrics:
       kvs ++ flags
 
   private def readRowsFromFile(p: Path): Vector[Row] =
-    val src = scala.io.Source.fromFile(p.toIO)(using scala.io.Codec.UTF8)
+    val src = openMaybeGz(p)
     try src.getLines().flatMap(parseLine).toVector
     finally src.close()
+
+  // Open a file as UTF-8 text, supporting .gz compressed files
+  private def openMaybeGz(p: Path): scala.io.BufferedSource =
+    import java.util.zip.GZIPInputStream
+    if p.last.toLowerCase.endsWith(".gz") then
+      val fis = new java.io.FileInputStream(p.toIO)
+      val gis = new GZIPInputStream(fis)
+      scala.io.Source.fromInputStream(gis)(using scala.io.Codec.UTF8)
+    else
+      scala.io.Source.fromFile(p.toIO)(using scala.io.Codec.UTF8)
 
   private def buildReport(rows: Vector[Row], color: Boolean): String =
     val ups   = rows.count(_.vote == "up")

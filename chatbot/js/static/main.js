@@ -18175,6 +18175,30 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearChat__V($thiz) {
   }
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V($thiz, $m_s_None$());
 }
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__extractVersionLabel__T__T($thiz, jsonText) {
+  try {
+    var dyn = JSON.parse(jsonText);
+    var tag = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s_Option($thiz, dyn.gitTag);
+    var ver = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s_Option($thiz, dyn.version);
+    var this$1 = $n(tag);
+    var this$2 = $n((this$1.isEmpty__Z() ? ver : this$1));
+    var chosen = $as_T((this$2.isEmpty__Z() ? "" : this$2.get__O()));
+    var this$5 = $n(chosen);
+    if ((!(this$5 === ""))) {
+      var this$6 = $n(chosen);
+      var $x_1 = (!$uZ(this$6.startsWith("v")));
+    } else {
+      var $x_1 = false;
+    }
+    if ($x_1) {
+      return ("v" + chosen);
+    } else {
+      return chosen;
+    }
+  } catch (e) {
+    return "";
+  }
+}
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V($thiz) {
   var el = document.getElementById("version-text");
   if ((el === null)) {
@@ -18182,34 +18206,124 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V
   }
   var url = ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/healthz");
   var p = fetch(url);
-  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$50) => {
-    var p$1 = _$50.text();
+  $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$51) => {
+    var p$1 = _$51.text();
     return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext())).foreach__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((txt) => {
     var txt$1 = $as_T(txt);
-    try {
-      var dyn = JSON.parse(txt$1);
-      var tag = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s_Option($thiz, dyn.gitTag);
-      var ver = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s_Option($thiz, dyn.version);
-      var this$4 = $n(tag);
-      var this$5 = $n((this$4.isEmpty__Z() ? ver : this$4));
-      var chosen = $as_T((this$5.isEmpty__Z() ? "" : this$5.get__O()));
-      var this$8 = $n(chosen);
-      if ((!(this$8 === ""))) {
-        var this$9 = $n(chosen);
-        var $x_1 = (!$uZ(this$9.startsWith("v")));
-      } else {
-        var $x_1 = false;
-      }
-      if ($x_1) {
-        var display = ("v" + chosen);
-      } else {
-        var display = chosen;
-      }
+    var display = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__extractVersionLabel__T__T($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), txt$1);
+    var this$5 = $n(display);
+    if ((!(this$5 === ""))) {
       el.textContent = display;
-    } catch (e) {
+      if ($n($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag).isEmpty__Z()) {
+        $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = new $c_s_Some(display);
+      }
     }
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext());
+}
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showUpdateBanner__T__V($thiz, newVersion) {
+  if ((document.getElementById("update-banner") !== null)) {
+    return (void 0);
+  }
+  var banner = document.createElement("div");
+  banner.id = "update-banner";
+  banner.setAttribute("role", "status");
+  banner.setAttribute("aria-live", "polite");
+  banner.style.position = "fixed";
+  banner.style.left = "0";
+  banner.style.right = "0";
+  banner.style.bottom = "56px";
+  banner.style.zIndex = "1000";
+  banner.style.backgroundColor = "#fff3cd";
+  banner.style.color = "#533f03";
+  banner.style.borderTop = "1px solid #ffe69c";
+  banner.style.borderBottom = "1px solid #ffe69c";
+  banner.style.boxShadow = "0 -2px 6px rgba(0,0,0,0.08)";
+  banner.style.padding = "10px 12px";
+  banner.style.display = "flex";
+  var \u03b44$ = banner.style;
+  \u03b44$.setProperty("align-items", "center");
+  var \u03b45$ = banner.style;
+  \u03b45$.setProperty("justify-content", "space-between");
+  var text = document.createElement("div");
+  var this$3 = $n(newVersion);
+  text.textContent = (((!(this$3 === "")) ? (("A new version is available (" + newVersion) + ").") : "A new version is available.") + " Please reload to update.");
+  var btn = document.createElement("button");
+  btn.className = "toolbar-btn";
+  btn.textContent = "Reload";
+  btn.title = "Reload to update to the latest version";
+  btn.setAttribute("aria-label", "Reload to update to the latest version");
+  btn.onclick = ((_$52) => {
+    try {
+      var href = $as_T(window.location.href);
+      var this$4 = $n(href);
+      if (($uI(this$4.indexOf("?")) !== (-1))) {
+        var sep = "&";
+      } else {
+        var sep = "?";
+      }
+      var $x_1 = window.location;
+      var value = $uD(Date.now());
+      var this$5 = $m_RTLong$();
+      var lo = this$5.org$scalajs$linker$runtime$RuntimeLong$$fromDoubleImpl__D__I(value);
+      var hi = this$5.RTLong$__f_org$scalajs$linker$runtime$RuntimeLong$$hiReturn;
+      $x_1.href = (((href + sep) + "_r=") + new $c_RTLong(lo, hi));
+      return (void 0);
+    } catch (e) {
+      window.location.reload();
+      return (void 0);
+    }
+  });
+  banner.appendChild(text);
+  banner.appendChild(btn);
+  document.body.appendChild(banner);
+  try {
+    var verEl = document.getElementById("version-text");
+    if ((verEl !== null)) {
+      var this$8 = $n(newVersion);
+      var $x_2 = (!(this$8 === ""));
+    } else {
+      var $x_2 = false;
+    }
+    if ($x_2) {
+      verEl.textContent = newVersion;
+    }
+  } catch (e$1) {
+  }
+}
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__startVersionPolling__I__V($thiz, intervalMs) {
+  var this$1 = $n($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer);
+  if ((!this$1.isEmpty__Z())) {
+    return (void 0);
+  }
+  var url = ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase + "/healthz");
+  var handle$1 = $uI(window.setInterval((() => {
+    var p = fetch(url);
+    $n($n($m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p)).flatMap__F1__s_concurrent_ExecutionContext__s_concurrent_Future(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((_$53) => {
+      var p$1 = _$53.text();
+      return $m_sjs_js_Thenable$ThenableOps$().toFuture$extension__sjs_js_Thenable__s_concurrent_Future(p$1);
+    })), $m_Lnl_wur_soilcompanion_SoilCompanionApp$().given_ExecutionContext__s_concurrent_ExecutionContext())).foreach__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((txt) => {
+      var txt$1 = $as_T(txt);
+      var current = $p_Lnl_wur_soilcompanion_SoilCompanionApp$__extractVersionLabel__T__T($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), txt$1);
+      var this$4 = $n($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag);
+      if ((!this$4.isEmpty__Z())) {
+        var x0 = this$4.get__O();
+        var init = $as_T(x0);
+        var this$7 = $n(current);
+        if (((!(this$7 === "")) && (current !== init))) {
+          var this$8 = $n($m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer);
+          if ((!this$8.isEmpty__Z())) {
+            var x0$1 = this$8.get__O();
+            var handle = $uI(x0$1);
+            window.clearInterval(handle);
+          }
+          $m_Lnl_wur_soilcompanion_SoilCompanionApp$().Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = $m_s_None$();
+          $p_Lnl_wur_soilcompanion_SoilCompanionApp$__showUpdateBanner__T__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), current);
+        }
+      }
+    })), $m_Lnl_wur_soilcompanion_SoilCompanionApp$().given_ExecutionContext__s_concurrent_ExecutionContext());
+  }), intervalMs));
+  $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = new $c_s_Some(handle$1);
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__two$1__I__T($thiz, n) {
   return ((n < 10) ? ("0" + n) : ("" + n));
@@ -18565,8 +18679,8 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$2__sjs_js_Dynamic__s
       var $x_1 = true;
     } else {
       var x0 = this$2.get__O();
-      var _$51 = $as_T(x0);
-      var x = $f_T__trim__T($n(_$51));
+      var _$50 = $as_T(x0);
+      var x = $f_T__trim__T($n(_$50));
       var this$5 = $n(x);
       var $x_1 = (!(this$5 === ""));
     }
@@ -18592,6 +18706,8 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsBase = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = null;
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_given_ExecutionContext$lzy1 = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_given_ExecutionContextbitmap$1 = false;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap = null;
@@ -18616,6 +18732,8 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_wsBase = (((($as_T(location.protocol) === "https:") ? "wss" : "ws") + "://") + $as_T(location.host));
   console.log(("[DEBUG_LOG] API base resolved to: " + this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_httpBase));
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = $m_s_None$();
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = $m_s_None$();
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle = null;
@@ -18623,6 +18741,7 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingLocation = $m_s_None$();
   console.log("Soil Companion App is running!");
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V(this);
+  $p_Lnl_wur_soilcompanion_SoilCompanionApp$__startVersionPolling__I__V(this, 60000);
   this.getSession__V();
   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V(this);
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;

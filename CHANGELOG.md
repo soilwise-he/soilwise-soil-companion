@@ -1,3 +1,10 @@
+## [1.1.1](https://git.wur.nl/soilwise/soil-companion/compare/1.1.0...1.1.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* trigger release ([edd6082](https://git.wur.nl/soilwise/soil-companion/commit/edd60822691175325ff74311258e07832f7426a0))
+
 ## [1.1.0](https://git.wur.nl/soilwise/soil-companion/compare/1.0.6...1.1.0) (2025-12-03)
 
 

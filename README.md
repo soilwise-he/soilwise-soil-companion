@@ -18,6 +18,7 @@ What the current version does:
 - Integrates with WUR AgroDataCube v2 for NL crop parcels and soil/crop information, with session memory of the last
   field context.
 - Searches Wikipedia for general concepts, definitions, and background information to supplement answers.
+- Automatically links soil vocabulary terms to their definitions in the SoilWise vocabulary browser.
 - Uses optional local "knowledge" documents from a directory to complement answers.
 - Provides a simple demo authentication mode suitable for local development/testing.
 
@@ -387,6 +388,46 @@ Available tool methods:
 Usage:
 - The LLM will automatically use these tools when general concepts, definitions, or background information would be helpful.
 - Results include the Wikipedia URL and license information for transparency and attribution.
+
+### Vocabulary auto-linking configuration
+The chatbot automatically recognizes and links soil-related technical terms from the SoilWise vocabulary to their definitions in the vocabulary browser.
+
+Configuration block (in `chatbot/jvm/src/main/resources/application.conf`):
+
+```
+vocab-config: {
+  base-url: "https://voc.soilwise-he.containers.wur.nl"
+  base-url: ${?VOCAB_BASE_URL}
+  vocab-file-path: "data/vocab/soilvoc_concepts_20260108.csv"
+  vocab-file-path: ${?VOCAB_FILE_PATH}
+  auto-link-terms: true
+  auto-link-terms: ${?VOCAB_AUTO_LINK_TERMS}
+  min-term-length: 4
+  min-term-length: ${?VOCAB_MIN_TERM_LENGTH}
+  max-links-per-response: 8
+  max-links-per-response: ${?VOCAB_MAX_LINKS_PER_RESPONSE}
+}
+```
+
+How it works:
+- **Automatic term matching**: The system loads vocabulary terms from a CSV file containing prefLabels and altLabels.
+- **Case-insensitive matching**: Terms are matched regardless of case (e.g., "acidifiers", "Acidifiers", "ACIDIFIERS").
+- **URL-encoded links**: Links are generated to the vocabulary browser with properly encoded term IDs.
+- **Visual distinction**: Vocabulary links are displayed with a green "V" badge and green color in the UI.
+
+Configuration options:
+- `base-url`: Base URL for the vocabulary browser (default: https://voc.soilwise-he.containers.wur.nl)
+- `vocab-file-path`: Path to the CSV file containing vocabulary terms (default: data/vocab/soilvoc_concepts_20260108.csv)
+- `auto-link-terms`: Enable/disable automatic vocabulary linking (default: true)
+- `min-term-length`: Minimum character length for terms to be linked (default: 4)
+- `max-links-per-response`: Maximum number of vocabulary links per response (default: 8)
+
+Notes:
+- Vocabulary terms are loaded once at application startup for performance.
+- Longer terms are prioritized to avoid partial matches.
+- Only the first occurrence of each term is linked to avoid clutter.
+- The CSV file should contain columns: ID, prefLabel, altLabel, definition, broader, exactMatch, closeMatch.
+- To disable auto-linking, set `auto-link-terms: false` or use the environment variable `VOCAB_AUTO_LINK_TERMS=false`.
 
 ### SoilWise Catalog tools configuration
 The chatbot includes LLM tools to search the SoilWise catalog (via Solr) for metadata and document content, and to

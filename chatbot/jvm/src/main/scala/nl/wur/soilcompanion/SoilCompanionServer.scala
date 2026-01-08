@@ -398,8 +398,8 @@ object SoilCompanionServer extends MainRoutes {
 
         // generate the completion for the content
         connection.send(Ws.Text(upickle.default.write(QueryEvent("generating", Some("Generating an answer")))))
-        // Accumulate tokens if debug logging OR Wikipedia auto-linking is enabled
-        val needsAccumulation = Config.appConfig.debugLogFinalAiResponse || Config.wikipediaConfig.autoLinkTerms
+        // Accumulate tokens if debug logging OR Wikipedia auto-linking OR Vocab auto-linking is enabled
+        val needsAccumulation = Config.appConfig.debugLogFinalAiResponse || Config.wikipediaConfig.autoLinkTerms || Config.vocabConfig.autoLinkTerms
         val responseBufOpt: Option[StringBuilder] =
           if (needsAccumulation) Some(new StringBuilder(math.min(8192, math.max(1024, content.length * 4)))) else None
 
@@ -413,23 +413,44 @@ object SoilCompanionServer extends MainRoutes {
           }
           .onCompleteResponse { _ =>
             logger.info(s"Query for session $sessionId completed")
-            // Apply Wikipedia auto-linking if enabled and response was accumulated
-            if (Config.wikipediaConfig.autoLinkTerms) {
-              responseBufOpt.foreach { sb =>
-                val originalResponse = sb.result()
+            // Apply auto-linking if enabled and response was accumulated
+            responseBufOpt.foreach { sb =>
+              var linkedResponse = sb.result()
+              var linksAdded = false
+
+              // Apply Wikipedia auto-linking
+              if (Config.wikipediaConfig.autoLinkTerms) {
                 try {
-                  val linkedResponse = WikipediaLinker.addWikipediaLinks(originalResponse)
-                  // If links were added, send the updated response
-                  if (linkedResponse != originalResponse) {
+                  val wikiLinked = WikipediaLinker.addWikipediaLinks(linkedResponse)
+                  if (wikiLinked != linkedResponse) {
                     logger.debug(s"Added Wikipedia links to response for session $sessionId")
-                    // Send a special event with the linked version
-                    connection.send(Ws.Text(upickle.default.write(QueryEvent("links_added", Some(linkedResponse)))))
+                    linkedResponse = wikiLinked
+                    linksAdded = true
                   }
                 } catch {
                   case e: Throwable =>
                     logger.error(s"Failed to add Wikipedia links for session $sessionId", e)
-                    // Continue without links on error
                 }
+              }
+
+              // Apply Vocabulary auto-linking
+              if (Config.vocabConfig.autoLinkTerms) {
+                try {
+                  val vocabLinked = VocabLinker.addVocabLinks(linkedResponse)
+                  if (vocabLinked != linkedResponse) {
+                    logger.debug(s"Added vocabulary links to response for session $sessionId")
+                    linkedResponse = vocabLinked
+                    linksAdded = true
+                  }
+                } catch {
+                  case e: Throwable =>
+                    logger.error(s"Failed to add vocabulary links for session $sessionId", e)
+                }
+              }
+
+              // Send the updated response if any links were added
+              if (linksAdded) {
+                connection.send(Ws.Text(upickle.default.write(QueryEvent("links_added", Some(linkedResponse)))))
               }
             }
             // Emit a debug log with the user question followed by the final AI response text if enabled

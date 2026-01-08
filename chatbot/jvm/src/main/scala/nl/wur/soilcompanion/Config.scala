@@ -111,6 +111,14 @@ object Config {
                               minTermLength: Int
                             ) derives ConfigReader
 
+  case class VocabConfig(
+                          baseUrl: String,
+                          vocabFilePath: String,
+                          autoLinkTerms: Boolean,
+                          minTermLength: Int,
+                          maxLinksPerResponse: Int
+                        ) derives ConfigReader
+
   case class LlmProviderConfig(
                                 name: String,
                                 apiKey: String,
@@ -209,4 +217,8 @@ object Config {
   // Wikipedia configuration
   val wikipediaConfig: WikipediaConfig =
     ConfigSource.default.at("wikipedia-config").loadOrThrow[WikipediaConfig]
+
+  // Vocabulary configuration
+  val vocabConfig: VocabConfig =
+    ConfigSource.default.at("vocab-config").loadOrThrow[VocabConfig]
 }

@@ -1560,6 +1560,25 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #5b4736; }
     opacity: 0.85;
 }
 
+/* Vocabulary links - add "V" icon */
+.message-content a[href*="voc.soilwise-he"]::before {
+    content: "V";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    margin-right: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #2d7d2d 0%, #1f5f1f 100%);
+    color: white;
+    border-radius: 3px;
+    vertical-align: middle;
+    opacity: 0.85;
+}
+
 /* Style Wikipedia links with distinct color */
 .message-content a[href*="wikipedia.org"] {
     color: #0066cc;
@@ -1588,6 +1607,19 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #5b4736; }
     background-color: rgba(123, 93, 60, 0.05);
 }
 
+/* Style Vocabulary links with distinct green color */
+.message-content a[href*="voc.soilwise-he"] {
+    color: #2d7d2d;
+    border-bottom: 1px solid rgba(45, 125, 45, 0.3);
+    text-decoration: none;
+}
+
+.message-content a[href*="voc.soilwise-he"]:hover {
+    color: #1f5f1f;
+    border-bottom-color: rgba(31, 95, 31, 0.5);
+    background-color: rgba(45, 125, 45, 0.05);
+}
+
 /* Dark mode adjustments for link badges and colors */
 html[data-theme="dark"] .message-content a[href*="wikipedia.org"]::before {
     background: linear-gradient(135deg, #5b9ed9 0%, #4a8bc7 100%);
@@ -1597,6 +1629,11 @@ html[data-theme="dark"] .message-content a[href*="wikipedia.org"]::before {
 html[data-theme="dark"] .message-content a[href*="repository.soilwise-he.eu"]::before,
 html[data-theme="dark"] .message-content a[href*="soilwise-he"]::before {
     background: linear-gradient(135deg, #c89860 0%, #b07d45 100%);
+    opacity: 0.9;
+}
+
+html[data-theme="dark"] .message-content a[href*="voc.soilwise-he"]::before {
+    background: linear-gradient(135deg, #5fad5f 0%, #4a9a4a 100%);
     opacity: 0.9;
 }
 
@@ -1624,10 +1661,253 @@ html[data-theme="dark"] .message-content a[href*="soilwise-he"]:hover {
     background-color: rgba(212, 165, 116, 0.1);
 }
 
+html[data-theme="dark"] .message-content a[href*="voc.soilwise-he"] {
+    color: #6bc46b;
+    border-bottom-color: rgba(107, 196, 107, 0.3);
+}
+
+html[data-theme="dark"] .message-content a[href*="voc.soilwise-he"]:hover {
+    color: #82d682;
+    border-bottom-color: rgba(130, 214, 130, 0.5);
+    background-color: rgba(107, 196, 107, 0.1);
+}
+
 /* Ensure all links in message content have consistent padding and transitions */
 .message-content a {
     padding: 1px 3px;
     border-radius: 3px;
     transition: all 0.2s ease;
     display: inline;
+}
+
+/* ----------------------------- */
+/* Options Panel Styles */
+/* ----------------------------- */
+
+.options-panel {
+    padding: 16px;
+}
+
+.options-panel h3 {
+    margin: 0 0 8px 0;
+    color: #3a2f24;
+    font-size: 1.2rem;
+}
+
+.options-description {
+    margin: 0 0 20px 0;
+    color: #6b5e4a;
+    font-size: 0.9rem;
+}
+
+.options-section {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e0d5c6;
+}
+
+.options-section:last-of-type {
+    border-bottom: none;
+}
+
+.options-section h4 {
+    margin: 0 0 12px 0;
+    color: #4b3b2e;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.option-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #7b5d3c;
+}
+
+.option-item span {
+    color: #3a2f24;
+    font-size: 0.95rem;
+}
+
+.option-item:hover span {
+    color: #2b231b;
+}
+
+.option-hint {
+    margin: 4px 0 0 28px;
+    color: #8a7d6a;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.options-notice {
+    background: #f4efe7;
+    border: 1px solid #d2c7b8;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 20px;
+}
+
+.options-notice p {
+    margin: 0;
+    color: #5a4f3e;
+    font-size: 0.88rem;
+}
+
+.options-notice strong {
+    color: #3a2f24;
+}
+
+#option-reset-btn {
+    width: 100%;
+    padding: 10px;
+    background: #7b5d3c;
+    color: white;
+    border: 1px solid #5a4229;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+#option-reset-btn:hover {
+    background: #5a4229;
+}
+
+/* Dark mode for options panel */
+html[data-theme="dark"] .options-panel h3 {
+    color: #f0e7da;
+}
+
+html[data-theme="dark"] .options-description {
+    color: #b8a890;
+}
+
+html[data-theme="dark"] .options-section {
+    border-bottom-color: #3b3127;
+}
+
+html[data-theme="dark"] .options-section h4 {
+    color: #e2d5c4;
+}
+
+html[data-theme="dark"] .option-item span {
+    color: #efe6da;
+}
+
+html[data-theme="dark"] .option-item:hover span {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .option-item input[type="checkbox"] {
+    accent-color: #c89860;
+}
+
+html[data-theme="dark"] .option-hint {
+    color: #9a8f7d;
+}
+
+html[data-theme="dark"] .options-notice {
+    background: #2b231b;
+    border-color: #3b3127;
+}
+
+html[data-theme="dark"] .options-notice p {
+    color: #c9b79f;
+}
+
+html[data-theme="dark"] .options-notice strong {
+    color: #f0e7da;
+}
+
+html[data-theme="dark"] #option-reset-btn {
+    background: #c89860;
+    border-color: #b07d45;
+}
+
+html[data-theme="dark"] #option-reset-btn:hover {
+    background: #b07d45;
+}
+
+/* ----------------------------- */
+/* CSS Classes for Controlling Link Display */
+/* ----------------------------- */
+
+/* Disable Wikipedia links when disabled - show text as plain text */
+.hide-wikipedia-links .message-content a[href*="wikipedia.org"] {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: none;
+    cursor: text;
+    pointer-events: none;
+}
+
+.hide-wikipedia-links .message-content a[href*="wikipedia.org"]::before {
+    display: none !important;
+}
+
+/* Disable Vocabulary links when disabled - show text as plain text */
+.hide-vocab-links .message-content a[href*="voc.soilwise-he"] {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: none;
+    cursor: text;
+    pointer-events: none;
+}
+
+.hide-vocab-links .message-content a[href*="voc.soilwise-he"]::before {
+    display: none !important;
+}
+
+/* Hide all link icons when disabled */
+.hide-link-icons .message-content a[href*="wikipedia.org"]::before,
+.hide-link-icons .message-content a[href*="repository.soilwise-he.eu"]::before,
+.hide-link-icons .message-content a[href*="soilwise-he"]::before,
+.hide-link-icons .message-content a[href*="voc.soilwise-he"]::before {
+    display: none !important;
+}
+
+/* Use uniform colors when distinct colors are disabled */
+.uniform-link-colors .message-content a[href*="wikipedia.org"],
+.uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"],
+.uniform-link-colors .message-content a[href*="soilwise-he"],
+.uniform-link-colors .message-content a[href*="voc.soilwise-he"] {
+    color: #0066cc;
+    border-bottom-color: rgba(0, 102, 204, 0.3);
+}
+
+.uniform-link-colors .message-content a[href*="wikipedia.org"]:hover,
+.uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"]:hover,
+.uniform-link-colors .message-content a[href*="soilwise-he"]:hover,
+.uniform-link-colors .message-content a[href*="voc.soilwise-he"]:hover {
+    color: #004499;
+    border-bottom-color: rgba(0, 68, 153, 0.5);
+    background-color: rgba(0, 102, 204, 0.05);
+}
+
+/* Dark mode uniform colors */
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="wikipedia.org"],
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"],
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="soilwise-he"],
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilwise-he"] {
+    color: #6ba4e0;
+    border-bottom-color: rgba(107, 164, 224, 0.3);
+}
+
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="wikipedia.org"]:hover,
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"]:hover,
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="soilwise-he"]:hover,
+html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilwise-he"]:hover {
+    color: #8fb9e8;
+    border-bottom-color: rgba(143, 185, 232, 0.5);
+    background-color: rgba(107, 164, 224, 0.1);
 }

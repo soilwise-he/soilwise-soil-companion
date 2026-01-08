@@ -93,6 +93,7 @@
                 <div class="tablist" role="tablist" aria-label="Sidebar sections">
                     <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="true" tabindex="0" class="tab">First use</button>
                     <button role="tab" id="tab-location" aria-controls="panel-location" aria-selected="false" tabindex="-1" class="tab">Location</button>
+                    <button role="tab" id="tab-options" aria-controls="panel-options" aria-selected="false" tabindex="-1" class="tab">Options</button>
                 </div>
                 <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0">
                     <div class="first-use">
@@ -347,6 +348,49 @@
                         </div>
                     </div>
                 </div>
+                <div id="panel-options" role="tabpanel" aria-labelledby="tab-options" class="tabpanel" tabindex="0" hidden>
+                    <div class="options-panel">
+                        <h3>Link Display Options</h3>
+                        <p class="options-description">Customize how hyperlinks appear in chatbot responses.</p>
+
+                        <div class="options-section">
+                            <h4>Enable/Disable Links</h4>
+                            <label class="option-item">
+                                <input type="checkbox" id="option-wikipedia-enabled" checked>
+                                <span>Show Wikipedia links</span>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" id="option-vocab-enabled" checked>
+                                <span>Show Vocabulary links</span>
+                            </label>
+                        </div>
+
+                        <div class="options-section">
+                            <h4>Link Icons</h4>
+                            <label class="option-item">
+                                <input type="checkbox" id="option-show-icons" checked>
+                                <span>Show link icons (W, S, V badges)</span>
+                            </label>
+                        </div>
+
+                        <div class="options-section">
+                            <h4>Link Colors</h4>
+                            <label class="option-item">
+                                <input type="checkbox" id="option-distinct-colors" checked>
+                                <span>Use distinct colors for different link types</span>
+                            </label>
+                            <p class="option-hint">When disabled, all links use the same color.</p>
+                        </div>
+
+                        <div class="options-section">
+                            <button id="option-reset-btn" class="login-button" type="button" title="Reset to defaults">Reset to Defaults</button>
+                        </div>
+
+                        <div class="options-notice">
+                            <p><strong>Note:</strong> These settings are saved for this browser session only. Changes take effect immediately and apply to new messages.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </aside>
         <main class="main-area">
@@ -534,6 +578,137 @@
             const win = window.open(href, '_blank');
             try { if (win) win.opener = null; } catch(e) {}
         });
+    })();
+
+    // Link Display Options Management
+    (function(){
+        const STORAGE_KEY = 'soilcompanion.linkOptions';
+
+        // Default options
+        const defaults = {
+            wikipediaEnabled: true,
+            vocabEnabled: true,
+            showIcons: true,
+            distinctColors: true
+        };
+
+        // Get DOM elements
+        const messagesContainer = document.getElementById('messages');
+        const wikiCheckbox = document.getElementById('option-wikipedia-enabled');
+        const vocabCheckbox = document.getElementById('option-vocab-enabled');
+        const iconsCheckbox = document.getElementById('option-show-icons');
+        const colorsCheckbox = document.getElementById('option-distinct-colors');
+        const resetBtn = document.getElementById('option-reset-btn');
+
+        // Load saved options from sessionStorage
+        function loadOptions() {
+            try {
+                const saved = sessionStorage.getItem(STORAGE_KEY);
+                return saved ? JSON.parse(saved) : defaults;
+            } catch(e) {
+                return defaults;
+            }
+        }
+
+        // Save options to sessionStorage
+        function saveOptions(options) {
+            try {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(options));
+            } catch(e) {}
+        }
+
+        // Apply options to the UI
+        function applyOptions(options) {
+            if (!messagesContainer) return;
+
+            // Wikipedia links
+            if (options.wikipediaEnabled) {
+                messagesContainer.classList.remove('hide-wikipedia-links');
+            } else {
+                messagesContainer.classList.add('hide-wikipedia-links');
+            }
+
+            // Vocabulary links
+            if (options.vocabEnabled) {
+                messagesContainer.classList.remove('hide-vocab-links');
+            } else {
+                messagesContainer.classList.add('hide-vocab-links');
+            }
+
+            // Link icons
+            if (options.showIcons) {
+                messagesContainer.classList.remove('hide-link-icons');
+            } else {
+                messagesContainer.classList.add('hide-link-icons');
+            }
+
+            // Distinct colors
+            if (options.distinctColors) {
+                messagesContainer.classList.remove('uniform-link-colors');
+            } else {
+                messagesContainer.classList.add('uniform-link-colors');
+            }
+        }
+
+        // Update checkboxes to reflect current options
+        function updateCheckboxes(options) {
+            if (wikiCheckbox) wikiCheckbox.checked = options.wikipediaEnabled;
+            if (vocabCheckbox) vocabCheckbox.checked = options.vocabEnabled;
+            if (iconsCheckbox) iconsCheckbox.checked = options.showIcons;
+            if (colorsCheckbox) colorsCheckbox.checked = options.distinctColors;
+        }
+
+        // Initialize
+        const currentOptions = loadOptions();
+        applyOptions(currentOptions);
+        updateCheckboxes(currentOptions);
+
+        // Event listeners for checkboxes
+        if (wikiCheckbox) {
+            wikiCheckbox.addEventListener('change', function() {
+                currentOptions.wikipediaEnabled = this.checked;
+                saveOptions(currentOptions);
+                applyOptions(currentOptions);
+            });
+        }
+
+        if (vocabCheckbox) {
+            vocabCheckbox.addEventListener('change', function() {
+                currentOptions.vocabEnabled = this.checked;
+                saveOptions(currentOptions);
+                applyOptions(currentOptions);
+            });
+        }
+
+        if (iconsCheckbox) {
+            iconsCheckbox.addEventListener('change', function() {
+                currentOptions.showIcons = this.checked;
+                saveOptions(currentOptions);
+                applyOptions(currentOptions);
+            });
+        }
+
+        if (colorsCheckbox) {
+            colorsCheckbox.addEventListener('change', function() {
+                currentOptions.distinctColors = this.checked;
+                saveOptions(currentOptions);
+                applyOptions(currentOptions);
+            });
+        }
+
+        // Reset button
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                // Reset all properties to defaults
+                currentOptions.wikipediaEnabled = defaults.wikipediaEnabled;
+                currentOptions.vocabEnabled = defaults.vocabEnabled;
+                currentOptions.showIcons = defaults.showIcons;
+                currentOptions.distinctColors = defaults.distinctColors;
+                saveOptions(currentOptions);
+                updateCheckboxes(currentOptions);
+                applyOptions(currentOptions);
+            });
+        }
     })();
 </script>
 </body>

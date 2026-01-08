@@ -100,6 +100,17 @@ object Config {
                                  docsUrl: String
                                ) derives ConfigReader
 
+  case class WikipediaConfig(
+                              baseUrl: String,
+                              defaultMaxResults: Int,
+                              maxContentChars: Int,
+                              timeoutMs: Int,
+                              userAgent: String,
+                              licenseUrl: String,
+                              autoLinkTerms: Boolean,
+                              minTermLength: Int
+                            ) derives ConfigReader
+
   case class LlmProviderConfig(
                                 name: String,
                                 apiKey: String,
@@ -194,4 +205,8 @@ object Config {
   // AgroDataCube configuration
   val agroDataCubeConfig: AgroDataCubeConfig =
     ConfigSource.default.at("agrodatacube-config").loadOrThrow[AgroDataCubeConfig]
+
+  // Wikipedia configuration
+  val wikipediaConfig: WikipediaConfig =
+    ConfigSource.default.at("wikipedia-config").loadOrThrow[WikipediaConfig]
 }

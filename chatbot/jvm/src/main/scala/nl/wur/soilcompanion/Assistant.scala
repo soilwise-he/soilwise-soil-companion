@@ -45,6 +45,8 @@ trait Assistant {
     "Your answers must be based on the knowledge and data available in the SoilWise repository.",
     "Always first decide if you need information from that repository. If yes, list concrete queries and the tools to call.",
     "When the user refers to a catalog, this means the SoilWise repository. Use a tool to lookup information in it.",
+    "For general concepts, definitions, or background information, use Wikipedia to supplement your answers.",
+    "Whenever you mention technical terms, scientific concepts, or specialized terminology, provide Wikipedia links for additional context.",
     // Acceptance criteria 4
     "Do not make any assumptions about the answer. Do not answer queries that are not related to soil.",
     "When a conversation deviates from the topic of soil or agriculture, do not answer the question and ask the user to ask a different question.",
@@ -186,7 +188,13 @@ object AssistantLive {
     AiServices.builder(classOf[Assistant])
       .streamingChatModel(streamingChatModel)
       .chatMemory(MessageWindowChatMemory.withMaxMessages(Config.appConfig.chatMaxMemorySize))
-      .tools(new CatalogTools(), new SoilGridsTools(), new AgroDataCubeTools(), new OpenAgroKpiTools())
+      .tools(
+        new CatalogTools(),
+        new SoilGridsTools(),
+        new AgroDataCubeTools(),
+        new OpenAgroKpiTools(),
+        new WikipediaTools()
+      )
       .retrievalAugmentor(augmentor)
       .maxSequentialToolsInvocations(5)
       .build()

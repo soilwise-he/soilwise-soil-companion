@@ -1516,3 +1516,118 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #5b4736; }
     .send-button, .upload-button { width: 38px; height: 38px; }
     .location-panel #map { height: 220px; }
 }
+
+/* ----------------------------- */
+/* Link Icons for Wikipedia and Catalog */
+/* ----------------------------- */
+
+/* Wikipedia links - add "W" icon */
+.message-content a[href*="wikipedia.org"]::before {
+    content: "W";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    margin-right: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0066cc 0%, #0055aa 100%);
+    color: white;
+    border-radius: 3px;
+    vertical-align: middle;
+    opacity: 0.85;
+}
+
+/* SoilWise catalog links - add "S" icon */
+.message-content a[href*="repository.soilwise-he.eu"]::before,
+.message-content a[href*="soilwise-he"]::before {
+    content: "S";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    margin-right: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #7b5d3c 0%, #5a4229 100%);
+    color: white;
+    border-radius: 3px;
+    vertical-align: middle;
+    opacity: 0.85;
+}
+
+/* Style Wikipedia links with distinct color */
+.message-content a[href*="wikipedia.org"] {
+    color: #0066cc;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.3);
+    text-decoration: none;
+}
+
+.message-content a[href*="wikipedia.org"]:hover {
+    color: #004499;
+    border-bottom-color: rgba(0, 68, 153, 0.5);
+    background-color: rgba(0, 102, 204, 0.05);
+}
+
+/* Style SoilWise catalog links with distinct color */
+.message-content a[href*="repository.soilwise-he.eu"],
+.message-content a[href*="soilwise-he"] {
+    color: #7b5d3c;
+    border-bottom: 1px solid rgba(123, 93, 60, 0.3);
+    text-decoration: none;
+}
+
+.message-content a[href*="repository.soilwise-he.eu"]:hover,
+.message-content a[href*="soilwise-he"]:hover {
+    color: #5a4229;
+    border-bottom-color: rgba(90, 66, 41, 0.5);
+    background-color: rgba(123, 93, 60, 0.05);
+}
+
+/* Dark mode adjustments for link badges and colors */
+html[data-theme="dark"] .message-content a[href*="wikipedia.org"]::before {
+    background: linear-gradient(135deg, #5b9ed9 0%, #4a8bc7 100%);
+    opacity: 0.9;
+}
+
+html[data-theme="dark"] .message-content a[href*="repository.soilwise-he.eu"]::before,
+html[data-theme="dark"] .message-content a[href*="soilwise-he"]::before {
+    background: linear-gradient(135deg, #c89860 0%, #b07d45 100%);
+    opacity: 0.9;
+}
+
+html[data-theme="dark"] .message-content a[href*="wikipedia.org"] {
+    color: #6ba4e0;
+    border-bottom-color: rgba(107, 164, 224, 0.3);
+}
+
+html[data-theme="dark"] .message-content a[href*="wikipedia.org"]:hover {
+    color: #8fb9e8;
+    border-bottom-color: rgba(143, 185, 232, 0.5);
+    background-color: rgba(107, 164, 224, 0.1);
+}
+
+html[data-theme="dark"] .message-content a[href*="repository.soilwise-he.eu"],
+html[data-theme="dark"] .message-content a[href*="soilwise-he"] {
+    color: #d4a574;
+    border-bottom-color: rgba(212, 165, 116, 0.3);
+}
+
+html[data-theme="dark"] .message-content a[href*="repository.soilwise-he.eu"]:hover,
+html[data-theme="dark"] .message-content a[href*="soilwise-he"]:hover {
+    color: #e2b685;
+    border-bottom-color: rgba(226, 182, 133, 0.5);
+    background-color: rgba(212, 165, 116, 0.1);
+}
+
+/* Ensure all links in message content have consistent padding and transitions */
+.message-content a {
+    padding: 1px 3px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: inline;
+}

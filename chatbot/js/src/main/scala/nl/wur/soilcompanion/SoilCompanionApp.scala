@@ -1545,6 +1545,27 @@ object SoilCompanionApp extends App {
               val msg = evt.detail.getOrElse("Your session expired due to inactivity. Please login to start a new chat.")
               addMessage("AI", msg)
               updateFooterStatus(None)
+            case "links_added" =>
+              // Replace the content of the last bot message with the linked version
+              val messageContainer = dom.document.getElementById("messages")
+              val last = messageContainer.lastElementChild
+              Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
+                evt.detail.foreach { linkedContent =>
+                  // Update the raw content with the linked version
+                  el.setAttribute("data-raw-content", linkedContent)
+                  // Parse, sanitize, and render the linked content
+                  val parsed = marked.parse(linkedContent)
+                  val sanitized = DOMPurify.sanitize(parsed)
+                  val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
+                  if (contentEl != null) {
+                    contentEl.innerHTML = sanitized
+                    // Fix links to open in new tab
+                    fixExternalLinks(contentEl)
+                    hljs.highlightAll()
+                    messageContainer.scrollTop = messageContainer.scrollHeight
+                  }
+                }
+              }
             case "done" =>
               // Clear activity; base state remains
               updateFooterStatus(None)

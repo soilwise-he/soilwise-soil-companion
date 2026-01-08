@@ -398,9 +398,10 @@ object SoilCompanionServer extends MainRoutes {
 
         // generate the completion for the content
         connection.send(Ws.Text(upickle.default.write(QueryEvent("generating", Some("Generating an answer")))))
-        // If debug logging of final AI response is enabled, accumulate tokens here
+        // Accumulate tokens if debug logging OR Wikipedia auto-linking is enabled
+        val needsAccumulation = Config.appConfig.debugLogFinalAiResponse || Config.wikipediaConfig.autoLinkTerms
         val responseBufOpt: Option[StringBuilder] =
-          if (Config.appConfig.debugLogFinalAiResponse) Some(new StringBuilder(math.min(8192, math.max(1024, content.length * 4)))) else None
+          if (needsAccumulation) Some(new StringBuilder(math.min(8192, math.max(1024, content.length * 4)))) else None
 
         assistant.reply(augmentedContent)
           .onPartialResponse { token =>
@@ -412,6 +413,25 @@ object SoilCompanionServer extends MainRoutes {
           }
           .onCompleteResponse { _ =>
             logger.info(s"Query for session $sessionId completed")
+            // Apply Wikipedia auto-linking if enabled and response was accumulated
+            if (Config.wikipediaConfig.autoLinkTerms) {
+              responseBufOpt.foreach { sb =>
+                val originalResponse = sb.result()
+                try {
+                  val linkedResponse = WikipediaLinker.addWikipediaLinks(originalResponse)
+                  // If links were added, send the updated response
+                  if (linkedResponse != originalResponse) {
+                    logger.debug(s"Added Wikipedia links to response for session $sessionId")
+                    // Send a special event with the linked version
+                    connection.send(Ws.Text(upickle.default.write(QueryEvent("links_added", Some(linkedResponse)))))
+                  }
+                } catch {
+                  case e: Throwable =>
+                    logger.error(s"Failed to add Wikipedia links for session $sessionId", e)
+                    // Continue without links on error
+                }
+              }
+            }
             // Emit a debug log with the user question followed by the final AI response text if enabled
             responseBufOpt.foreach { sb =>
               val response = sb.result()

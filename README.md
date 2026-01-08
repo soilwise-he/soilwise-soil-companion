@@ -17,7 +17,8 @@ What the current version does:
   and example KPI retrievals.
 - Integrates with WUR AgroDataCube v2 for NL crop parcels and soil/crop information, with session memory of the last
   field context.
-- Uses optional local “knowledge” documents from a directory to complement answers.
+- Searches Wikipedia for general concepts, definitions, and background information to supplement answers.
+- Uses optional local "knowledge" documents from a directory to complement answers.
 - Provides a simple demo authentication mode suitable for local development/testing.
 
 Notes:
@@ -329,6 +330,63 @@ Available tool methods:
 Ergonomics:
 - If `fieldId`/`fieldIdsCsv` is omitted for the retrieval methods, the tools will use the last field saved in session memory by a prior field lookup.
 - Responses include brief previews and links to the AgroDataCube docs.
+
+### Wikipedia tools configuration
+The chatbot includes LLM tools to search Wikipedia and retrieve article content to supplement answers with general knowledge and definitions. **Supports multiple languages: English, Dutch, French, Spanish, Italian, and Czech.**
+
+Configuration block (in `chatbot/jvm/src/main/resources/application.conf`):
+
+```
+wikipedia-config: {
+  base-url: "https://en.wikipedia.org"
+  base-url: ${?WIKIPEDIA_BASE_URL}
+  default-max-results: 3
+  max-content-chars: 4000
+  max-content-chars: ${?WIKIPEDIA_MAX_CONTENT_CHARS}
+  timeout-ms: 15000
+  timeout-ms: ${?WIKIPEDIA_TIMEOUT_MS}
+  user-agent: "SoilCompanionBot/0.1 (+https://soilwise-he.eu)"
+  license-url: "https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License"
+  # Automatically convert technical terms in responses to Wikipedia links
+  auto-link-terms: true
+  auto-link-terms: ${?WIKIPEDIA_AUTO_LINK_TERMS}
+  # Minimum length (characters) for terms to be considered for auto-linking
+  min-term-length: 4
+  min-term-length: ${?WIKIPEDIA_MIN_TERM_LENGTH}
+}
+```
+
+Notes and cautions:
+- The tool uses Wikipedia's public API (no authentication required).
+- Content is licensed under Creative Commons Attribution-ShareAlike 3.0; proper attribution is included in responses.
+- Long articles are truncated at `max-content-chars` (default 4000) to avoid overwhelming the context window.
+- The `base-url` can be changed to use different language editions of Wikipedia (e.g., `https://de.wikipedia.org` for German).
+- Search results include snippets and direct links to Wikipedia articles.
+
+Multilingual support:
+- **Automatic language detection**: The system automatically detects the language of the chatbot's response (English, Dutch, French, Spanish, Italian, Czech).
+- **Language-specific Wikipedia editions**: Links are generated to the appropriate Wikipedia edition based on the detected language (e.g., Dutch response → `nl.wikipedia.org`).
+- **Curated technical term lists**: Each supported language has a curated list of 50+ soil and agriculture-related technical terms.
+- **Language-specific exclusion lists**: Common words to exclude are tailored for each language.
+
+Auto-linking feature:
+- When `auto-link-terms` is enabled (default: true), the chatbot automatically converts recognized technical terms in responses to Wikipedia links.
+- The system identifies soil and agriculture-related terms from language-specific curated lists, as well as multi-word capitalized technical phrases.
+- Common non-technical words are excluded from linking (e.g., English: "Common", "Typical", "In France"; Dutch: "Algemeen", "Typisch", "In Frankrijk").
+- Before adding a link, the system verifies that the Wikipedia article actually exists in the appropriate language edition.
+- Terms shorter than `min-term-length` (default: 4 characters) are ignored.
+- A maximum of 5 terms per response are linked to avoid clutter, prioritizing known technical terms.
+- Only the first occurrence of each term is linked.
+- To disable auto-linking, set `auto-link-terms: false` or use the environment variable `WIKIPEDIA_AUTO_LINK_TERMS=false`.
+
+Available tool methods:
+- `searchWikipedia(searchTerm, maxResults)` — search Wikipedia and return article titles with snippets and links.
+- `getWikipediaArticle(articleTitle)` — retrieve the full content of a specific Wikipedia article by exact title.
+- `searchAndGetWikipediaContent(searchTerm)` — search and retrieve the most relevant article in one step.
+
+Usage:
+- The LLM will automatically use these tools when general concepts, definitions, or background information would be helpful.
+- Results include the Wikipedia URL and license information for transparency and attribution.
 
 ### SoilWise Catalog tools configuration
 The chatbot includes LLM tools to search the SoilWise catalog (via Solr) for metadata and document content, and to

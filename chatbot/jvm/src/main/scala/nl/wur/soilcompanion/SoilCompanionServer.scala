@@ -744,6 +744,53 @@ object SoilCompanionServer extends MainRoutes {
         case _ =>
           corsOkJson(upickle.default.write(ujson.Obj("ok" -> false, "error" -> "invalid_coordinates")))
 
+  /**
+   * Vocabulary lookup endpoint - retrieves broader, narrower, and related concepts.
+   * Expects JSON: { "conceptUris": ["uri1", "uri2", ...] }
+   * Returns JSON array with concept information including broader/narrower/exactMatch terms.
+   */
+  @options("/vocab")
+  def optionsVocab(): cask.Response[String] =
+    corsOkJson("")
+
+  @postJson("/vocab")
+  def postVocabLookup(conceptUris: Seq[String]): cask.Response[String] =
+    logger.info(s"/vocab called with ${conceptUris.length} URIs")
+
+    try {
+      val vocabTools = new nl.wur.soilcompanion.tools.VocabularyTools()
+      val results = conceptUris.flatMap { uri =>
+        try {
+          val resultJson = vocabTools.getVocabConceptInfo(uri)
+          val parsed = ujson.read(resultJson)
+          // Check if it's an error response
+          if (parsed.obj.contains("error")) {
+            logger.warn(s"Error looking up concept $uri: ${parsed("error").str}")
+            None
+          } else {
+            Some(parsed)
+          }
+        } catch {
+          case e: Throwable =>
+            logger.error(s"Exception looking up concept $uri", e)
+            None
+        }
+      }
+
+      val response = ujson.Obj(
+        "ok" -> true,
+        "concepts" -> ujson.Arr(results*)
+      )
+      corsOkJson(upickle.default.write(response))
+    } catch {
+      case e: Throwable =>
+        logger.error("Failed to process vocabulary lookup", e)
+        corsOkJson(upickle.default.write(ujson.Obj(
+          "ok" -> false,
+          "error" -> e.getMessage
+        )))
+    }
+
   // Kick off ingestion of core knowledge documents and start the Cask server
   logger.info("Starting ingestion of core knowledge documents ...")
   AssistantLive.startIngestion()

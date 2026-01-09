@@ -815,11 +815,225 @@
 
                 vocabList.appendChild(ul);
                 chipsContainer.removeAttribute('hidden');
+
+                // Fetch additional vocabulary information from SPARQL
+                fetchVocabularyInfo(termsArray.map(([_, href]) => href));
             } else {
                 vocabList.innerHTML = 'No vocabulary links yet.';
                 chipsContainer.setAttribute('hidden', '');
                 chipsScroll.innerHTML = '';
             }
+        }
+
+        // Fetch additional vocabulary information from the backend
+        async function fetchVocabularyInfo(conceptUris) {
+            if (!conceptUris || conceptUris.length === 0) return;
+
+            console.log('[Knowledge] Fetching vocab info for', conceptUris.length, 'concepts');
+
+            try {
+                const response = await fetch(window.location.origin + '/vocab', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        conceptUris: conceptUris
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error('[Knowledge] Vocab fetch failed:', response.status);
+                    return;
+                }
+
+                let data = await response.json();
+                console.log('[Knowledge] Raw data:', data);
+                console.log('[Knowledge] Data type:', typeof data);
+
+                // Check if data is a string (double-encoded JSON)
+                if (typeof data === 'string') {
+                    console.log('[Knowledge] Data is string, parsing again');
+                    data = JSON.parse(data);
+                }
+
+                console.log('[Knowledge] Parsed data:', data);
+                console.log('[Knowledge] Data keys:', Object.keys(data));
+                console.log('[Knowledge] Checking conditions - ok:', data.ok, 'concepts:', data.concepts?.length);
+
+                if (data.ok && data.concepts && data.concepts.length > 0) {
+                    console.log('[Knowledge] Calling displayVocabularyRelations with', data.concepts.length, 'concepts');
+                    try {
+                        displayVocabularyRelations(data.concepts);
+                    } catch (err) {
+                        console.error('[Knowledge] Error in displayVocabularyRelations:', err);
+                    }
+                } else {
+                    console.log('[Knowledge] Conditions not met for displaying vocabulary relations');
+                }
+            } catch (error) {
+                console.error('[Knowledge] Error fetching vocabulary info:', error);
+            }
+        }
+
+        // Display broader, narrower, and related concepts in the knowledge card
+        function displayVocabularyRelations(concepts) {
+            console.log('[Knowledge] displayVocabularyRelations called with', concepts.length, 'concepts');
+            console.log('[Knowledge] First concept:', concepts[0]);
+
+            // Collect all unique broader and narrower terms
+            const allBroader = new Map();
+            const allNarrower = new Map();
+
+            concepts.forEach(concept => {
+                console.log('[Knowledge] Processing concept:', concept.uri, 'broader:', concept.broader?.length, 'narrower:', concept.narrower?.length);
+
+                if (concept.broader && Array.isArray(concept.broader)) {
+                    concept.broader.forEach(b => {
+                        const label = b.prefLabel || b.uri.split('/').pop().split('#').pop();
+                        console.log('[Knowledge] Adding broader:', label, b.uri);
+                        allBroader.set(b.uri, label);
+                    });
+                }
+                if (concept.narrower && Array.isArray(concept.narrower)) {
+                    concept.narrower.forEach(n => {
+                        const label = n.prefLabel || n.uri.split('/').pop().split('#').pop();
+                        console.log('[Knowledge] Adding narrower:', label, n.uri);
+                        allNarrower.set(n.uri, label);
+                    });
+                }
+            });
+
+            console.log('[Knowledge] Total Broader:', allBroader.size, 'Narrower:', allNarrower.size);
+
+            // Add a section for related concepts
+            if (allBroader.size > 0 || allNarrower.size > 0) {
+                const relatedSection = document.createElement('div');
+                relatedSection.className = 'vocab-related-section';
+                relatedSection.style.marginTop = '12px';
+                relatedSection.style.paddingTop = '12px';
+                relatedSection.style.borderTop = '1px solid #e0d5c6';
+
+                // Add broader concepts
+                if (allBroader.size > 0) {
+                    const broaderTitle = document.createElement('h5');
+                    broaderTitle.textContent = 'Broader concepts:';
+                    broaderTitle.style.margin = '0 0 6px 0';
+                    broaderTitle.style.fontSize = '0.85rem';
+                    broaderTitle.style.fontWeight = '600';
+                    broaderTitle.style.color = '#5a4f3e';
+                    relatedSection.appendChild(broaderTitle);
+
+                    const broaderList = document.createElement('ul');
+                    broaderList.className = 'knowledge-links-list';
+                    Array.from(allBroader.entries()).slice(0, 5).forEach(([uri, label]) => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = uri;
+                        a.textContent = label;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        li.appendChild(a);
+                        broaderList.appendChild(li);
+                    });
+                    relatedSection.appendChild(broaderList);
+                }
+
+                // Add narrower concepts
+                if (allNarrower.size > 0) {
+                    const narrowerTitle = document.createElement('h5');
+                    narrowerTitle.textContent = 'Narrower concepts:';
+                    narrowerTitle.style.margin = '8px 0 6px 0';
+                    narrowerTitle.style.fontSize = '0.85rem';
+                    narrowerTitle.style.fontWeight = '600';
+                    narrowerTitle.style.color = '#5a4f3e';
+                    relatedSection.appendChild(narrowerTitle);
+
+                    const narrowerList = document.createElement('ul');
+                    narrowerList.className = 'knowledge-links-list';
+                    Array.from(allNarrower.entries()).slice(0, 5).forEach(([uri, label]) => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = uri;
+                        a.textContent = label;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        li.appendChild(a);
+                        narrowerList.appendChild(li);
+                    });
+                    relatedSection.appendChild(narrowerList);
+                }
+
+                console.log('[Knowledge] Appending related section to vocab list');
+
+                vocabList.appendChild(relatedSection);
+
+                // Add chips for broader and narrower terms
+                addRelatedTermChips(allBroader, allNarrower);
+            } else {
+                console.log('[Knowledge] No broader or narrower concepts to display');
+            }
+        }
+
+        // Add chips for broader and narrower vocabulary terms
+        function addRelatedTermChips(broaderMap, narrowerMap) {
+            // Combine broader and narrower terms, limit to avoid overwhelming the user
+            const allRelatedTerms = new Map();
+
+            // Add broader terms (limit to 3)
+            let count = 0;
+            for (const [uri, label] of broaderMap.entries()) {
+                if (count >= 3) break;
+                allRelatedTerms.set(uri, { label, type: 'broader' });
+                count++;
+            }
+
+            // Add narrower terms (limit to 5, for total of 8 chips max)
+            count = 0;
+            for (const [uri, label] of narrowerMap.entries()) {
+                if (allRelatedTerms.size >= 8) break;
+                allRelatedTerms.set(uri, { label, type: 'narrower' });
+                count++;
+            }
+
+            console.log('[Knowledge] Adding', allRelatedTerms.size, 'related term chips');
+
+            // Create chips for related terms
+            allRelatedTerms.forEach(({ label, type }, uri) => {
+                const chip = document.createElement('button');
+                chip.className = 'vocab-chip';
+                chip.setAttribute('type', 'button');
+                chip.setAttribute('title', `Ask about ${label} (${type})`);
+                chip.setAttribute('aria-label', `Ask about ${label}`);
+
+                const icon = document.createElement('i');
+                icon.className = type === 'broader' ? 'fa-solid fa-arrow-up' : 'fa-solid fa-arrow-down';
+                icon.setAttribute('aria-hidden', 'true');
+
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = label;
+
+                chip.appendChild(icon);
+                chip.appendChild(labelSpan);
+
+                // Click handler
+                chip.addEventListener('click', function() {
+                    const questions = [
+                        `Can you explain ${label}?`,
+                        `What is ${label}?`,
+                        `Find information about ${label} in the SoilWise catalog`
+                    ];
+                    const question = questions[Math.floor(Math.random() * questions.length)];
+                    questionInput.value = question;
+                    questionInput.focus();
+                    // Move cursor to end
+                    questionInput.setSelectionRange(question.length, question.length);
+                    // Trigger input event to update character counter
+                    questionInput.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+
+                chipsScroll.appendChild(chip);
+            });
         }
 
         // Observe changes to the messages container

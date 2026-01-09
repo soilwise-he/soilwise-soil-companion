@@ -1939,6 +1939,14 @@ html[data-theme="dark"] .knowledge-links-list a:hover {
     color: #d3a36f;
 }
 
+html[data-theme="dark"] .vocab-related-section {
+    border-top-color: #3b3127 !important;
+}
+
+html[data-theme="dark"] .vocab-related-section h5 {
+    color: #e2d5c4 !important;
+}
+
 /* ----------------------------- */
 /* Vocabulary Chips Styles */
 /* ----------------------------- */

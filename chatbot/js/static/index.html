@@ -798,9 +798,8 @@
                     // Click handler
                     chip.addEventListener('click', function() {
                         const questions = [
-                            `Can you explain ${term}?`,
-                            `What is ${term}?`,
-                            `Find information about ${term} in the SoilWise catalog`
+                            `Explain ${term}? Include catalogue resources if available.`,
+                            `Find publications related to ${term} in the SoilWise catalogue and write a summary.`
                         ];
                         const question = questions[Math.floor(Math.random() * questions.length)];
                         questionInput.value = question;

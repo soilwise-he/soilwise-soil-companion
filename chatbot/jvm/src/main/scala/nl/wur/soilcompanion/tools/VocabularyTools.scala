@@ -32,12 +32,14 @@ class VocabularyTools {
 
   case class ConceptRef(
     uri: String,
-    prefLabel: Option[String]
+    prefLabel: Option[String],
+    definition: Option[String] = None
   ) derives ReadWriter
 
   /**
    * Builds a SPARQL query to retrieve concept information.
    * Uses FILTER to ensure at least the concept exists, and tries multiple label predicates.
+   * Also attempts to retrieve definitions for broader, narrower, and related concepts.
    */
   private def buildConceptQuery(conceptUri: String): String = {
     s"""
@@ -45,7 +47,7 @@ class VocabularyTools {
        |PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
        |PREFIX dct: <http://purl.org/dc/terms/>
        |
-       |SELECT DISTINCT ?prefLabel ?definition ?broader ?broaderLabel ?narrower ?narrowerLabel ?exactMatch ?exactMatchLabel ?related ?relatedLabel
+       |SELECT DISTINCT ?prefLabel ?definition ?broader ?broaderLabel ?broaderDef ?narrower ?narrowerLabel ?narrowerDef ?exactMatch ?exactMatchLabel ?related ?relatedLabel ?relatedDef
        |WHERE {
        |  # The concept must exist as a subject
        |  <$conceptUri> ?p ?o .
@@ -62,21 +64,29 @@ class VocabularyTools {
        |    FILTER(langMatches(lang(?definition), "en") || lang(?definition) = "")
        |  }
        |
-       |  # Get broader concepts
+       |  # Get broader concepts with their definitions
        |  OPTIONAL {
        |    <$conceptUri> skos:broader ?broader .
        |    OPTIONAL {
        |      ?broader skos:prefLabel ?broaderLabel .
        |      FILTER(langMatches(lang(?broaderLabel), "en") || lang(?broaderLabel) = "")
        |    }
+       |    OPTIONAL {
+       |      ?broader skos:definition ?broaderDef .
+       |      FILTER(langMatches(lang(?broaderDef), "en") || lang(?broaderDef) = "")
+       |    }
        |  }
        |
-       |  # Get narrower concepts
+       |  # Get narrower concepts with their definitions
        |  OPTIONAL {
        |    <$conceptUri> skos:narrower ?narrower .
        |    OPTIONAL {
        |      ?narrower skos:prefLabel ?narrowerLabel .
        |      FILTER(langMatches(lang(?narrowerLabel), "en") || lang(?narrowerLabel) = "")
+       |    }
+       |    OPTIONAL {
+       |      ?narrower skos:definition ?narrowerDef .
+       |      FILTER(langMatches(lang(?narrowerDef), "en") || lang(?narrowerDef) = "")
        |    }
        |  }
        |
@@ -89,12 +99,16 @@ class VocabularyTools {
        |    }
        |  }
        |
-       |  # Get related concepts
+       |  # Get related concepts with their definitions
        |  OPTIONAL {
        |    <$conceptUri> skos:related ?related .
        |    OPTIONAL {
        |      ?related skos:prefLabel ?relatedLabel .
        |      FILTER(langMatches(lang(?relatedLabel), "en") || lang(?relatedLabel) = "")
+       |    }
+       |    OPTIONAL {
+       |      ?related skos:definition ?relatedDef .
+       |      FILTER(langMatches(lang(?relatedDef), "en") || lang(?relatedDef) = "")
        |    }
        |  }
        |}
@@ -142,9 +156,9 @@ class VocabularyTools {
 
       var prefLabel: Option[String] = None
       var definition: Option[String] = None
-      val broaderSet = scala.collection.mutable.Map[String, Option[String]]()
-      val narrowerSet = scala.collection.mutable.Map[String, Option[String]]()
-      val exactMatchSet = scala.collection.mutable.Map[String, Option[String]]()
+      val broaderSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
+      val narrowerSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
+      val exactMatchSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
 
       bindings.foreach { binding =>
         val b = binding.obj
@@ -159,29 +173,41 @@ class VocabularyTools {
           definition = b.get("definition").flatMap(_.obj.get("value")).map(_.str)
         }
 
-        // Collect broader concepts
+        // Collect broader concepts with definitions
         b.get("broader").flatMap(_.obj.get("value")).map(_.str).foreach { broaderUri =>
           val label = b.get("broaderLabel").flatMap(_.obj.get("value")).map(_.str)
-          broaderSet.put(broaderUri, label)
+          val defn = b.get("broaderDef").flatMap(_.obj.get("value")).map(_.str)
+          // Only update if we don't have this URI or if we have a better definition now
+          if (!broaderSet.contains(broaderUri) || (defn.isDefined && broaderSet(broaderUri)._2.isEmpty)) {
+            broaderSet.put(broaderUri, (label, defn))
+          }
         }
 
-        // Collect narrower concepts
+        // Collect narrower concepts with definitions
         b.get("narrower").flatMap(_.obj.get("value")).map(_.str).foreach { narrowerUri =>
           val label = b.get("narrowerLabel").flatMap(_.obj.get("value")).map(_.str)
-          narrowerSet.put(narrowerUri, label)
+          val defn = b.get("narrowerDef").flatMap(_.obj.get("value")).map(_.str)
+          if (!narrowerSet.contains(narrowerUri) || (defn.isDefined && narrowerSet(narrowerUri)._2.isEmpty)) {
+            narrowerSet.put(narrowerUri, (label, defn))
+          }
         }
 
-        // Collect exact matches
+        // Collect exact matches with definitions (use exactMatch definition if available)
         b.get("exactMatch").flatMap(_.obj.get("value")).map(_.str).foreach { matchUri =>
           val label = b.get("exactMatchLabel").flatMap(_.obj.get("value")).map(_.str)
-          exactMatchSet.put(matchUri, label)
+          // For exactMatch, we don't have a separate definition field in the query yet
+          // but we could add it in the future
+          exactMatchSet.put(matchUri, (label, None))
         }
 
-        // Also collect related concepts and add them to narrower for now
+        // Also collect related concepts with definitions and add them to narrower for now
         b.get("related").flatMap(_.obj.get("value")).map(_.str).foreach { relatedUri =>
           val label = b.get("relatedLabel").flatMap(_.obj.get("value")).map(_.str)
+          val defn = b.get("relatedDef").flatMap(_.obj.get("value")).map(_.str)
           // Add to narrower set to show as exploration options
-          narrowerSet.put(relatedUri, label)
+          if (!narrowerSet.contains(relatedUri) || (defn.isDefined && narrowerSet(relatedUri)._2.isEmpty)) {
+            narrowerSet.put(relatedUri, (label, defn))
+          }
         }
       }
 
@@ -189,9 +215,9 @@ class VocabularyTools {
         uri = conceptUri,
         prefLabel = prefLabel,
         definition = definition,
-        broader = broaderSet.map { case (uri, label) => ConceptRef(uri, label) }.toList,
-        narrower = narrowerSet.map { case (uri, label) => ConceptRef(uri, label) }.toList,
-        exactMatch = exactMatchSet.map { case (uri, label) => ConceptRef(uri, label) }.toList
+        broader = broaderSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList,
+        narrower = narrowerSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList,
+        exactMatch = exactMatchSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList
       ))
     } catch {
       case e: Throwable =>

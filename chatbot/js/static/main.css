@@ -1681,7 +1681,82 @@ html[data-theme="dark"] .message-content a[href*="voc.soilwise-he"]:hover {
 }
 
 /* ----------------------------- */
-/* Options Panel Styles */
+/* Knowledge Panel Styles */
+/* ----------------------------- */
+
+.knowledge-panel {
+    padding: 16px;
+}
+
+.knowledge-description {
+    margin: 0 0 20px 0;
+    color: #6b5e4a;
+    font-size: 0.9rem;
+}
+
+.knowledge-card {
+    background: #f9f7f4;
+    border: 1px solid #e0d5c6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.knowledge-card:last-child {
+    margin-bottom: 0;
+}
+
+.knowledge-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #4b3b2e;
+}
+
+.knowledge-card-header i {
+    font-size: 1.1rem;
+}
+
+.knowledge-card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.knowledge-card-body {
+    color: #5a4f3e;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.knowledge-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.knowledge-links-list li {
+    margin-bottom: 8px;
+}
+
+.knowledge-links-list li:last-child {
+    margin-bottom: 0;
+}
+
+.knowledge-links-list a {
+    color: #5a7a95;
+    text-decoration: none;
+    transition: color 0.2s;
+    word-break: break-word;
+}
+
+.knowledge-links-list a:hover {
+    color: #3a5a75;
+    text-decoration: underline;
+}
+
+/* ----------------------------- */
+/* Options Panel Styles (Legacy - kept for backward compatibility) */
 /* ----------------------------- */
 
 .options-panel {
@@ -1838,6 +1913,124 @@ html[data-theme="dark"] #option-reset-btn:hover {
     background: #b07d45;
 }
 
+/* Dark theme for knowledge panel */
+html[data-theme="dark"] .knowledge-description {
+    color: #b8a890;
+}
+
+html[data-theme="dark"] .knowledge-card {
+    background: #1f1a15;
+    border-color: #3b3127;
+}
+
+html[data-theme="dark"] .knowledge-card-header {
+    color: #e2d5c4;
+}
+
+html[data-theme="dark"] .knowledge-card-body {
+    color: #c9b79f;
+}
+
+html[data-theme="dark"] .knowledge-links-list a {
+    color: #bf965f;
+}
+
+html[data-theme="dark"] .knowledge-links-list a:hover {
+    color: #d3a36f;
+}
+
+/* ----------------------------- */
+/* Vocabulary Chips Styles */
+/* ----------------------------- */
+
+.vocab-chips-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.vocab-chips-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #d2c7b8 transparent;
+    padding: 2px 0;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+
+.vocab-chips-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.vocab-chips-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vocab-chips-scroll::-webkit-scrollbar-thumb {
+    background: #d2c7b8;
+    border-radius: 2px;
+}
+
+.vocab-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f4efe7;
+    border: 1px solid #d2c7b8;
+    border-radius: 16px;
+    color: #4b3b2e;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.vocab-chip:hover {
+    background: #e9e1d4;
+    border-color: #b8a890;
+    transform: translateY(-1px);
+}
+
+.vocab-chip i {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Dark theme for vocab chips */
+html[data-theme="dark"] .vocab-chips-scroll {
+    scrollbar-color: #3b3127 transparent;
+}
+
+html[data-theme="dark"] .vocab-chips-scroll::-webkit-scrollbar-thumb {
+    background: #3b3127;
+}
+
+html[data-theme="dark"] .vocab-chip {
+    background: #2b231b;
+    border-color: #3b3127;
+    color: #e9dfd2;
+}
+
+html[data-theme="dark"] .vocab-chip:hover {
+    background: #3a2f24;
+    border-color: #5c4a3a;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .vocab-chip {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+    }
+}
+
 /* ----------------------------- */
 /* CSS Classes for Controlling Link Display */
 /* ----------------------------- */
@@ -1876,38 +2069,42 @@ html[data-theme="dark"] #option-reset-btn:hover {
     display: none !important;
 }
 
-/* Use uniform colors when distinct colors are disabled */
+/* Use uniform colors when distinct colors are disabled - just underline, no color */
 .uniform-link-colors .message-content a[href*="wikipedia.org"],
 .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"],
 .uniform-link-colors .message-content a[href*="soilwise-he"],
 .uniform-link-colors .message-content a[href*="voc.soilwise-he"] {
-    color: #0066cc;
-    border-bottom-color: rgba(0, 102, 204, 0.3);
+    color: inherit;
+    text-decoration: underline;
+    border-bottom: none;
 }
 
 .uniform-link-colors .message-content a[href*="wikipedia.org"]:hover,
 .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"]:hover,
 .uniform-link-colors .message-content a[href*="soilwise-he"]:hover,
 .uniform-link-colors .message-content a[href*="voc.soilwise-he"]:hover {
-    color: #004499;
-    border-bottom-color: rgba(0, 68, 153, 0.5);
-    background-color: rgba(0, 102, 204, 0.05);
+    color: inherit;
+    text-decoration: underline;
+    border-bottom: none;
+    background-color: transparent;
 }
 
-/* Dark mode uniform colors */
+/* Dark mode uniform colors - just underline, no color */
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="wikipedia.org"],
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"],
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="soilwise-he"],
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilwise-he"] {
-    color: #6ba4e0;
-    border-bottom-color: rgba(107, 164, 224, 0.3);
+    color: inherit;
+    text-decoration: underline;
+    border-bottom: none;
 }
 
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="wikipedia.org"]:hover,
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="repository.soilwise-he.eu"]:hover,
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="soilwise-he"]:hover,
 html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilwise-he"]:hover {
-    color: #8fb9e8;
-    border-bottom-color: rgba(143, 185, 232, 0.5);
-    background-color: rgba(107, 164, 224, 0.1);
+    color: inherit;
+    text-decoration: underline;
+    border-bottom: none;
+    background-color: transparent;
 }

@@ -93,7 +93,7 @@
                 <div class="tablist" role="tablist" aria-label="Sidebar sections">
                     <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="true" tabindex="0" class="tab">First use</button>
                     <button role="tab" id="tab-location" aria-controls="panel-location" aria-selected="false" tabindex="-1" class="tab">Location</button>
-                    <button role="tab" id="tab-options" aria-controls="panel-options" aria-selected="false" tabindex="-1" class="tab">Options</button>
+                    <button role="tab" id="tab-knowledge" aria-controls="panel-knowledge" aria-selected="false" tabindex="-1" class="tab">Knowledge</button>
                 </div>
                 <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0">
                     <div class="first-use">
@@ -348,46 +348,28 @@
                         </div>
                     </div>
                 </div>
-                <div id="panel-options" role="tabpanel" aria-labelledby="tab-options" class="tabpanel" tabindex="0" hidden>
-                    <div class="options-panel">
-                        <h3>Link Display Options</h3>
-                        <p class="options-description">Customize how hyperlinks appear in chatbot responses.</p>
+                <div id="panel-knowledge" role="tabpanel" aria-labelledby="tab-knowledge" class="tabpanel" tabindex="0" hidden>
+                    <div class="knowledge-panel">
+                        <p class="knowledge-description">Links to related knowledge from the latest response.</p>
 
-                        <div class="options-section">
-                            <h4>Enable/Disable Links</h4>
-                            <label class="option-item">
-                                <input type="checkbox" id="option-wikipedia-enabled" checked>
-                                <span>Show Wikipedia links</span>
-                            </label>
-                            <label class="option-item">
-                                <input type="checkbox" id="option-vocab-enabled" checked>
-                                <span>Show Vocabulary links</span>
-                            </label>
+                        <div class="knowledge-card" id="vocab-links-card">
+                            <div class="knowledge-card-header">
+                                <i class="fa-solid fa-book" aria-hidden="true"></i>
+                                <span class="knowledge-card-title">SoilWise</span>
+                            </div>
+                            <div id="vocab-links-list" class="knowledge-card-body">
+                                No vocabulary links yet.
+                            </div>
                         </div>
 
-                        <div class="options-section">
-                            <h4>Link Icons</h4>
-                            <label class="option-item">
-                                <input type="checkbox" id="option-show-icons" checked>
-                                <span>Show link icons (W, S, V badges)</span>
-                            </label>
-                        </div>
-
-                        <div class="options-section">
-                            <h4>Link Colors</h4>
-                            <label class="option-item">
-                                <input type="checkbox" id="option-distinct-colors" checked>
-                                <span>Use distinct colors for different link types</span>
-                            </label>
-                            <p class="option-hint">When disabled, all links use the same color.</p>
-                        </div>
-
-                        <div class="options-section">
-                            <button id="option-reset-btn" class="login-button" type="button" title="Reset to defaults">Reset to Defaults</button>
-                        </div>
-
-                        <div class="options-notice">
-                            <p><strong>Note:</strong> These settings are saved for this browser session only. Changes take effect immediately and apply to new messages.</p>
+                        <div class="knowledge-card" id="wikipedia-links-card">
+                            <div class="knowledge-card-header">
+                                <i class="fa-brands fa-wikipedia-w" aria-hidden="true"></i>
+                                <span class="knowledge-card-title">Wikipedia</span>
+                            </div>
+                            <div id="wikipedia-links-list" class="knowledge-card-body">
+                                No Wikipedia links yet.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -397,6 +379,9 @@
             <div id="chat-container" class="chat-container">
                 <div id="messages" class="messages"></div>
                 <div id="input-container" class="input-container input-card" aria-label="Chat input">
+                    <div id="vocab-chips-container" class="vocab-chips-container" hidden>
+                        <div class="vocab-chips-scroll" id="vocab-chips-scroll"></div>
+                    </div>
                     <textarea id="question" class="question" placeholder="Ask any question related to soil." rows="1" maxlength="400"></textarea>
                     <div class="input-actions">
                         <div id="char-counter" class="char-counter" aria-live="polite">400 left</div>
@@ -588,8 +573,8 @@
         const defaults = {
             wikipediaEnabled: true,
             vocabEnabled: true,
-            showIcons: true,
-            distinctColors: true
+            showIcons: false,
+            distinctColors: false
         };
 
         // Get DOM elements
@@ -709,6 +694,154 @@
                 applyOptions(currentOptions);
             });
         }
+    })();
+
+    // Knowledge Panel & Vocabulary Chips - Extract and Display Links from Latest Response
+    (function(){
+        const messagesContainer = document.getElementById('messages');
+        const wikipediaList = document.getElementById('wikipedia-links-list');
+        const vocabList = document.getElementById('vocab-links-list');
+        const chipsContainer = document.getElementById('vocab-chips-container');
+        const chipsScroll = document.getElementById('vocab-chips-scroll');
+        const questionInput = document.getElementById('question');
+
+        if (!messagesContainer || !wikipediaList || !vocabList || !chipsContainer || !chipsScroll || !questionInput) return;
+
+        // Extract links from the latest bot message
+        function updateKnowledgeLinks() {
+            const botMessages = messagesContainer.querySelectorAll('.bot-message');
+            console.log('[Knowledge] Bot messages:', botMessages.length);
+            if (botMessages.length === 0) return;
+
+            // Get the latest bot message
+            const latestMessage = botMessages[botMessages.length - 1];
+            const messageContent = latestMessage.querySelector('.message-content');
+            if (!messageContent) return;
+
+            // Extract all links and filter
+            const allLinks = messageContent.querySelectorAll('a[href]');
+            const wikiLinks = Array.from(allLinks).filter(link => link.href.includes('wikipedia.org'));
+            const vocabLinks = Array.from(allLinks).filter(link => link.href.includes('voc.soilwise-he'));
+
+            console.log('[Knowledge] Wikipedia links:', wikiLinks.length, 'Vocab links:', vocabLinks.length);
+
+            // Update Wikipedia links card
+            if (wikiLinks.length > 0) {
+                wikipediaList.innerHTML = '';
+                const ul = document.createElement('ul');
+                ul.className = 'knowledge-links-list';
+                wikiLinks.forEach(link => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = link.href;
+                    a.textContent = link.textContent;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+                wikipediaList.appendChild(ul);
+            } else {
+                wikipediaList.innerHTML = 'No Wikipedia links yet.';
+            }
+
+            // Update Vocabulary links card and chips
+            if (vocabLinks.length > 0) {
+                // Update sidebar card
+                vocabList.innerHTML = '';
+                const ul = document.createElement('ul');
+                ul.className = 'knowledge-links-list';
+
+                // Create chips
+                chipsScroll.innerHTML = '';
+
+                // Deduplicate terms by text content
+                const uniqueTerms = new Map();
+                vocabLinks.forEach(link => {
+                    const term = link.textContent.trim();
+                    if (term && !uniqueTerms.has(term)) {
+                        uniqueTerms.set(term, link.href);
+                    }
+                });
+
+                // Limit to 8 chips for mobile friendliness
+                const termsArray = Array.from(uniqueTerms.entries()).slice(0, 8);
+
+                termsArray.forEach(([term, href]) => {
+                    // Add to sidebar
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = href;
+                    a.textContent = term;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    li.appendChild(a);
+                    ul.appendChild(li);
+
+                    // Create chip
+                    const chip = document.createElement('button');
+                    chip.className = 'vocab-chip';
+                    chip.setAttribute('type', 'button');
+                    chip.setAttribute('title', `Ask about ${term}`);
+                    chip.setAttribute('aria-label', `Ask about ${term}`);
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fa-solid fa-magnifying-glass';
+                    icon.setAttribute('aria-hidden', 'true');
+
+                    const label = document.createElement('span');
+                    label.textContent = term;
+
+                    chip.appendChild(icon);
+                    chip.appendChild(label);
+
+                    // Click handler
+                    chip.addEventListener('click', function() {
+                        const questions = [
+                            `Can you explain ${term}?`,
+                            `What is ${term}?`,
+                            `Find information about ${term} in the SoilWise catalog`
+                        ];
+                        const question = questions[Math.floor(Math.random() * questions.length)];
+                        questionInput.value = question;
+                        questionInput.focus();
+                        // Move cursor to end
+                        questionInput.setSelectionRange(question.length, question.length);
+                        // Trigger input event to update character counter
+                        questionInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    });
+
+                    chipsScroll.appendChild(chip);
+                });
+
+                vocabList.appendChild(ul);
+                chipsContainer.removeAttribute('hidden');
+            } else {
+                vocabList.innerHTML = 'No vocabulary links yet.';
+                chipsContainer.setAttribute('hidden', '');
+                chipsScroll.innerHTML = '';
+            }
+        }
+
+        // Observe changes to the messages container
+        const observer = new MutationObserver(function(mutations) {
+            // Check if any bot messages were added or modified
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'subtree') {
+                    updateKnowledgeLinks();
+                }
+            });
+        });
+
+        // Start observing
+        observer.observe(messagesContainer, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+
+        // Initial update
+        updateKnowledgeLinks();
     })();
 </script>
 </body>

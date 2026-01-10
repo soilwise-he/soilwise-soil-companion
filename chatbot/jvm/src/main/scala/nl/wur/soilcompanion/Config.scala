@@ -119,6 +119,15 @@ object Config {
                           maxLinksPerResponse: Int
                         ) derives ConfigReader
 
+  case class VocabularyToolsConfig(
+                                    sparqlEndpoint: String,
+                                    connectTimeoutMs: Int,
+                                    readTimeoutMs: Int,
+                                    maxResults: Int,
+                                    redirectUrlPattern: String,
+                                    userAgent: String
+                                  ) derives ConfigReader
+
   case class LlmProviderConfig(
                                 name: String,
                                 apiKey: String,
@@ -221,4 +230,8 @@ object Config {
   // Vocabulary configuration
   val vocabConfig: VocabConfig =
     ConfigSource.default.at("vocab-config").loadOrThrow[VocabConfig]
+
+  // Vocabulary Tools configuration
+  val vocabularyToolsConfig: VocabularyToolsConfig =
+    ConfigSource.default.at("vocabulary-tools-config").loadOrThrow[VocabularyToolsConfig]
 }

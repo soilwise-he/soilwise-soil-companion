@@ -429,6 +429,57 @@ Notes:
 - The CSV file should contain columns: ID, prefLabel, altLabel, definition, broader, exactMatch, closeMatch.
 - To disable auto-linking, set `auto-link-terms: false` or use the environment variable `VOCAB_AUTO_LINK_TERMS=false`.
 
+### Vocabulary Tools configuration
+The chatbot includes LLM tools to query the SoilWise vocabulary SPARQL endpoint for detailed concept information, including broader, narrower, related, and exact match concepts from the SKOS vocabulary hierarchy.
+
+Configuration block (in `chatbot/jvm/src/main/resources/application.conf`):
+
+```
+vocabulary-tools-config: {
+  sparql-endpoint: "https://repository.soilwise-he.eu/sparql/"
+  sparql-endpoint: ${?VOCAB_SPARQL_ENDPOINT}
+  connect-timeout-ms: 5000
+  connect-timeout-ms: ${?VOCAB_CONNECT_TIMEOUT_MS}
+  read-timeout-ms: 10000
+  read-timeout-ms: ${?VOCAB_READ_TIMEOUT_MS}
+  max-results: 100
+  max-results: ${?VOCAB_MAX_RESULTS}
+  redirect-url-pattern: "voc.soilwise-he"
+  redirect-url-pattern: ${?VOCAB_REDIRECT_URL_PATTERN}
+  user-agent: "SoilCompanionBot/0.1 (+https://soilwise-he.eu)"
+}
+```
+
+Configuration options:
+- `sparql-endpoint`: SPARQL endpoint URL for querying vocabulary concepts (default: https://repository.soilwise-he.eu/sparql/)
+- `connect-timeout-ms`: HTTP connection timeout in milliseconds (default: 5000)
+- `read-timeout-ms`: HTTP read timeout in milliseconds (default: 10000)
+- `max-results`: Maximum number of results to return from SPARQL queries (default: 100)
+- `redirect-url-pattern`: URL pattern to identify vocabulary service redirect URLs (default: "voc.soilwise-he")
+- `user-agent`: User-Agent header for HTTP requests
+
+Available tool methods:
+- `getVocabConceptInfo(conceptUri)` — retrieve detailed information about a specific vocabulary concept including:
+  - Preferred label and definition
+  - Broader concepts (parent terms in the hierarchy)
+  - Narrower concepts (child terms in the hierarchy)
+  - Related concepts (associated terms)
+  - Exact matches (equivalent terms from other vocabularies)
+- `batchGetVocabConcepts(conceptUris)` — retrieve information for multiple concepts in one call (comma-separated URIs)
+
+How it works:
+- **SPARQL queries**: The tool constructs SPARQL queries to retrieve concept information from the vocabulary SPARQL endpoint.
+- **URI handling**: Automatically extracts actual concept URIs from vocabulary service redirect URLs (e.g., `https://voc.soilwise-he.containers.wur.nl/id/https%3A%2F%2F...`).
+- **Definition retrieval**: Fetches definitions for broader, narrower, and related concepts when available.
+- **Language filtering**: Returns English labels and definitions (with fallback to no language tag).
+- **JSON output**: Returns structured JSON with all concept relationships for easy parsing and display.
+
+Notes:
+- The tool queries the SoilWise vocabulary SPARQL endpoint which contains SKOS-based vocabulary data.
+- Broader and narrower concepts help users explore the vocabulary hierarchy and discover related terms.
+- The UI uses this tool to populate the knowledge panel with related vocabulary concepts.
+- Response includes tooltips with definitions when available for enhanced user experience.
+
 ### SoilWise Catalog tools configuration
 The chatbot includes LLM tools to search the SoilWise catalog (via Solr) for metadata and document content, and to
 create verified catalog links for items by identifier.

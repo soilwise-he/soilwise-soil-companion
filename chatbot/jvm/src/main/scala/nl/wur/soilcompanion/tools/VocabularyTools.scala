@@ -12,11 +12,13 @@ import scala.util.{Failure, Success, Try}
  *
  * This service retrieves broader concepts, narrower concepts, and exact matches
  * from the SKOS vocabulary to help users explore related terms.
+ *
+ * Configuration is loaded from application.conf under vocabulary-tools-config.
  */
 class VocabularyTools {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
-  private val sparqlEndpoint = "https://repository.soilwise-he.eu/sparql/"
+  private val config = Config.vocabularyToolsConfig
 
   /**
    * Case class representing a vocabulary concept with related terms.
@@ -112,7 +114,7 @@ class VocabularyTools {
        |    }
        |  }
        |}
-       |LIMIT 100
+       |LIMIT ${config.maxResults}
        |""".stripMargin
   }
 
@@ -123,14 +125,15 @@ class VocabularyTools {
     import requests.*
     Try {
       val response = post(
-        sparqlEndpoint,
+        config.sparqlEndpoint,
         data = Map("query" -> query),
         headers = Map(
           "Accept" -> "application/sparql-results+json",
-          "Content-Type" -> "application/x-www-form-urlencoded"
+          "Content-Type" -> "application/x-www-form-urlencoded",
+          "User-Agent" -> config.userAgent
         ),
-        readTimeout = 10000,
-        connectTimeout = 5000
+        readTimeout = config.readTimeoutMs,
+        connectTimeout = config.connectTimeoutMs
       )
 
       if (response.statusCode == 200) {
@@ -233,7 +236,7 @@ class VocabularyTools {
    */
   private def extractActualUri(uri: String): String = {
     // Check if this is a vocabulary service redirect URL
-    if (uri.contains("voc.soilwise-he") && uri.contains("/id/")) {
+    if (uri.contains(config.redirectUrlPattern) && uri.contains("/id/")) {
       val parts = uri.split("/id/")
       if (parts.length > 1) {
         // Decode the actual URI

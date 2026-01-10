@@ -1551,16 +1551,58 @@ object SoilCompanionApp extends App {
               val last = messageContainer.lastElementChild
               Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
                 evt.detail.foreach { linkedContent =>
-                  // Update the raw content with the linked version
-                  el.setAttribute("data-raw-content", linkedContent)
-                  // Parse, sanitize, and render the linked content
+                  // Store the linked version with links for knowledge panel extraction
+                  el.setAttribute("data-raw-content-with-links", linkedContent)
+
+                  // Parse and render the linked content first (so links exist in DOM for extraction)
                   val parsed = marked.parse(linkedContent)
                   val sanitized = DOMPurify.sanitize(parsed)
                   val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
                   if (contentEl != null) {
                     contentEl.innerHTML = sanitized
-                    // Fix links to open in new tab
                     fixExternalLinks(contentEl)
+
+                    // Manually trigger knowledge panel update before stripping links
+                    try {
+                      val updateFn = js.Dynamic.global.updateKnowledgeLinks
+                      if (!js.isUndefined(updateFn) && js.typeOf(updateFn) == "function") {
+                        updateFn.asInstanceOf[js.Function0[Unit]]()
+                      }
+                    } catch { case _: Throwable => () }
+
+                    // Pause the MutationObserver to prevent it from re-running when we strip links
+                    try {
+                      val pauseFn = js.Dynamic.global.pauseKnowledgeObserver
+                      if (!js.isUndefined(pauseFn) && js.typeOf(pauseFn) == "function") {
+                        pauseFn.asInstanceOf[js.Function0[Unit]]()
+                      }
+                    } catch { case _: Throwable => () }
+
+                    // Now strip Wikipedia and vocab links from display
+                    val links = contentEl.querySelectorAll("a[href]")
+                    var i = 0
+                    while (i < links.length) {
+                      val link = links(i).asInstanceOf[dom.html.Anchor]
+                      val href = link.getAttribute("href")
+                      if (href != null && (href.contains("wikipedia.org") || href.contains("voc.soilwise-he"))) {
+                        // Replace link with just its text content
+                        val textNode = dom.document.createTextNode(link.textContent)
+                        link.parentNode.replaceChild(textNode, link)
+                      }
+                      i += 1
+                    }
+
+                    // Update raw content to the version without links
+                    el.setAttribute("data-raw-content", contentEl.textContent)
+
+                    // Resume the MutationObserver
+                    try {
+                      val resumeFn = js.Dynamic.global.resumeKnowledgeObserver
+                      if (!js.isUndefined(resumeFn) && js.typeOf(resumeFn) == "function") {
+                        resumeFn.asInstanceOf[js.Function0[Unit]]()
+                      }
+                    } catch { case _: Throwable => () }
+
                     hljs.highlightAll()
                     messageContainer.scrollTop = messageContainer.scrollHeight
                   }

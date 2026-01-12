@@ -89,9 +89,9 @@
         <aside id="sidebar" class="sidebar" aria-label="Information">
             <div class="sidebar-tabs" role="region" aria-label="Sidebar tabs">
                 <div class="tablist" role="tablist" aria-label="Sidebar sections">
-                    <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="true" tabindex="0" class="tab">First use</button>
+                    <button role="tab" id="tab-firstuse" aria-controls="panel-firstuse" aria-selected="true" tabindex="0" class="tab">First Use</button>
                     <button role="tab" id="tab-location" aria-controls="panel-location" aria-selected="false" tabindex="-1" class="tab">Location</button>
-                    <button role="tab" id="tab-knowledge" aria-controls="panel-knowledge" aria-selected="false" tabindex="-1" class="tab">Knowledge</button>
+                    <button role="tab" id="tab-insight" aria-controls="panel-insight" aria-selected="false" tabindex="-1" class="tab">Insight</button>
                 </div>
                 <div id="panel-firstuse" role="tabpanel" aria-labelledby="tab-firstuse" class="tabpanel" tabindex="0">
                     <div class="first-use">
@@ -346,32 +346,32 @@
                         </div>
                     </div>
                 </div>
-                <div id="panel-knowledge" role="tabpanel" aria-labelledby="tab-knowledge" class="tabpanel" tabindex="0" hidden>
-                    <div class="knowledge-panel">
-                        <p class="knowledge-description">Links to related knowledge from the latest response.</p>
+                <div id="panel-insight" role="tabpanel" aria-labelledby="tab-insight" class="tabpanel" tabindex="0" hidden>
+                    <div class="insight-panel">
+                        <p class="insight-description">Links to related information from the latest response.</p>
 
-                        <div class="knowledge-card" id="vocab-links-card">
-                            <div class="knowledge-card-header" style="cursor: pointer; user-select: none;">
+                        <div class="insight-card" id="vocab-links-card">
+                            <div class="insight-card-header" style="cursor: pointer; user-select: none;">
                                 <div style="display: flex; align-items: center; flex: 1;">
                                     <i class="fa-solid fa-book" aria-hidden="true"></i>
-                                    <span class="knowledge-card-title">SoilWise</span>
+                                    <span class="insight-card-title">SoilWise</span>
                                 </div>
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true" style="font-size: 0.8em; transition: transform 0.2s;"></i>
                             </div>
-                            <div id="vocab-links-list" class="knowledge-card-body">
+                            <div id="vocab-links-list" class="insight-card-body">
                                 No vocabulary links yet.
                             </div>
                         </div>
 
-                        <div class="knowledge-card" id="wikipedia-links-card">
-                            <div class="knowledge-card-header" style="cursor: pointer; user-select: none;">
+                        <div class="insight-card" id="wikipedia-links-card">
+                            <div class="insight-card-header" style="cursor: pointer; user-select: none;">
                                 <div style="display: flex; align-items: center; flex: 1;">
                                     <i class="fa-brands fa-wikipedia-w" aria-hidden="true"></i>
-                                    <span class="knowledge-card-title">Wikipedia</span>
+                                    <span class="insight-card-title">Wikipedia</span>
                                 </div>
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true" style="font-size: 0.8em; transition: transform 0.2s;"></i>
                             </div>
-                            <div id="wikipedia-links-list" class="knowledge-card-body">
+                            <div id="wikipedia-links-list" class="insight-card-body">
                                 No Wikipedia links yet.
                             </div>
                         </div>
@@ -700,7 +700,7 @@
         }
     })();
 
-    // Knowledge Panel & Vocabulary Chips - Extract and Display Links from Latest Response
+    // Insight Panel & Vocabulary Chips - Extract and Display Links from Latest Response
     (function(){
         const messagesContainer = document.getElementById('messages');
         const wikipediaList = document.getElementById('wikipedia-links-list');
@@ -716,25 +716,25 @@
             {
                 label: 'Explain topic',
                 icon: 'fa-book-open',
-                template: (term) => `Find relevant publications in the SoilWise catalog about "${term}" and write a one page topic explainer about it, supported by the documents. Use non-professional words, and add references to the publications at the end for further reading.`,
+                template: (term) => `Find relevant publications in the SoilWise catalog about "${term}" and write a clear one-page explainer. Use accessible language and include publication references at the end.`,
                 useForChip: true
             },
             {
                 label: 'Bullet points',
                 icon: 'fa-file-lines',
-                template: (term) => `Find publications related to "${term}" in the SoilWise catalogue and summarise the main points in an overview table. Use 3-5 bullet points maximum, and write in non-professional words. Add references to the publications at the end for further reading.`,
+                template: (term) => `Find publications about "${term}" in the SoilWise catalog and create a concise summary with 3-5 key bullet points. Use accessible language and include publication references.`,
                 useForChip: false
             },
             {
                 label: 'Kids Story',
-                icon: 'fa-circle-info',
-                template: (term) => `Find publications related to "${term}" in the SoilWise catalogue and use them to write a short educational story for children about the topic.`,
+                icon: 'fa-child-reaching',
+                template: (term) => `Find publications about "${term}" in the SoilWise catalog and write a short, engaging story for children (ages 8-12) that explains the concept in simple terms.`,
                 useForChip: false
             },
             {
                 label: 'Datasets',
-                icon: 'fa-circle-info',
-                template: (term) => `Find datasets related to "${term}" and specific for the users location (if provided) in the SoilWise catalogue. List them in a table with a short description and including the catalog links.`,
+                icon: 'fa-database',
+                template: (term) => `Find datasets about "${term}" in the SoilWise catalog, prioritizing those relevant to the user's location if provided. Present results in a table with descriptions and catalog links.`,
                 useForChip: false
             }
         ];
@@ -883,8 +883,8 @@
         const wikiCard = document.getElementById('wikipedia-links-card');
 
         if (vocabCard) {
-            const header = vocabCard.querySelector('.knowledge-card-header');
-            const body = vocabCard.querySelector('.knowledge-card-body');
+            const header = vocabCard.querySelector('.insight-card-header');
+            const body = vocabCard.querySelector('.insight-card-body');
             const chevron = header.querySelector('.fa-chevron-down');
             if (header && body && chevron) {
                 header.addEventListener('click', function() {
@@ -896,8 +896,8 @@
         }
 
         if (wikiCard) {
-            const header = wikiCard.querySelector('.knowledge-card-header');
-            const body = wikiCard.querySelector('.knowledge-card-body');
+            const header = wikiCard.querySelector('.insight-card-header');
+            const body = wikiCard.querySelector('.insight-card-body');
             const chevron = header.querySelector('.fa-chevron-down');
             if (header && body && chevron) {
                 header.addEventListener('click', function() {
@@ -909,9 +909,9 @@
         }
 
         // Extract links from the latest bot message
-        function updateKnowledgeLinks() {
+        function updateInsightLinks() {
             const botMessages = messagesContainer.querySelectorAll('.bot-message');
-            console.log('[Knowledge] Bot messages:', botMessages.length);
+            console.log('[Insight] Bot messages:', botMessages.length);
             if (botMessages.length === 0) return;
 
             // Get the latest bot message
@@ -924,13 +924,13 @@
             const wikiLinks = Array.from(allLinks).filter(link => link.href.includes('wikipedia.org'));
             const vocabLinks = Array.from(allLinks).filter(link => link.href.includes('voc.soilwise-he'));
 
-            console.log('[Knowledge] Wikipedia links:', wikiLinks.length, 'Vocab links:', vocabLinks.length);
+            console.log('[Insight] Wikipedia links:', wikiLinks.length, 'Vocab links:', vocabLinks.length);
 
             // Update Wikipedia links card
             if (wikiLinks.length > 0) {
                 wikipediaList.innerHTML = '';
                 const ul = document.createElement('ul');
-                ul.className = 'knowledge-links-list';
+                ul.className = 'insight-links-list';
                 wikiLinks.forEach(link => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
@@ -972,7 +972,7 @@
                 vocabList.appendChild(mainHeader);
 
                 const ul = document.createElement('ul');
-                ul.className = 'knowledge-links-list';
+                ul.className = 'insight-links-list';
                 ul.setAttribute('data-collapsible-content', 'main');
 
                 // Create chips
@@ -1046,7 +1046,7 @@
         async function fetchVocabularyInfo(conceptUris) {
             if (!conceptUris || conceptUris.length === 0) return;
 
-            console.log('[Knowledge] Fetching vocab info for', conceptUris.length, 'concepts');
+            console.log('[Insight] Fetching vocab info for', conceptUris.length, 'concepts');
 
             try {
                 const response = await fetch(window.location.origin + '/vocab', {
@@ -1060,56 +1060,56 @@
                 });
 
                 if (!response.ok) {
-                    console.error('[Knowledge] Vocab fetch failed:', response.status);
+                    console.error('[Insight] Vocab fetch failed:', response.status);
                     return;
                 }
 
                 let data = await response.json();
-                console.log('[Knowledge] Raw data:', data);
-                console.log('[Knowledge] Data type:', typeof data);
+                console.log('[Insight] Raw data:', data);
+                console.log('[Insight] Data type:', typeof data);
 
                 // Check if data is a string (double-encoded JSON)
                 if (typeof data === 'string') {
-                    console.log('[Knowledge] Data is string, parsing again');
+                    console.log('[Insight] Data is string, parsing again');
                     data = JSON.parse(data);
                 }
 
-                console.log('[Knowledge] Parsed data:', data);
-                console.log('[Knowledge] Data keys:', Object.keys(data));
-                console.log('[Knowledge] Checking conditions - ok:', data.ok, 'concepts:', data.concepts?.length);
+                console.log('[Insight] Parsed data:', data);
+                console.log('[Insight] Data keys:', Object.keys(data));
+                console.log('[Insight] Checking conditions - ok:', data.ok, 'concepts:', data.concepts?.length);
 
                 if (data.ok && data.concepts && data.concepts.length > 0) {
-                    console.log('[Knowledge] Calling displayVocabularyRelations with', data.concepts.length, 'concepts');
+                    console.log('[Insight] Calling displayVocabularyRelations with', data.concepts.length, 'concepts');
                     try {
                         displayVocabularyRelations(data.concepts);
                     } catch (err) {
-                        console.error('[Knowledge] Error in displayVocabularyRelations:', err);
+                        console.error('[Insight] Error in displayVocabularyRelations:', err);
                     }
                 } else {
-                    console.log('[Knowledge] Conditions not met for displaying vocabulary relations');
+                    console.log('[Insight] Conditions not met for displaying vocabulary relations');
                 }
             } catch (error) {
-                console.error('[Knowledge] Error fetching vocabulary info:', error);
+                console.error('[Insight] Error fetching vocabulary info:', error);
             }
         }
 
-        // Display broader, narrower, and related concepts in the knowledge card
+        // Display broader, narrower, and related concepts in the insight card
         function displayVocabularyRelations(concepts) {
-            console.log('[Knowledge] displayVocabularyRelations called with', concepts.length, 'concepts');
-            console.log('[Knowledge] First concept:', concepts[0]);
+            console.log('[Insight] displayVocabularyRelations called with', concepts.length, 'concepts');
+            console.log('[Insight] First concept:', concepts[0]);
 
             // Collect all unique broader and narrower terms with their info
             const allBroader = new Map();
             const allNarrower = new Map();
 
             concepts.forEach(concept => {
-                console.log('[Knowledge] Processing concept:', concept.uri, 'broader:', concept.broader?.length, 'narrower:', concept.narrower?.length);
+                console.log('[Insight] Processing concept:', concept.uri, 'broader:', concept.broader?.length, 'narrower:', concept.narrower?.length);
 
                 if (concept.broader && Array.isArray(concept.broader)) {
                     concept.broader.forEach(b => {
                         const label = b.prefLabel || b.uri.split('/').pop().split('#').pop();
                         const definition = b.definition || null;
-                        console.log('[Knowledge] Adding broader:', label, b.uri, 'def:', definition ? 'YES' : 'NO');
+                        console.log('[Insight] Adding broader:', label, b.uri, 'def:', definition ? 'YES' : 'NO');
                         allBroader.set(b.uri, { label, definition });
                     });
                 }
@@ -1117,13 +1117,13 @@
                     concept.narrower.forEach(n => {
                         const label = n.prefLabel || n.uri.split('/').pop().split('#').pop();
                         const definition = n.definition || null;
-                        console.log('[Knowledge] Adding narrower:', label, n.uri, 'def:', definition ? 'YES' : 'NO');
+                        console.log('[Insight] Adding narrower:', label, n.uri, 'def:', definition ? 'YES' : 'NO');
                         allNarrower.set(n.uri, { label, definition });
                     });
                 }
             });
 
-            console.log('[Knowledge] Total Broader:', allBroader.size, 'Narrower:', allNarrower.size);
+            console.log('[Insight] Total Broader:', allBroader.size, 'Narrower:', allNarrower.size);
 
             // Optionally fetch definitions for broader/narrower terms that don't have them yet
             fetchMissingDefinitions(allBroader, allNarrower);
@@ -1158,7 +1158,7 @@
                     relatedSection.appendChild(broaderTitle);
 
                     const broaderList = document.createElement('ul');
-                    broaderList.className = 'knowledge-links-list';
+                    broaderList.className = 'insight-links-list';
                     Array.from(allBroader.entries()).slice(0, 5).forEach(([uri, data]) => {
                         const li = document.createElement('li');
                         const container = createTermLinkWithSelector(data.label, uri);
@@ -1171,7 +1171,7 @@
                             const termLink = container.querySelector('a');
                             if (termLink) {
                                 termLink.title = data.definition;
-                                console.log('[Knowledge] Added tooltip for broader:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
+                                console.log('[Insight] Added tooltip for broader:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
 
                                 // Add info icon to indicate tooltip is available
                                 const icon = document.createElement('i');
@@ -1182,7 +1182,7 @@
                                 termLink.appendChild(icon);
                             }
                         } else {
-                            console.log('[Knowledge] No definition for broader:', data.label, uri);
+                            console.log('[Insight] No definition for broader:', data.label, uri);
                         }
 
                         li.appendChild(container);
@@ -1220,7 +1220,7 @@
                     relatedSection.appendChild(narrowerTitle);
 
                     const narrowerList = document.createElement('ul');
-                    narrowerList.className = 'knowledge-links-list';
+                    narrowerList.className = 'insight-links-list';
                     Array.from(allNarrower.entries()).slice(0, 5).forEach(([uri, data]) => {
                         const li = document.createElement('li');
                         const container = createTermLinkWithSelector(data.label, uri);
@@ -1233,7 +1233,7 @@
                             const termLink = container.querySelector('a');
                             if (termLink) {
                                 termLink.title = data.definition;
-                                console.log('[Knowledge] Added tooltip for narrower:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
+                                console.log('[Insight] Added tooltip for narrower:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
 
                                 // Add info icon to indicate tooltip is available
                                 const icon = document.createElement('i');
@@ -1244,7 +1244,7 @@
                                 termLink.appendChild(icon);
                             }
                         } else {
-                            console.log('[Knowledge] No definition for narrower:', data.label, uri);
+                            console.log('[Insight] No definition for narrower:', data.label, uri);
                         }
 
                         li.appendChild(container);
@@ -1260,14 +1260,14 @@
                     });
                 }
 
-                console.log('[Knowledge] Appending related section to vocab list');
+                console.log('[Insight] Appending related section to vocab list');
 
                 vocabList.appendChild(relatedSection);
 
                 // Add chips for broader and narrower terms
                 addRelatedTermChips(allBroader, allNarrower);
             } else {
-                console.log('[Knowledge] No broader or narrower concepts to display');
+                console.log('[Insight] No broader or narrower concepts to display');
             }
         }
 
@@ -1289,11 +1289,11 @@
             });
 
             if (urisNeedingDefinitions.length === 0) {
-                console.log('[Knowledge] All terms already have definitions');
+                console.log('[Insight] All terms already have definitions');
                 return;
             }
 
-            console.log('[Knowledge] Fetching definitions for', urisNeedingDefinitions.length, 'terms');
+            console.log('[Insight] Fetching definitions for', urisNeedingDefinitions.length, 'terms');
 
             try {
                 const response = await fetch(window.location.origin + '/vocab', {
@@ -1307,7 +1307,7 @@
                 });
 
                 if (!response.ok) {
-                    console.error('[Knowledge] Failed to fetch definitions:', response.status);
+                    console.error('[Insight] Failed to fetch definitions:', response.status);
                     return;
                 }
 
@@ -1317,7 +1317,7 @@
                 }
 
                 if (data.ok && data.concepts && data.concepts.length > 0) {
-                    console.log('[Knowledge] Received', data.concepts.length, 'concept definitions');
+                    console.log('[Insight] Received', data.concepts.length, 'concept definitions');
 
                     // Update the maps with the new definitions
                     data.concepts.forEach(concept => {
@@ -1340,7 +1340,7 @@
                     });
                 }
             } catch (error) {
-                console.error('[Knowledge] Error fetching missing definitions:', error);
+                console.error('[Insight] Error fetching missing definitions:', error);
             }
         }
 
@@ -1350,7 +1350,7 @@
             const links = vocabList.querySelectorAll(`a[data-uri="${uri}"]`);
             links.forEach(link => {
                 link.title = definition;
-                console.log('[Knowledge] Updated tooltip for', link.textContent);
+                console.log('[Insight] Updated tooltip for', link.textContent);
             });
         }
 
@@ -1375,7 +1375,7 @@
                 count++;
             }
 
-            console.log('[Knowledge] Adding', allRelatedTerms.size, 'related term chips');
+            console.log('[Insight] Adding', allRelatedTerms.size, 'related term chips');
 
             // Create chips for related terms
             allRelatedTerms.forEach(({ label, type }, uri) => {
@@ -1420,7 +1420,7 @@
             // Check if any bot messages were added or modified
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'subtree') {
-                    updateKnowledgeLinks();
+                    updateInsightLinks();
                 }
             });
         });
@@ -1433,16 +1433,16 @@
         });
 
         // Initial update
-        updateKnowledgeLinks();
+        updateInsightLinks();
 
-        // Expose updateKnowledgeLinks globally so it can be called from Scala code
-        window.updateKnowledgeLinks = updateKnowledgeLinks;
+        // Expose updateInsightLinks globally so it can be called from Scala code
+        window.updateInsightLinks = updateInsightLinks;
 
         // Expose observer control so Scala code can pause/resume observation
-        window.pauseKnowledgeObserver = function() {
+        window.pauseInsightObserver = function() {
             observer.disconnect();
         };
-        window.resumeKnowledgeObserver = function() {
+        window.resumeInsightObserver = function() {
             observer.observe(messagesContainer, {
                 childList: true,
                 subtree: true,

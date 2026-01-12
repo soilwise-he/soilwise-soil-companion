@@ -19091,14 +19091,14 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
                   contentEl$1.innerHTML = sanitized;
                   $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scalajs_dom_Element__V($m_Lnl_wur_soilcompanion_SoilCompanionApp$(), contentEl$1);
                   try {
-                    var updateFn = updateKnowledgeLinks;
+                    var updateFn = updateInsightLinks;
                     if (((updateFn !== (void 0)) && ($as_T((typeof updateFn)) === "function"))) {
                       updateFn();
                     }
                   } catch (e$4) {
                   }
                   try {
-                    var pauseFn = pauseKnowledgeObserver;
+                    var pauseFn = pauseInsightObserver;
                     if (((pauseFn !== (void 0)) && ($as_T((typeof pauseFn)) === "function"))) {
                       pauseFn();
                     }
@@ -19128,7 +19128,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
                   }
                   x0$5.setAttribute("data-raw-content", $as_T(contentEl$1.textContent));
                   try {
-                    var resumeFn = resumeKnowledgeObserver;
+                    var resumeFn = resumeInsightObserver;
                     if (((resumeFn !== (void 0)) && ($as_T((typeof resumeFn)) === "function"))) {
                       resumeFn();
                     }

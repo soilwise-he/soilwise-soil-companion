@@ -1551,7 +1551,7 @@ object SoilCompanionApp extends App {
               val last = messageContainer.lastElementChild
               Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
                 evt.detail.foreach { linkedContent =>
-                  // Store the linked version with links for knowledge panel extraction
+                  // Store the linked version with links for insight panel extraction
                   el.setAttribute("data-raw-content-with-links", linkedContent)
 
                   // Parse and render the linked content first (so links exist in DOM for extraction)
@@ -1562,9 +1562,9 @@ object SoilCompanionApp extends App {
                     contentEl.innerHTML = sanitized
                     fixExternalLinks(contentEl)
 
-                    // Manually trigger knowledge panel update before stripping links
+                    // Manually trigger insight panel update before stripping links
                     try {
-                      val updateFn = js.Dynamic.global.updateKnowledgeLinks
+                      val updateFn = js.Dynamic.global.updateInsightLinks
                       if (!js.isUndefined(updateFn) && js.typeOf(updateFn) == "function") {
                         updateFn.asInstanceOf[js.Function0[Unit]]()
                       }
@@ -1572,7 +1572,7 @@ object SoilCompanionApp extends App {
 
                     // Pause the MutationObserver to prevent it from re-running when we strip links
                     try {
-                      val pauseFn = js.Dynamic.global.pauseKnowledgeObserver
+                      val pauseFn = js.Dynamic.global.pauseInsightObserver
                       if (!js.isUndefined(pauseFn) && js.typeOf(pauseFn) == "function") {
                         pauseFn.asInstanceOf[js.Function0[Unit]]()
                       }
@@ -1597,7 +1597,7 @@ object SoilCompanionApp extends App {
 
                     // Resume the MutationObserver
                     try {
-                      val resumeFn = js.Dynamic.global.resumeKnowledgeObserver
+                      val resumeFn = js.Dynamic.global.resumeInsightObserver
                       if (!js.isUndefined(resumeFn) && js.typeOf(resumeFn) == "function") {
                         resumeFn.asInstanceOf[js.Function0[Unit]]()
                       }

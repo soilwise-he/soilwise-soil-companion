@@ -369,31 +369,9 @@ class CatalogTools {
 
 }
 
-/**
- * CatalogTools is an entry point object providing functionality for interacting with
- * SoilWise metadata and knowledge records. It supports querying metadata and retrieving
- * data/document content based on search terms or identifiers. The object implements
- * utilities to help in constructing queries and fetching relevant information.
- *
- * The main functionalities include:
- * - Constructing search queries combining logical operations across terms and fields.
- * - Fetching metadata records for datasets and documents based on search terms.
- * - Retrieving detailed content for individual documents or matching records.
- *
- * This object also provides a helper method for accessing tool specifications for
- * metadata processing utilities.
- */
-object CatalogTools extends App {
-  /**
-   * Retrieves a list of tool specifications for metadata processing utilities.
-   *
-   * Tool specifications define the capabilities and metadata of tools available
-   * within the SoilWise Catalog. These specifications include details necessary
-   * for understanding and utilizing the tools effectively for metadata operations.
-   *
-   * @return A list of tool specifications as `ToolSpecification` objects.
-   */
-  def getSpecifications: util.List[ToolSpecification] =
+
+object CatalogTools {
+  def getSpecifications: java.util.List[ToolSpecification] =
     ToolSpecifications.toolSpecificationsFrom(classOf[CatalogTools])
 }
 

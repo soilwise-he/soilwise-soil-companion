@@ -1,6 +1,6 @@
 package nl.wur.soilcompanion.tools
 
-import dev.langchain4j.agent.tool.{P, Tool}
+import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
 import nl.wur.soilcompanion.Config
 import upickle.default.*
 
@@ -332,4 +332,10 @@ class OpenAgroKpiTools {
         logger.debug(s"OpenAgroKPI fields-$lyr response (200) for ${ids.size} fields: ${preview(body)}")
         s"OpenAgroKPI fields-$lyr (POST) for ${ids.size} fields: ${preview(body, 1500)}\nService: ${buildBase()}\nDocs: ${Config.openAgroConfig.docsUrl}"
   }
+}
+
+
+object OpenAgroKpiTools {
+  def getSpecifications: java.util.List[ToolSpecification] =
+    ToolSpecifications.toolSpecificationsFrom(classOf[OpenAgroKpiTools])
 }

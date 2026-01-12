@@ -1,6 +1,6 @@
 package nl.wur.soilcompanion.tools
 
-import dev.langchain4j.agent.tool.{P, Tool}
+import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
 import nl.wur.soilcompanion.Config
 
 /**
@@ -563,4 +563,10 @@ class AgroDataCubeTools {
             logger.debug(s"AgroDataCube KPI croprotation (200) for ids=$ids: ${preview(resp)}")
             s"KPI croprotation for fieldids=[$ids]:\n${preview(resp)}"
   }
+}
+
+
+object AgroDataCubeTools {
+  def getSpecifications: java.util.List[ToolSpecification] =
+    ToolSpecifications.toolSpecificationsFrom(classOf[AgroDataCubeTools])
 }

@@ -38,6 +38,7 @@ object Config {
                         chatMaxIdleTimeSec: Int,
                         chatMaxTokens: Int,
                         chatMaxRetries: Int,
+                        chatMaxSequentialTools: Int,
                         // optional debug logging for AI responses
                         debugLogFinalAiResponse: Boolean,
                         // optional prefix applied to every line of the final AI response in logs
@@ -125,6 +126,8 @@ object Config {
                                     readTimeoutMs: Int,
                                     maxResults: Int,
                                     redirectUrlPattern: String,
+                                    llmPrefix: String,
+                                    actualPrefix: String,
                                     userAgent: String
                                   ) derives ConfigReader
 

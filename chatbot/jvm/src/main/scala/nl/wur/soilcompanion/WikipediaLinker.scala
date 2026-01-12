@@ -214,6 +214,32 @@ object WikipediaLinker {
   }
 
   /**
+   * Check if a position in the text is inside a markdown link.
+   * A markdown link has the format: [text](url)
+   */
+  private def isInsideMarkdownLink(text: String, position: Int): Boolean = {
+    // Find the nearest [ before the position
+    val openBracket = text.lastIndexOf('[', position - 1)
+    if (openBracket == -1) return false
+
+    // Find the nearest ] after the open bracket
+    val closeBracket = text.indexOf(']', openBracket)
+    if (closeBracket == -1 || closeBracket < position) return false
+
+    // Check if there's a ( immediately after the ]
+    if (closeBracket + 1 < text.length && text.charAt(closeBracket + 1) == '(') {
+      // Find the closing )
+      val closeParen = text.indexOf(')', closeBracket + 2)
+      if (closeParen != -1) {
+        // Position is inside a markdown link if it's between [ and ]
+        return position > openBracket && position < closeBracket
+      }
+    }
+
+    false
+  }
+
+  /**
    * Process response text and add Wikipedia links to technical terms.
    * Only processes if auto-linking is enabled in config.
    * Detects language and uses appropriate Wikipedia edition.
@@ -270,13 +296,21 @@ object WikipediaLinker {
         val wikiUrl = s"$baseUrl/wiki/$articleTitle"
 
         // Only link the first occurrence of each term to avoid clutter
-        // Use a regex that matches the term as a whole word (case-insensitive for matching)
-        val pattern = s"(?<!\\[)\\b${Regex.quote(term)}\\b(?!\\])".r
-        val firstMatch = pattern.findFirstIn(result)
+        // Use a regex that matches the term as a whole word, and skip if already part of a markdown link
+        val pattern = s"\\b${Regex.quote(term)}\\b".r
 
-        firstMatch.foreach { matched =>
+        // Find first match that's not already inside a markdown link
+        val matches = pattern.findAllMatchIn(result).toList
+        val firstValidMatch = matches.find { m =>
+          !isInsideMarkdownLink(result, m.start)
+        }
+
+        firstValidMatch.foreach { m =>
+          val matched = m.matched
           // Replace only the first occurrence with a markdown link, preserving original case
-          result = pattern.replaceFirstIn(result, s"[$matched]($wikiUrl)")
+          val before = result.substring(0, m.start)
+          val after = result.substring(m.end)
+          result = before + s"[$matched]($wikiUrl)" + after
           logger.debug(s"Added Wikipedia link for term: $matched -> $wikiUrl")
         }
       }

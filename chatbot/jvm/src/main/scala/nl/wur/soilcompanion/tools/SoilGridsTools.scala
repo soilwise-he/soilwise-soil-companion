@@ -1,6 +1,6 @@
 package nl.wur.soilcompanion.tools
 
-import dev.langchain4j.agent.tool.{P, Tool}
+import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
 import nl.wur.soilcompanion.Config
 import upickle.default.*
 
@@ -215,4 +215,10 @@ class SoilGridsTools {
     catch
       case _: Throwable => "Invalid or missing location context JSON. Provide 'lat' and 'lon' fields."
   }
+}
+
+
+object SoilGridsTools {
+  def getSpecifications: java.util.List[ToolSpecification] =
+    ToolSpecifications.toolSpecificationsFrom(classOf[SoilGridsTools])
 }

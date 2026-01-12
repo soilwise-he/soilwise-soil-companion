@@ -45,6 +45,7 @@ trait Assistant {
     "Your answers must be based on the knowledge and data available in the SoilWise repository.",
     "Always first decide if you need information from that repository. If yes, list concrete queries and the tools to call.",
     "When the user refers to a catalog, this means the SoilWise repository. Use a tool to lookup information in it.",
+    "For soil or soil health related questions, use the Vocabulary tool to look up relevant terms and concepts that can provide further insights.",
     "For general concepts, definitions, or background information, use Wikipedia to supplement your answers.",
     "Whenever you mention technical terms, scientific concepts, or specialized terminology, provide Wikipedia links for additional context.",
     // Acceptance criteria 4
@@ -193,10 +194,11 @@ object AssistantLive {
         new SoilGridsTools(),
         new AgroDataCubeTools(),
         new OpenAgroKpiTools(),
+        new VocabularyTools(),
         new WikipediaTools()
       )
       .retrievalAugmentor(augmentor)
-      .maxSequentialToolsInvocations(5)
+      .maxSequentialToolsInvocations(Config.appConfig.chatMaxSequentialTools)
       .build()
   }
 

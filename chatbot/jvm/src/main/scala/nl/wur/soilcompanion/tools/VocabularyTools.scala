@@ -1,6 +1,6 @@
 package nl.wur.soilcompanion.tools
 
-import dev.langchain4j.agent.tool.{P, Tool}
+import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
 import nl.wur.soilcompanion.Config
 import upickle.default.*
 
@@ -257,7 +257,43 @@ class VocabularyTools {
   }
 
   /**
+   * Replaces the LLM-friendly prefix with the actual vocabulary prefix.
+   * More robust: extracts the last path element from any vocab-like URI and uses it.
+   * Examples:
+   *   http://soilwise.eu/vocab/clay -> https://soilwise-he.github.io/soil-health#Clay
+   *   http://soilwise.org/vocab/clay -> https://soilwise-he.github.io/soil-health#Clay
+   *   http://soilwise.eu/vocab/soil-health -> https://soilwise-he.github.io/soil-health#Soil-health
+   */
+  private def replacePrefixIfNeeded(uri: String): String = {
+    // Check if this looks like an LLM-generated vocab URI (contains "soilwise" and "vocab")
+    if (uri.contains("soilwise") && uri.contains("/vocab/")) {
+      // Extract the last path element after /vocab/
+      val lastSlashIndex = uri.lastIndexOf('/')
+      if (lastSlashIndex > 0 && lastSlashIndex < uri.length - 1) {
+        val localName = uri.substring(lastSlashIndex + 1)
+        // Capitalize first letter of the local name for proper IRI format
+        val capitalizedLocalName = if (localName.nonEmpty) {
+          localName.head.toUpper + localName.tail
+        } else {
+          localName
+        }
+        val result = config.actualPrefix + capitalizedLocalName
+        logger.info(s"Replaced IRI prefix: $uri -> $result")
+        result
+      } else {
+        logger.warn(s"Could not extract local name from URI: $uri")
+        uri
+      }
+    } else {
+      uri
+    }
+  }
+
+  /**
    * Retrieves vocabulary concept information from the SPARQL endpoint.
+   *
+   * http://soilwise.eu/vocab/clay
+   * https://soilwise-he.github.io/soil-health#Clay
    *
    * @param conceptUri The URI of the vocabulary concept to look up (can be redirect URI)
    * @return JSON string with concept information including broader, narrower, and exact match concepts
@@ -268,16 +304,19 @@ class VocabularyTools {
   ): String = {
     logger.info(s"Looking up vocabulary concept: $conceptUri")
 
-    // Extract the actual concept URI from redirect URL if needed
-    val actualUri = extractActualUri(conceptUri)
+    // First, replace LLM prefix with actual prefix if needed
+    val prefixReplacedUri = replacePrefixIfNeeded(conceptUri)
+
+    // Then extract the actual concept URI from redirect URL if needed
+    val actualUri = extractActualUri(prefixReplacedUri)
     logger.info(s"Actual concept URI: $actualUri")
 
     val query = buildConceptQuery(actualUri)
-    logger.debug(s"SPARQL Query: $query")
+    logger.trace(s"SPARQL Query: $query")
 
     executeSparqlQuery(query) match {
       case Success(jsonResponse) =>
-        logger.debug(s"SPARQL Response: $jsonResponse")
+        logger.trace(s"SPARQL Response: $jsonResponse")
         parseSparqlResults(jsonResponse, actualUri) match {
           case Some(concept) =>
             val result = upickle.default.write(concept)
@@ -307,7 +346,8 @@ class VocabularyTools {
     logger.info(s"Batch looking up ${uris.length} vocabulary concepts")
 
     val concepts = uris.flatMap { uri =>
-      val actualUri = extractActualUri(uri)
+      val prefixReplacedUri = replacePrefixIfNeeded(uri)
+      val actualUri = extractActualUri(prefixReplacedUri)
       val query = buildConceptQuery(actualUri)
       executeSparqlQuery(query).toOption.flatMap { jsonResponse =>
         parseSparqlResults(jsonResponse, actualUri)
@@ -317,3 +357,10 @@ class VocabularyTools {
     upickle.default.write(concepts)
   }
 }
+
+
+object VocabularyTools {
+  def getSpecifications: java.util.List[ToolSpecification] =
+    ToolSpecifications.toolSpecificationsFrom(classOf[VocabularyTools])
+}
+

@@ -1,3 +1,10 @@
+## [1.2.0](https://git.wur.nl/soilwise/soil-companion/compare/1.1.2...1.2.0) (2026-01-12)
+
+
+### Features
+
+* Soil Health KG integration and LLM Tools improvements ([7f24212](https://git.wur.nl/soilwise/soil-companion/commit/7f242129ae91f81170bcdc054ae52dd5e5447607))
+
 ## [1.1.2](https://git.wur.nl/soilwise/soil-companion/compare/1.1.1...1.1.2) (2026-01-07)
 
 

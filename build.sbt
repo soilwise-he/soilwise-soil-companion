@@ -7,6 +7,10 @@ ThisBuild / scalaVersion := "3.7.3"
 ThisBuild / logLevel := Level.Debug
 ThisBuild / fork := true
 
+val langchain4jVersion = "1.10.0"
+val langchain4jBetaVersion = "1.10.0-beta18"
+val pureconfigVersion = "0.17.9"
+
 lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
   .jsSettings(
     name := "frontend",
@@ -27,21 +31,25 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       "com.lihaoyi"     %% "cask"      % "0.11.3",
       "com.lihaoyi"     %% "upickle"   % "4.4.2",
       "com.lihaoyi"     %% "os-lib"    % "0.11.6",
-      "com.lihaoyi"     %% "requests"  % "0.9.0",
+      "com.lihaoyi"     %% "requests"  % "0.9.2",
       // config
-      "com.github.pureconfig" %% "pureconfig-core"  % "0.17.9",
-      "com.github.pureconfig" %% "pureconfig-generic-base"  % "0.17.9",
+      "com.github.pureconfig" %% "pureconfig-core"  % pureconfigVersion,
+      "com.github.pureconfig" %% "pureconfig-generic-base"  % pureconfigVersion,
       // java logging
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
       "ch.qos.logback"           % "logback-classic"  % "1.5.24",
       // java langchain4j
-      "dev.langchain4j" % "langchain4j"             % "1.10.0",
-      "dev.langchain4j" % "langchain4j-open-ai"     % "1.10.0",
-      "dev.langchain4j" % "langchain4j-agentic"     % "1.10.0-beta18",
-      "dev.langchain4j" % "langchain4j-embeddings"  % "1.10.0-beta18",
-      "dev.langchain4j" % "langchain4j-easy-rag"    % "1.10.0-beta18",
+      "dev.langchain4j" % "langchain4j"             % langchain4jVersion,
+      "dev.langchain4j" % "langchain4j-open-ai"     % langchain4jVersion,
+      "dev.langchain4j" % "langchain4j-agentic"     % langchain4jBetaVersion,
+      "dev.langchain4j" % "langchain4j-embeddings"  % langchain4jBetaVersion,
+      "dev.langchain4j" % "langchain4j-embeddings-all-minilm-l6-v2" % langchain4jBetaVersion,
+      "dev.langchain4j" % "langchain4j-chroma"      % langchain4jBetaVersion,
+      "dev.langchain4j" % "langchain4j-easy-rag"    % langchain4jBetaVersion,
       // probably already pulled in by easy-rag ...
-      "dev.langchain4j" % "langchain4j-document-parser-apache-tika" % "1.10.0-beta18"
+      "dev.langchain4j" % "langchain4j-document-parser-apache-tika" % langchain4jBetaVersion,
+      // java testcontainers
+      "org.testcontainers" % "chromadb" % "1.21.4"
     )
   )
 

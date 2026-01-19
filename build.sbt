@@ -37,7 +37,7 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       "com.github.pureconfig" %% "pureconfig-generic-base"  % pureconfigVersion,
       // java logging
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
-      "ch.qos.logback"           % "logback-classic"  % "1.5.24",
+      "ch.qos.logback"           % "logback-classic"  % "1.5.25",
       // java langchain4j
       "dev.langchain4j" % "langchain4j"             % langchain4jVersion,
       "dev.langchain4j" % "langchain4j-open-ai"     % langchain4jVersion,

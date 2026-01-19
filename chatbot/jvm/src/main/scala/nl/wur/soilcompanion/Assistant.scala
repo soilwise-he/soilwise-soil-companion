@@ -1,13 +1,14 @@
 package nl.wur.soilcompanion
 
 import os.*
-
 import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser
 import dev.langchain4j.data.document.source.FileSystemSource
 import dev.langchain4j.data.document.{Document, DocumentLoader}
 import dev.langchain4j.data.document.splitter.DocumentSplitters
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.memory.chat.MessageWindowChatMemory
+import dev.langchain4j.model.embedding.EmbeddingModel
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel
 import dev.langchain4j.model.input.PromptTemplate
 import dev.langchain4j.model.openai.{OpenAiChatModel, OpenAiStreamingChatModel}
 import dev.langchain4j.rag.content.injector.DefaultContentInjector
@@ -18,7 +19,6 @@ import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer
 import dev.langchain4j.service.{AiServices, SystemMessage, TokenStream, UserMessage}
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore
-
 import nl.wur.soilcompanion.tools.*
 
 import scala.jdk.CollectionConverters.*
@@ -109,10 +109,14 @@ object AssistantLive {
   private val store = new InMemoryEmbeddingStore[TextSegment]()
   logger.info("Using in-memory embedding store")
 
+  // Create embedding model
+  val embeddingModel: EmbeddingModel = AllMiniLmL6V2EmbeddingModel()
+
   // document ingestor
   private val ingestor = EmbeddingStoreIngestor.builder()
     .documentSplitter(splitter)
     .embeddingStore(store)
+    .embeddingModel(embeddingModel)
     .build()
 
   // load documents into the store (safe if no docs found)
@@ -161,6 +165,7 @@ object AssistantLive {
   // content retriever
   private val retriever = EmbeddingStoreContentRetriever.builder()
     .embeddingStore(store)
+    .embeddingModel(embeddingModel)
     .maxResults(Config.appConfig.docRetrieverMaxResults)
     .minScore(Config.appConfig.docRetrieverMinScore)
     .build()

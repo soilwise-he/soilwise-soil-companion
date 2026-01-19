@@ -348,7 +348,7 @@
                 </div>
                 <div id="panel-insight" role="tabpanel" aria-labelledby="tab-insight" class="tabpanel" tabindex="0" hidden>
                     <div class="insight-panel">
-                        <p class="insight-description">Links to related information from the latest response.</p>
+                        <p class="insight-description">Explore related knowledge:</p>
 
                         <div class="insight-card" id="vocab-links-card">
                             <div class="insight-card-header" style="cursor: pointer; user-select: none;">
@@ -359,7 +359,7 @@
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true" style="font-size: 0.8em; transition: transform 0.2s;"></i>
                             </div>
                             <div id="vocab-links-list" class="insight-card-body">
-                                No vocabulary links yet.
+                                No SoilWise links yet.
                             </div>
                         </div>
 
@@ -909,6 +909,23 @@
         }
 
         // Extract links from the latest bot message
+        // Helper function to capitalize terms properly: first word capitalized, rest lowercase
+        function capitalizeTermProperly(text) {
+            if (!text) return text;
+            const words = text.trim().split(/\s+/);
+            if (words.length === 0) return text;
+            // Capitalize first word, lowercase the rest
+            return words.map((word, index) => {
+                if (index === 0) {
+                    // First word: capitalize first letter, lowercase the rest
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                } else {
+                    // Other words: all lowercase
+                    return word.toLowerCase();
+                }
+            }).join(' ');
+        }
+
         function updateInsightLinks() {
             const botMessages = messagesContainer.querySelectorAll('.bot-message');
             console.log('[Insight] Bot messages:', botMessages.length);
@@ -935,7 +952,7 @@
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     a.href = link.href;
-                    a.textContent = link.textContent;
+                    a.textContent = capitalizeTermProperly(link.textContent);
                     a.target = '_blank';
                     a.rel = 'noopener noreferrer';
                     li.appendChild(a);
@@ -987,13 +1004,18 @@
                     }
                 });
 
-                // Limit to 8 chips for mobile friendliness
-                const termsArray = Array.from(uniqueTerms.entries()).slice(0, 8);
+                // Sort alphabetically and limit to 8 chips for mobile friendliness
+                const termsArray = Array.from(uniqueTerms.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .slice(0, 8);
 
                 termsArray.forEach(([term, href]) => {
+                    // Capitalize the term properly
+                    const capitalizedTerm = capitalizeTermProperly(term);
+
                     // Add to sidebar with question selector
                     const li = document.createElement('li');
-                    const termElement = createTermLinkWithSelector(term, href);
+                    const termElement = createTermLinkWithSelector(capitalizedTerm, href);
                     li.appendChild(termElement);
                     ul.appendChild(li);
 
@@ -1001,22 +1023,22 @@
                     const chip = document.createElement('button');
                     chip.className = 'vocab-chip';
                     chip.setAttribute('type', 'button');
-                    chip.setAttribute('title', `Ask about ${term}`);
-                    chip.setAttribute('aria-label', `Ask about ${term}`);
+                    chip.setAttribute('title', `Ask about ${capitalizedTerm}`);
+                    chip.setAttribute('aria-label', `Ask about ${capitalizedTerm}`);
 
                     const icon = document.createElement('i');
                     icon.className = 'fa-solid fa-magnifying-glass';
                     icon.setAttribute('aria-hidden', 'true');
 
                     const label = document.createElement('span');
-                    label.textContent = term;
+                    label.textContent = capitalizedTerm;
 
                     chip.appendChild(icon);
                     chip.appendChild(label);
 
                     // Click handler - uses the question marked for chips
                     chip.addEventListener('click', function() {
-                        askQuestion(chipQuestion.template(term));
+                        askQuestion(chipQuestion.template(capitalizedTerm));
                     });
 
                     chipsScroll.appendChild(chip);
@@ -1036,7 +1058,7 @@
                 // Fetch additional vocabulary information from SPARQL
                 fetchVocabularyInfo(termsArray.map(([_, href]) => href));
             } else {
-                vocabList.innerHTML = 'No vocabulary links yet.';
+                vocabList.innerHTML = 'No SoilWise links yet.';
                 chipsContainer.setAttribute('hidden', '');
                 chipsScroll.innerHTML = '';
             }
@@ -1098,12 +1120,13 @@
             console.log('[Insight] displayVocabularyRelations called with', concepts.length, 'concepts');
             console.log('[Insight] First concept:', concepts[0]);
 
-            // Collect all unique broader and narrower terms with their info
+            // Collect all unique broader, narrower, and related terms with their info
             const allBroader = new Map();
             const allNarrower = new Map();
+            const allRelated = new Map();
 
             concepts.forEach(concept => {
-                console.log('[Insight] Processing concept:', concept.uri, 'broader:', concept.broader?.length, 'narrower:', concept.narrower?.length);
+                console.log('[Insight] Processing concept:', concept.uri, 'broader:', concept.broader?.length, 'narrower:', concept.narrower?.length, 'related:', concept.related?.length);
 
                 if (concept.broader && Array.isArray(concept.broader)) {
                     concept.broader.forEach(b => {
@@ -1121,158 +1144,132 @@
                         allNarrower.set(n.uri, { label, definition });
                     });
                 }
+                if (concept.related && Array.isArray(concept.related)) {
+                    concept.related.forEach(r => {
+                        const label = r.prefLabel || r.uri.split('/').pop().split('#').pop();
+                        const definition = r.definition || null;
+                        console.log('[Insight] Adding related:', label, r.uri, 'def:', definition ? 'YES' : 'NO');
+                        allRelated.set(r.uri, { label, definition });
+                    });
+                }
             });
 
-            console.log('[Insight] Total Broader:', allBroader.size, 'Narrower:', allNarrower.size);
+            console.log('[Insight] Total Broader:', allBroader.size, 'Narrower:', allNarrower.size, 'Related:', allRelated.size);
 
-            // Optionally fetch definitions for broader/narrower terms that don't have them yet
-            fetchMissingDefinitions(allBroader, allNarrower);
+            // Optionally fetch definitions for broader/narrower/related terms that don't have them yet
+            fetchMissingDefinitions(allBroader, allNarrower, allRelated);
 
             // Add a section for related concepts
-            if (allBroader.size > 0 || allNarrower.size > 0) {
+            if (allBroader.size > 0 || allNarrower.size > 0 || allRelated.size > 0) {
                 const relatedSection = document.createElement('div');
                 relatedSection.className = 'vocab-related-section';
                 relatedSection.style.marginTop = '12px';
                 relatedSection.style.paddingTop = '12px';
                 relatedSection.style.borderTop = '1px solid #e0d5c6';
 
-                // Add broader concepts
-                if (allBroader.size > 0) {
-                    const broaderTitle = document.createElement('h5');
-                    broaderTitle.textContent = 'Broader concepts:';
-                    broaderTitle.style.margin = '0 0 6px 0';
-                    broaderTitle.style.fontSize = '0.85rem';
-                    broaderTitle.style.fontWeight = '600';
-                    broaderTitle.style.color = '#5a4f3e';
-                    broaderTitle.style.cursor = 'pointer';
-                    broaderTitle.style.userSelect = 'none';
+                // Combine all concepts into one array with type information
+                // Use a Map to deduplicate by URI (in case same concept appears in multiple categories)
+                const allConceptsMap = new Map();
 
-                    // Add collapse icon
-                    const broaderIcon = document.createElement('i');
-                    broaderIcon.className = 'fa-solid fa-chevron-down';
-                    broaderIcon.style.marginLeft = '6px';
-                    broaderIcon.style.fontSize = '0.7em';
-                    broaderIcon.style.transition = 'transform 0.2s';
-                    broaderTitle.appendChild(broaderIcon);
+                allBroader.forEach((data, uri) => {
+                    if (!allConceptsMap.has(uri)) {
+                        allConceptsMap.set(uri, { uri, label: data.label, definition: data.definition, type: 'broader' });
+                    }
+                });
 
-                    relatedSection.appendChild(broaderTitle);
+                allNarrower.forEach((data, uri) => {
+                    if (!allConceptsMap.has(uri)) {
+                        allConceptsMap.set(uri, { uri, label: data.label, definition: data.definition, type: 'narrower' });
+                    }
+                });
 
-                    const broaderList = document.createElement('ul');
-                    broaderList.className = 'insight-links-list';
-                    Array.from(allBroader.entries()).slice(0, 5).forEach(([uri, data]) => {
-                        const li = document.createElement('li');
-                        const container = createTermLinkWithSelector(data.label, uri);
+                allRelated.forEach((data, uri) => {
+                    if (!allConceptsMap.has(uri)) {
+                        allConceptsMap.set(uri, { uri, label: data.label, definition: data.definition, type: 'related' });
+                    }
+                });
 
-                        // Store URI for later tooltip updates
-                        container.setAttribute('data-uri', uri);
+                // Convert to array and sort alphabetically by label
+                const allConcepts = Array.from(allConceptsMap.values());
+                allConcepts.sort((a, b) => a.label.localeCompare(b.label));
 
-                        // Add tooltip to the term link if definition exists
-                        if (data.definition) {
-                            const termLink = container.querySelector('a');
-                            if (termLink) {
-                                termLink.title = data.definition;
-                                console.log('[Insight] Added tooltip for broader:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
+                // Add single header for all related concepts
+                const relatedTitle = document.createElement('h5');
+                relatedTitle.textContent = 'Related concepts:';
+                relatedTitle.style.margin = '0 0 6px 0';
+                relatedTitle.style.fontSize = '0.85rem';
+                relatedTitle.style.fontWeight = '600';
+                relatedTitle.style.color = '#5a4f3e';
+                relatedTitle.style.cursor = 'pointer';
+                relatedTitle.style.userSelect = 'none';
 
-                                // Add info icon to indicate tooltip is available
-                                const icon = document.createElement('i');
-                                icon.className = 'fa-solid fa-circle-info';
-                                icon.style.marginLeft = '4px';
-                                icon.style.fontSize = '0.75em';
-                                icon.style.opacity = '0.6';
-                                termLink.appendChild(icon);
-                            }
-                        } else {
-                            console.log('[Insight] No definition for broader:', data.label, uri);
+                // Add collapse icon
+                const relatedIcon = document.createElement('i');
+                relatedIcon.className = 'fa-solid fa-chevron-down';
+                relatedIcon.style.marginLeft = '6px';
+                relatedIcon.style.fontSize = '0.7em';
+                relatedIcon.style.transition = 'transform 0.2s';
+                relatedTitle.appendChild(relatedIcon);
+
+                relatedSection.appendChild(relatedTitle);
+
+                // Create single list for all concepts
+                const relatedList = document.createElement('ul');
+                relatedList.className = 'insight-links-list';
+
+                allConcepts.forEach(({ uri, label, definition, type }) => {
+                    const li = document.createElement('li');
+                    const capitalizedLabel = capitalizeTermProperly(label);
+                    const container = createTermLinkWithSelector(capitalizedLabel, uri);
+
+                    // Store URI for later tooltip updates
+                    container.setAttribute('data-uri', uri);
+
+                    // Add tooltip to the term link if definition exists
+                    if (definition) {
+                        const termLink = container.querySelector('a');
+                        if (termLink) {
+                            termLink.title = definition;
+                            console.log('[Insight] Added tooltip for', type, ':', label, '- definition:', definition.substring(0, 50) + '...');
+
+                            // Add info icon to indicate tooltip is available
+                            const icon = document.createElement('i');
+                            icon.className = 'fa-solid fa-circle-info';
+                            icon.style.marginLeft = '4px';
+                            icon.style.fontSize = '0.75em';
+                            icon.style.opacity = '0.6';
+                            termLink.appendChild(icon);
                         }
+                    } else {
+                        console.log('[Insight] No definition for', type, ':', label, uri);
+                    }
 
-                        li.appendChild(container);
-                        broaderList.appendChild(li);
-                    });
-                    relatedSection.appendChild(broaderList);
+                    li.appendChild(container);
+                    relatedList.appendChild(li);
+                });
 
-                    // Add click handler for broader concepts collapsible
-                    broaderTitle.addEventListener('click', function() {
-                        const isCollapsed = broaderList.style.display === 'none';
-                        broaderList.style.display = isCollapsed ? '' : 'none';
-                        broaderIcon.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
-                    });
-                }
+                relatedSection.appendChild(relatedList);
 
-                // Add narrower concepts
-                if (allNarrower.size > 0) {
-                    const narrowerTitle = document.createElement('h5');
-                    narrowerTitle.textContent = 'Narrower concepts:';
-                    narrowerTitle.style.margin = '8px 0 6px 0';
-                    narrowerTitle.style.fontSize = '0.85rem';
-                    narrowerTitle.style.fontWeight = '600';
-                    narrowerTitle.style.color = '#5a4f3e';
-                    narrowerTitle.style.cursor = 'pointer';
-                    narrowerTitle.style.userSelect = 'none';
-
-                    // Add collapse icon
-                    const narrowerIcon = document.createElement('i');
-                    narrowerIcon.className = 'fa-solid fa-chevron-down';
-                    narrowerIcon.style.marginLeft = '6px';
-                    narrowerIcon.style.fontSize = '0.7em';
-                    narrowerIcon.style.transition = 'transform 0.2s';
-                    narrowerTitle.appendChild(narrowerIcon);
-
-                    relatedSection.appendChild(narrowerTitle);
-
-                    const narrowerList = document.createElement('ul');
-                    narrowerList.className = 'insight-links-list';
-                    Array.from(allNarrower.entries()).slice(0, 5).forEach(([uri, data]) => {
-                        const li = document.createElement('li');
-                        const container = createTermLinkWithSelector(data.label, uri);
-
-                        // Store URI for later tooltip updates
-                        container.setAttribute('data-uri', uri);
-
-                        // Add tooltip to the term link if definition exists
-                        if (data.definition) {
-                            const termLink = container.querySelector('a');
-                            if (termLink) {
-                                termLink.title = data.definition;
-                                console.log('[Insight] Added tooltip for narrower:', data.label, '- definition:', data.definition.substring(0, 50) + '...');
-
-                                // Add info icon to indicate tooltip is available
-                                const icon = document.createElement('i');
-                                icon.className = 'fa-solid fa-circle-info';
-                                icon.style.marginLeft = '4px';
-                                icon.style.fontSize = '0.75em';
-                                icon.style.opacity = '0.6';
-                                termLink.appendChild(icon);
-                            }
-                        } else {
-                            console.log('[Insight] No definition for narrower:', data.label, uri);
-                        }
-
-                        li.appendChild(container);
-                        narrowerList.appendChild(li);
-                    });
-                    relatedSection.appendChild(narrowerList);
-
-                    // Add click handler for narrower concepts collapsible
-                    narrowerTitle.addEventListener('click', function() {
-                        const isCollapsed = narrowerList.style.display === 'none';
-                        narrowerList.style.display = isCollapsed ? '' : 'none';
-                        narrowerIcon.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
-                    });
-                }
+                // Add click handler for collapsible
+                relatedTitle.addEventListener('click', function() {
+                    const isCollapsed = relatedList.style.display === 'none';
+                    relatedList.style.display = isCollapsed ? '' : 'none';
+                    relatedIcon.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
+                });
 
                 console.log('[Insight] Appending related section to vocab list');
 
                 vocabList.appendChild(relatedSection);
 
-                // Add chips for broader and narrower terms
-                addRelatedTermChips(allBroader, allNarrower);
+                // Add chips for broader, narrower, and related terms
+                addRelatedTermChips(allBroader, allNarrower, allRelated);
             } else {
-                console.log('[Insight] No broader or narrower concepts to display');
+                console.log('[Insight] No broader, narrower, or related concepts to display');
             }
         }
 
-        // Fetch definitions for broader/narrower terms that don't have them
-        async function fetchMissingDefinitions(broaderMap, narrowerMap) {
+        // Fetch definitions for broader/narrower/related terms that don't have them
+        async function fetchMissingDefinitions(broaderMap, narrowerMap, relatedMap) {
             // Collect URIs that need definitions
             const urisNeedingDefinitions = [];
 
@@ -1283,6 +1280,12 @@
             });
 
             narrowerMap.forEach((data, uri) => {
+                if (!data.definition) {
+                    urisNeedingDefinitions.push(uri);
+                }
+            });
+
+            relatedMap.forEach((data, uri) => {
                 if (!data.definition) {
                     urisNeedingDefinitions.push(uri);
                 }
@@ -1336,6 +1339,13 @@
                                 // Find and update the tooltip in the DOM
                                 updateTooltipInDOM(concept.uri, concept.definition);
                             }
+                            // Update related map
+                            if (relatedMap.has(concept.uri)) {
+                                const existing = relatedMap.get(concept.uri);
+                                existing.definition = concept.definition;
+                                // Find and update the tooltip in the DOM
+                                updateTooltipInDOM(concept.uri, concept.definition);
+                            }
                         }
                     });
                 }
@@ -1354,24 +1364,32 @@
             });
         }
 
-        // Add chips for broader and narrower vocabulary terms
-        function addRelatedTermChips(broaderMap, narrowerMap) {
-            // Combine broader and narrower terms, limit to avoid overwhelming the user
+        // Add chips for broader, narrower, and related vocabulary terms
+        function addRelatedTermChips(broaderMap, narrowerMap, relatedMap) {
+            // Combine broader, narrower, and related terms, limit to avoid overwhelming the user
             const allRelatedTerms = new Map();
 
-            // Add broader terms (limit to 3)
+            // Add broader terms (limit to 2)
             let count = 0;
             for (const [uri, data] of broaderMap.entries()) {
-                if (count >= 3) break;
+                if (count >= 2) break;
                 allRelatedTerms.set(uri, { label: data.label, type: 'broader' });
                 count++;
             }
 
-            // Add narrower terms (limit to 5, for total of 8 chips max)
+            // Add narrower terms (limit to 3)
             count = 0;
             for (const [uri, data] of narrowerMap.entries()) {
-                if (allRelatedTerms.size >= 8) break;
+                if (allRelatedTerms.size >= 5) break;
                 allRelatedTerms.set(uri, { label: data.label, type: 'narrower' });
+                count++;
+            }
+
+            // Add related terms (limit to 3, for total of 8 chips max)
+            count = 0;
+            for (const [uri, data] of relatedMap.entries()) {
+                if (allRelatedTerms.size >= 8) break;
+                allRelatedTerms.set(uri, { label: data.label, type: 'related' });
                 count++;
             }
 
@@ -1379,18 +1397,26 @@
 
             // Create chips for related terms
             allRelatedTerms.forEach(({ label, type }, uri) => {
+                const capitalizedLabel = capitalizeTermProperly(label);
+
                 const chip = document.createElement('button');
                 chip.className = 'vocab-chip';
                 chip.setAttribute('type', 'button');
-                chip.setAttribute('title', `Ask about ${label} (${type})`);
-                chip.setAttribute('aria-label', `Ask about ${label}`);
+                chip.setAttribute('title', `Ask about ${capitalizedLabel} (${type})`);
+                chip.setAttribute('aria-label', `Ask about ${capitalizedLabel}`);
 
                 const icon = document.createElement('i');
-                icon.className = type === 'broader' ? 'fa-solid fa-arrow-up' : 'fa-solid fa-arrow-down';
+                if (type === 'broader') {
+                    icon.className = 'fa-solid fa-arrow-up';
+                } else if (type === 'narrower') {
+                    icon.className = 'fa-solid fa-arrow-down';
+                } else {
+                    icon.className = 'fa-solid fa-arrow-right-arrow-left';
+                }
                 icon.setAttribute('aria-hidden', 'true');
 
                 const labelSpan = document.createElement('span');
-                labelSpan.textContent = label;
+                labelSpan.textContent = capitalizedLabel;
 
                 chip.appendChild(icon);
                 chip.appendChild(labelSpan);
@@ -1398,9 +1424,9 @@
                 // Click handler
                 chip.addEventListener('click', function() {
                     const questions = [
-                        `Can you explain ${label}?`,
-                        `What is ${label}?`,
-                        `Find information about ${label} in the SoilWise catalog`
+                        `Can you explain ${capitalizedLabel}?`,
+                        `What is ${capitalizedLabel}?`,
+                        `Find information about ${capitalizedLabel} in the SoilWise catalog`
                     ];
                     const question = questions[Math.floor(Math.random() * questions.length)];
                     questionInput.value = question;

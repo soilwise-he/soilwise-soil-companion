@@ -271,15 +271,16 @@ object WikipediaLinker {
 
       logger.debug(s"Found ${candidates.size} candidate terms for Wikipedia linking: ${candidates.mkString(", ")}")
 
-      // Verify which candidates have existing Wikipedia articles
-      val verifiedTerms = candidates.filter { term =>
-        val exists = wikipediaArticleExists(term, baseUrl)
-        if (exists) {
-          logger.debug(s"Verified Wikipedia article exists for: $term")
-        } else {
-          logger.debug(s"No Wikipedia article found for: $term")
+      // Verify which candidates have existing Wikipedia articles and get the actual article titles
+      val verifiedTerms = candidates.flatMap { term =>
+        findBestWikipediaArticle(term, baseUrl, language) match {
+          case Some(articleTitle) =>
+            logger.debug(s"Verified Wikipedia article exists for '$term': $articleTitle")
+            Some((term, articleTitle))
+          case None =>
+            logger.debug(s"No Wikipedia article found for: $term")
+            None
         }
-        exists
       }
 
       if (verifiedTerms.isEmpty) {
@@ -287,31 +288,38 @@ object WikipediaLinker {
         return text
       }
 
-      logger.debug(s"Adding links for ${verifiedTerms.size} verified terms: ${verifiedTerms.mkString(", ")}")
+      logger.debug(s"Adding links for ${verifiedTerms.size} verified terms: ${verifiedTerms.map(_._1).mkString(", ")}")
 
       // For each verified term, add a Wikipedia link
       var result = text
-      verifiedTerms.foreach { term =>
-        val articleTitle = term.replace(" ", "_")
-        val wikiUrl = s"$baseUrl/wiki/$articleTitle"
+      val linkedTerms = scala.collection.mutable.Set[String]() // Track terms we've already linked
 
-        // Only link the first occurrence of each term to avoid clutter
-        // Use a regex that matches the term as a whole word, and skip if already part of a markdown link
-        val pattern = s"\\b${Regex.quote(term)}\\b".r
+      verifiedTerms.foreach { case (term, articleTitle) =>
+        val lowerTerm = term.toLowerCase
 
-        // Find first match that's not already inside a markdown link
-        val matches = pattern.findAllMatchIn(result).toList
-        val firstValidMatch = matches.find { m =>
-          !isInsideMarkdownLink(result, m.start)
-        }
+        // Skip if we've already linked this term (case-insensitive)
+        if (!linkedTerms.contains(lowerTerm)) {
+          val wikiUrl = s"$baseUrl/wiki/${articleTitle.replace(" ", "_")}"
 
-        firstValidMatch.foreach { m =>
-          val matched = m.matched
-          // Replace only the first occurrence with a markdown link, preserving original case
-          val before = result.substring(0, m.start)
-          val after = result.substring(m.end)
-          result = before + s"[$matched]($wikiUrl)" + after
-          logger.debug(s"Added Wikipedia link for term: $matched -> $wikiUrl")
+          // Only link the first occurrence of each term to avoid clutter
+          // Use a regex that matches the term as a whole word
+          val pattern = s"\\b${Regex.quote(term)}\\b".r
+
+          // Find first match
+          val firstValidMatch = pattern.findFirstMatchIn(result)
+
+          firstValidMatch.foreach { m =>
+            val matched = m.matched
+            // Use the article title as the label if it's different from the original term
+            // This shows soil-specific terms like "soil structure" instead of just "structure"
+            val label = if (articleTitle.toLowerCase != term.toLowerCase) articleTitle else matched
+            // Replace only the first occurrence with a markdown link
+            val before = result.substring(0, m.start)
+            val after = result.substring(m.end)
+            result = before + s"[$label]($wikiUrl)" + after
+            linkedTerms.add(lowerTerm)
+            logger.debug(s"Added Wikipedia link for term: $matched -> $label at $wikiUrl")
+          }
         }
       }
 
@@ -377,18 +385,69 @@ object WikipediaLinker {
     combined
   }
 
+  // Translations of "soil" for different languages
+  private val soilTranslations = Map(
+    "en" -> "soil",
+    "nl" -> "bodem",
+    "fr" -> "sol",
+    "es" -> "suelo",
+    "it" -> "suolo",
+    "cs" -> "půda"
+  )
+
   /**
-   * Check if a Wikipedia article exists for the given term.
-   * This is a lightweight check using the Wikipedia API.
+   * Find the best Wikipedia article for a term, trying soil-specific variations first.
+   * Returns the article title to use if found.
    *
-   * @param term The term to check
+   * @param term The term to search for
+   * @param baseUrl The Wikipedia base URL
+   * @param language The language code
+   * @return Some(articleTitle) if found, None otherwise
+   */
+  private def findBestWikipediaArticle(term: String, baseUrl: String, language: String): Option[String] = {
+    val soilWord = soilTranslations.getOrElse(language, "soil")
+    val lowerTerm = term.toLowerCase
+    val alreadyContainsSoil = lowerTerm.contains(soilWord.toLowerCase)
+
+    if (!alreadyContainsSoil) {
+      // Try "soil <term>" first (e.g., "soil structure", "bodem structuur")
+      val soilPrefixTerm = s"$soilWord $term"
+      if (checkWikipediaUrl(soilPrefixTerm, baseUrl)) {
+        logger.debug(s"Found soil-specific Wikipedia article: $soilPrefixTerm")
+        return Some(soilPrefixTerm)
+      }
+
+      // Try "<term> soil" next (e.g., "structure soil", "structuur bodem")
+      val soilSuffixTerm = s"$term $soilWord"
+      if (checkWikipediaUrl(soilSuffixTerm, baseUrl)) {
+        logger.debug(s"Found soil-specific Wikipedia article: $soilSuffixTerm")
+        return Some(soilSuffixTerm)
+      }
+    }
+
+    // Finally try the original term as-is
+    if (checkWikipediaUrl(term, baseUrl)) {
+      Some(term)
+    } else {
+      None
+    }
+  }
+
+  /**
+   * Check if a Wikipedia article exists for the given term or URL.
+   *
+   * @param termOrUrl The term or full URL to check
    * @param baseUrl The Wikipedia base URL for the appropriate language edition
    * @return true if an article exists, false otherwise
    */
-  private def wikipediaArticleExists(term: String, baseUrl: String): Boolean = {
+  private def checkWikipediaUrl(termOrUrl: String, baseUrl: String): Boolean = {
     try {
-      val encoded = java.net.URLEncoder.encode(term, "UTF-8")
-      val url = s"$baseUrl/w/api.php?action=query&titles=$encoded&format=json"
+      val url = if (termOrUrl.startsWith("http")) {
+        termOrUrl
+      } else {
+        val encoded = java.net.URLEncoder.encode(termOrUrl, "UTF-8")
+        s"$baseUrl/w/api.php?action=query&titles=$encoded&format=json"
+      }
 
       val response = requests.get(
         url = url,
@@ -407,8 +466,9 @@ object WikipediaLinker {
       }
     } catch {
       case e: Throwable =>
-        logger.debug(s"Failed to check Wikipedia article existence for term: $term at $baseUrl", e)
+        logger.debug(s"Failed to check Wikipedia article existence for: $termOrUrl at $baseUrl", e)
         false
     }
   }
+
 }

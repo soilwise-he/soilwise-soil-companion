@@ -194,26 +194,31 @@ object VocabLinker {
 
       // For each candidate, add a vocabulary link
       var result = text
+      val linkedTerms = scala.collection.mutable.Set[String]() // Track terms we've already linked
+
       candidates.foreach { case (term, matchedLabel) =>
-        val vocabUrl = buildVocabUrl(term.id)
+        val lowerLabel = matchedLabel.toLowerCase
 
-        // Only link the first occurrence of each term to avoid clutter
-        // Use case-insensitive matching, and skip if already part of a markdown link
-        val pattern = s"(?i)\\b${Regex.quote(matchedLabel)}\\b".r
+        // Skip if we've already linked this term (case-insensitive)
+        if (!linkedTerms.contains(lowerLabel)) {
+          val vocabUrl = buildVocabUrl(term.id)
 
-        // Find first match that's not already inside a markdown link
-        val matches = pattern.findAllMatchIn(result).toList
-        val firstValidMatch = matches.find { m =>
-          !isInsideMarkdownLink(result, m.start)
-        }
+          // Only link the first occurrence of each term to avoid clutter
+          // Use case-insensitive matching
+          val pattern = s"(?i)\\b${Regex.quote(matchedLabel)}\\b".r
 
-        firstValidMatch.foreach { m =>
-          val matched = m.matched
-          // Replace only the first occurrence with a markdown link, preserving original case
-          val before = result.substring(0, m.start)
-          val after = result.substring(m.end)
-          result = before + s"[$matched]($vocabUrl)" + after
-          logger.debug(s"Added vocabulary link for term: $matched -> $vocabUrl")
+          // Find first match
+          val firstValidMatch = pattern.findFirstMatchIn(result)
+
+          firstValidMatch.foreach { m =>
+            val matched = m.matched
+            // Replace only the first occurrence with a markdown link, preserving original case
+            val before = result.substring(0, m.start)
+            val after = result.substring(m.end)
+            result = before + s"[$matched]($vocabUrl)" + after
+            linkedTerms.add(lowerLabel)
+            logger.debug(s"Added vocabulary link for term: $matched -> $vocabUrl")
+          }
         }
       }
 

@@ -29,6 +29,7 @@ class VocabularyTools {
     definition: Option[String],
     broader: List[ConceptRef],
     narrower: List[ConceptRef],
+    related: List[ConceptRef],
     exactMatch: List[ConceptRef]
   ) derives ReadWriter
 
@@ -51,8 +52,9 @@ class VocabularyTools {
        |
        |SELECT DISTINCT ?prefLabel ?definition ?broader ?broaderLabel ?broaderDef ?narrower ?narrowerLabel ?narrowerDef ?exactMatch ?exactMatchLabel ?related ?relatedLabel ?relatedDef
        |WHERE {
-       |  # The concept must exist as a subject
+       |  # The concept must exist as a subject and be a SKOS concept
        |  <$conceptUri> ?p ?o .
+       |  <$conceptUri> a skos:Concept .
        |
        |  # Try to get preferred label
        |  OPTIONAL {
@@ -68,6 +70,7 @@ class VocabularyTools {
        |
        |  # Get broader concepts with their definitions
        |  OPTIONAL {
+       |    ?broader a skos:Concept .
        |    <$conceptUri> skos:broader ?broader .
        |    OPTIONAL {
        |      ?broader skos:prefLabel ?broaderLabel .
@@ -81,6 +84,7 @@ class VocabularyTools {
        |
        |  # Get narrower concepts with their definitions
        |  OPTIONAL {
+       |    ?narrower a skos:Concept .
        |    <$conceptUri> skos:narrower ?narrower .
        |    OPTIONAL {
        |      ?narrower skos:prefLabel ?narrowerLabel .
@@ -94,6 +98,7 @@ class VocabularyTools {
        |
        |  # Get exact matches
        |  OPTIONAL {
+       |    ?exactMatch a skos:Concept .
        |    <$conceptUri> skos:exactMatch ?exactMatch .
        |    OPTIONAL {
        |      ?exactMatch skos:prefLabel ?exactMatchLabel .
@@ -103,6 +108,7 @@ class VocabularyTools {
        |
        |  # Get related concepts with their definitions
        |  OPTIONAL {
+       |    ?related a skos:Concept .
        |    <$conceptUri> skos:related ?related .
        |    OPTIONAL {
        |      ?related skos:prefLabel ?relatedLabel .
@@ -161,6 +167,7 @@ class VocabularyTools {
       var definition: Option[String] = None
       val broaderSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
       val narrowerSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
+      val relatedSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
       val exactMatchSet = scala.collection.mutable.Map[String, (Option[String], Option[String])]()
 
       bindings.foreach { binding =>
@@ -203,13 +210,12 @@ class VocabularyTools {
           exactMatchSet.put(matchUri, (label, None))
         }
 
-        // Also collect related concepts with definitions and add them to narrower for now
+        // Collect related concepts with definitions
         b.get("related").flatMap(_.obj.get("value")).map(_.str).foreach { relatedUri =>
           val label = b.get("relatedLabel").flatMap(_.obj.get("value")).map(_.str)
           val defn = b.get("relatedDef").flatMap(_.obj.get("value")).map(_.str)
-          // Add to narrower set to show as exploration options
-          if (!narrowerSet.contains(relatedUri) || (defn.isDefined && narrowerSet(relatedUri)._2.isEmpty)) {
-            narrowerSet.put(relatedUri, (label, defn))
+          if (!relatedSet.contains(relatedUri) || (defn.isDefined && relatedSet(relatedUri)._2.isEmpty)) {
+            relatedSet.put(relatedUri, (label, defn))
           }
         }
       }
@@ -220,6 +226,7 @@ class VocabularyTools {
         definition = definition,
         broader = broaderSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList,
         narrower = narrowerSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList,
+        related = relatedSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList,
         exactMatch = exactMatchSet.map { case (uri, (label, defn)) => ConceptRef(uri, label, defn) }.toList
       ))
     } catch {
@@ -320,7 +327,7 @@ class VocabularyTools {
         parseSparqlResults(jsonResponse, actualUri) match {
           case Some(concept) =>
             val result = upickle.default.write(concept)
-            logger.info(s"Retrieved concept info: ${concept.prefLabel.getOrElse("unknown")} with ${concept.broader.length} broader, ${concept.narrower.length} narrower")
+            logger.info(s"Retrieved concept info: ${concept.prefLabel.getOrElse("unknown")} with ${concept.exactMatch.length} exactMatch, ${concept.broader.length} broader, ${concept.narrower.length} narrower, ${concept.related.length} related")
             result
           case None =>
             logger.warn(s"No concept found for URI: $actualUri")

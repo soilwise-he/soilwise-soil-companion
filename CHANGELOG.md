@@ -1,3 +1,10 @@
+## [1.2.1](https://git.wur.nl/soilwise/soil-companion/compare/1.2.0...1.2.1) (2026-01-22)
+
+
+### Bug Fixes
+
+* Deploying Insight related improvements ([ea0cecc](https://git.wur.nl/soilwise/soil-companion/commit/ea0cecc98d97fb200fabff0e5577543cbf9173fb))
+
 ## [1.2.0](https://git.wur.nl/soilwise/soil-companion/compare/1.1.2...1.2.0) (2026-01-12)
 
 

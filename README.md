@@ -30,7 +30,7 @@ Notes:
 The Soil Companion is a full‑stack Scala / Scala.js application. Key technologies used:
 
 - SBT 1.11.x (multi‑module, cross‑build JS/JVM)
-- Scala 3.7.3
+- Scala 3.8.1
 - Scala.js frontend with:
   - scalajs-dom 2.8.0
   - Scalatags 0.13.x
@@ -41,8 +41,8 @@ The Soil Companion is a full‑stack Scala / Scala.js application. Key technolog
   - requests 0.9.x (HTTP client)
   - os-lib 0.11.x
   - PureConfig 0.17.9 (HOCON to case classes)
-  - LangChain4j 1.9.x (core, OpenAI, agentic, embeddings, easy‑rag)
-  - SLF4J + Logback 1.5.x
+  - LangChain4j 1.10.x (core, OpenAI, agentic, embeddings, easy‑rag)
+  - SLF4J 3.0.x + Logback 1.5.x
 - JDK 17+ (tested 17–25)
 - Docker for containerized runs
 

@@ -1,8 +1,7 @@
-ThisBuild / name := "soil-companion"
 ThisBuild / organization := "nl.wur"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.7.3"
+ThisBuild / scalaVersion := "3.8.1"
 
 ThisBuild / logLevel := Level.Debug
 ThisBuild / fork := true

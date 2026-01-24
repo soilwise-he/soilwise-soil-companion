@@ -1465,6 +1465,16 @@ html[data-theme="dark"] .bot-message { background: #262019; }
 
 html[data-theme="dark"] .message-header i { color: #e2b07c; }
 html[data-theme="dark"] .message-time { color: #c9b79f; }
+html[data-theme="dark"] .message-content pre {
+    background: #1b1713;
+    border-color: #3b3127;
+}
+html[data-theme="dark"] .message-content code {
+    background: #221c16;
+    border-color: #3b3127;
+    color: #efe6da;
+}
+html[data-theme="dark"] .message-content .hljs { color: #efe6da; }
 
 html[data-theme="dark"] .input-card {
     background: rgba(24, 21, 18, 0.95);

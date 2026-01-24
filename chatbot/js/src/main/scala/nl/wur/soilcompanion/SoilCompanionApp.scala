@@ -621,42 +621,44 @@ object SoilCompanionApp extends App {
     val searchInput = dom.document.getElementById("location-search-input").asInstanceOf[dom.html.Input]
     val searchBtn = dom.document.getElementById("location-search-btn").asInstanceOf[dom.html.Button]
     val doSearch: () => Unit = () => {
-      val q = if (searchInput != null) searchInput.value.trim else ""
-      if (q.isEmpty) return
-      setLocationSummary(s"Searching: '$q' …")
-      forwardGeocode(q) {
-        case None =>
-          setLocationSummary("Place not found. Try a different name.")
-        case Some((lat, lon, zoomGuess, cnameOpt, ccodeOpt, displayNameOpt, bestLabelOpt, addrJsonOpt, bboxOpt)) =>
-          // Update map view: fit bounds if available, else setView
-          try {
-            if (bboxOpt.nonEmpty) {
-              val (south, west, north, east) = bboxOpt.get
-              val southWest = js.Dynamic.literal(lat = south, lng = west)
-              val northEast = js.Dynamic.literal(lat = north, lng = east)
-              val bounds = js.Dynamic.global.selectDynamic("L").applyDynamic("latLngBounds")(js.Array(southWest, northEast))
-              leafletMap.applyDynamic("fitBounds")(bounds, js.Dynamic.literal(padding = js.Array(20, 20)))
-            } else {
-              leafletMap.applyDynamic("setView")(js.Array(lat, lon), zoomGuess)
-            }
-          } catch { case _: Throwable => leafletMap.applyDynamic("setView")(js.Array(lat, lon), zoomGuess) }
+      scala.util.boundary {
+        val q = if (searchInput != null) searchInput.value.trim else ""
+        if (q.isEmpty) scala.util.boundary.break(())
+        setLocationSummary(s"Searching: '$q' …")
+        forwardGeocode(q) {
+          case None =>
+            setLocationSummary("Place not found. Try a different name.")
+          case Some((lat, lon, zoomGuess, cnameOpt, ccodeOpt, displayNameOpt, bestLabelOpt, addrJsonOpt, bboxOpt)) =>
+            // Update map view: fit bounds if available, else setView
+            try {
+              if (bboxOpt.nonEmpty) {
+                val (south, west, north, east) = bboxOpt.get
+                val southWest = js.Dynamic.literal(lat = south, lng = west)
+                val northEast = js.Dynamic.literal(lat = north, lng = east)
+                val bounds = js.Dynamic.global.selectDynamic("L").applyDynamic("latLngBounds")(js.Array(southWest, northEast))
+                leafletMap.applyDynamic("fitBounds")(bounds, js.Dynamic.literal(padding = js.Array(20, 20)))
+              } else {
+                leafletMap.applyDynamic("setView")(js.Array(lat, lon), zoomGuess)
+              }
+            } catch { case _: Throwable => leafletMap.applyDynamic("setView")(js.Array(lat, lon), zoomGuess) }
 
-          // Update marker + circle
-          if (leafletMarker != null && !js.isUndefined(leafletMarker)) leafletMarker.applyDynamic("remove")()
-          if (leafletCircle != null && !js.isUndefined(leafletCircle)) leafletCircle.applyDynamic("remove")()
-          leafletMarker = L.applyDynamic("marker")(js.Array(lat, lon))
-          leafletMarker.applyDynamic("addTo")(leafletMap)
-          leafletCircle = L.applyDynamic("circle")(js.Array(lat, lon), js.Dynamic.literal(radius = 10000))
-          leafletCircle.applyDynamic("addTo")(leafletMap)
+            // Update marker + circle
+            if (leafletMarker != null && !js.isUndefined(leafletMarker)) leafletMarker.applyDynamic("remove")()
+            if (leafletCircle != null && !js.isUndefined(leafletCircle)) leafletCircle.applyDynamic("remove")()
+            leafletMarker = L.applyDynamic("marker")(js.Array(lat, lon))
+            leafletMarker.applyDynamic("addTo")(leafletMap)
+            leafletCircle = L.applyDynamic("circle")(js.Array(lat, lon), js.Dynamic.literal(radius = 10000))
+            leafletCircle.applyDynamic("addTo")(leafletMap)
 
-          val label = bestLabelOpt.orElse(displayNameOpt).orElse(cnameOpt).getOrElse("Selected location")
-          val coordStr = f"$lat%.4f, $lon%.4f"
-          val cn = cnameOpt.getOrElse("")
-          val suffix = if (cn.nonEmpty && !label.contains(cn)) s" — $cn" else ""
-          setLocationSummary(s"$label ($coordStr)$suffix")
+            val label = bestLabelOpt.orElse(displayNameOpt).orElse(cnameOpt).getOrElse("Selected location")
+            val coordStr = f"$lat%.4f, $lon%.4f"
+            val cn = cnameOpt.getOrElse("")
+            val suffix = if (cn.nonEmpty && !label.contains(cn)) s" — $cn" else ""
+            setLocationSummary(s"$label ($coordStr)$suffix")
 
-          val finalZoom = scala.util.Try(leafletMap.applyDynamic("getZoom")().asInstanceOf[Int]).getOrElse(zoomGuess)
-          saveLocationContext(lat, lon, finalZoom, cnameOpt, ccodeOpt, displayNameOpt, bestLabelOpt, addrJsonOpt)
+            val finalZoom = scala.util.Try(leafletMap.applyDynamic("getZoom")().asInstanceOf[Int]).getOrElse(zoomGuess)
+            saveLocationContext(lat, lon, finalZoom, cnameOpt, ccodeOpt, displayNameOpt, bestLabelOpt, addrJsonOpt)
+        }
       }
     }
     if (searchBtn != null) {

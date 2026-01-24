@@ -5,7 +5,7 @@
 
 # ---- Builder + Runtime (uses sbt to run) ----
 # Using an sbt image simplifies building and running without extra plugins.
-FROM sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.7_3.7.3 AS app
+FROM sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.12.0_3.8.1 AS app
 
 LABEL maintainer="rob.knapen@wur.nl"
 
@@ -77,7 +77,7 @@ VOLUME ["/app/data"]
 # - writes application logs to $LOG_DIR (via logback.xml)
 # - writes feedback logs to $FEEDBACK_LOG_DIR
 CMD sh -lc 'CP=$(cat /app/runtime-classpath.txt); \
-  CLASSES=chatbot/jvm/target/scala-3.7.3/classes; \
+  CLASSES=chatbot/jvm/target/scala-3.8.1/classes; \
   if [ -d "$CLASSES" ]; then CP="$CP:$CLASSES"; fi; \
   echo "Launching $APP_MAIN with classpath: $CP"; \
   exec java $JVM_OPTS -cp "$CP" $APP_MAIN'

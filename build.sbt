@@ -29,14 +29,14 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       // scala libraries
       "com.lihaoyi"     %% "cask"      % "0.11.3",
       "com.lihaoyi"     %% "upickle"   % "4.4.2",
-      "com.lihaoyi"     %% "os-lib"    % "0.11.6",
-      "com.lihaoyi"     %% "requests"  % "0.9.2",
+      "com.lihaoyi"     %% "os-lib"    % "0.11.8",
+      "com.lihaoyi"     %% "requests"  % "0.9.3",
       // config
       "com.github.pureconfig" %% "pureconfig-core"  % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-generic-base"  % pureconfigVersion,
       // java logging
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
-      "ch.qos.logback"           % "logback-classic"  % "1.5.25",
+      "ch.qos.logback"           % "logback-classic"  % "1.5.27",
       // java langchain4j
       "dev.langchain4j" % "langchain4j"             % langchain4jVersion,
       "dev.langchain4j" % "langchain4j-open-ai"     % langchain4jVersion,

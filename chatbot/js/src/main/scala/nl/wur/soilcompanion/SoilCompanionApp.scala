@@ -200,6 +200,24 @@ object SoilCompanionApp extends App {
   // Cache a pending location selection made before the user is authenticated
   // This ensures we can send it to the backend right after a successful login
   private var pendingLocation: Option[ujson.Obj] = None
+  // Cache a pending question from URL parameter to be filled after successful login
+  private var pendingQuestion: Option[String] = None
+
+  // Extract optional question parameter from URL (e.g., ?question=What+is+soil)
+  // Truncates to 400 characters maximum to match the textarea limit
+  private def getQuestionFromUrl(): Option[String] = {
+    try {
+      val params = new dom.URLSearchParams(dom.window.location.search)
+      val q = params.get("question")
+      if (q != null && q.trim.nonEmpty) {
+        val trimmed = q.trim
+        val truncated = if (trimmed.length > 400) trimmed.substring(0, 400) else trimmed
+        Some(truncated)
+      } else None
+    } catch {
+      case _: Throwable => None
+    }
+  }
 
   private def setLocationSummary(text: String): Unit = {
     val el = dom.document.getElementById("location-summary").asInstanceOf[dom.html.Element]
@@ -840,6 +858,19 @@ object SoilCompanionApp extends App {
           }, { e =>
             dom.console.error("[DEBUG_LOG] Failed to save pending location after login", e)
           })
+        }
+        // If there was a question from URL parameter, populate the question input field
+        pendingQuestion.foreach { q =>
+          dom.console.log(s"[DEBUG_LOG] Populating question from URL: $q")
+          val questionInput = dom.document.getElementById("question").asInstanceOf[dom.html.TextArea]
+          if (questionInput != null) {
+            questionInput.value = q
+            questionInput.focus()
+            // Trigger input event to update character counter
+            val event = new dom.Event("input", js.Dynamic.literal(bubbles = true).asInstanceOf[dom.EventInit])
+            questionInput.dispatchEvent(event)
+          }
+          pendingQuestion = None
         }
       } else {
         setLoginInfo("Invalid credentials.", Some("error"))
@@ -1857,6 +1888,11 @@ object SoilCompanionApp extends App {
   renderVersionFromHealthz()
   // Start background polling to detect newer versions and prompt for reload
   startVersionPolling(60000)
+  // Check for initial question from URL parameter
+  pendingQuestion = getQuestionFromUrl()
+  if (pendingQuestion.isDefined) {
+    dom.console.log(s"[DEBUG_LOG] Question from URL detected: ${pendingQuestion.get}")
+  }
   // Initialize session and UI
   getSession()
   setupEventListeners()

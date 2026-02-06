@@ -209,7 +209,8 @@ class OpenAgroKpiTools {
       case Right(cc) => logger.debug(s"OpenAgroKPI country validated: $cc")
     }
 
-    val lid = Option(fieldId).map(_.trim).filter(_.nonEmpty).getOrElse {
+    val lid = Option(fieldId).map(_.trim).filter(_.nonEmpty).getOrElse("")
+    if (lid.isEmpty) {
       return "Missing fieldId. First use AgroDataCubeTools to look up a field (parcel) in NL and pass its id here."
     }
     val lyr = resolveLayer(layer) match {

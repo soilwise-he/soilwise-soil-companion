@@ -416,7 +416,8 @@ class AgroDataCubeTools {
     @P("Crop code as used by RVO/AgroDataCube, e.g., '233' or '331'.")
     cropCode: String
   ): String = {
-    val code = Option(cropCode).map(_.trim).filter(_.nonEmpty).getOrElse(return "Please provide a cropCode (e.g., '233').")
+    val code = Option(cropCode).map(_.trim).filter(_.nonEmpty).getOrElse("")
+    if (code.isEmpty) return "Please provide a cropCode (e.g., '233')."
     val url = s"${baseUrl}/codes/cropcodes/${java.net.URLEncoder.encode(code, "UTF-8") }"
     val rOpt = scala.util.Try(httpGet(url)).toOption
     rOpt match
@@ -435,7 +436,8 @@ class AgroDataCubeTools {
     @P("Soil code, e.g., 'pZn21'.")
     soilCode: String
   ): String = {
-    val code = Option(soilCode).map(_.trim).filter(_.nonEmpty).getOrElse(return "Please provide a soilCode (e.g., 'pZn21').")
+    val code = Option(soilCode).map(_.trim).filter(_.nonEmpty).getOrElse("")
+    if (code.isEmpty) return "Please provide a soilCode (e.g., 'pZn21')."
     val url = s"${baseUrl}/codes/soilcodes/${java.net.URLEncoder.encode(code, "UTF-8") }"
     val rOpt = scala.util.Try(httpGet(url)).toOption
     rOpt match

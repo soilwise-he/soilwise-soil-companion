@@ -6,9 +6,9 @@ ThisBuild / scalaVersion := "3.8.1"
 ThisBuild / logLevel := Level.Debug
 ThisBuild / fork := true
 
-val langchain4jVersion = "1.10.0"
-val langchain4jBetaVersion = "1.10.0-beta18"
-val pureconfigVersion = "0.17.9"
+val langchain4jVersion = "1.11.0"
+val langchain4jBetaVersion = "1.11.0-beta19"
+val pureconfigVersion = "0.17.10"
 
 lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
   .jsSettings(
@@ -36,7 +36,7 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       "com.github.pureconfig" %% "pureconfig-generic-base"  % pureconfigVersion,
       // java logging
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
-      "ch.qos.logback"           % "logback-classic"  % "1.5.27",
+      "ch.qos.logback"           % "logback-classic"  % "1.5.28",
       // java langchain4j
       "dev.langchain4j" % "langchain4j"             % langchain4jVersion,
       "dev.langchain4j" % "langchain4j-open-ai"     % langchain4jVersion,

@@ -1,3 +1,10 @@
+## [1.2.2](https://git.wur.nl/soilwise/soil-companion/compare/1.2.1...1.2.2) (2026-02-06)
+
+
+### Bug Fixes
+
+* Send initial question in URL ([3a3e0be](https://git.wur.nl/soilwise/soil-companion/commit/3a3e0beb9e0b48b6cc70242a34a7940b635c137b))
+
 ## [1.2.1](https://git.wur.nl/soilwise/soil-companion/compare/1.2.0...1.2.1) (2026-01-22)
 
 

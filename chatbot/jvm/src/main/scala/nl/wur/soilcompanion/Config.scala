@@ -33,18 +33,13 @@ object Config {
                         docRetrieverMinScore: Double,
                         // processing of dynamic knowledge documents (catalog resources)
                         catalogRetrieverMaxResults: Int,
-                        // chat settings
-                        chatMaxMemorySize: Int,
+                        // chat settings (non-LLM specific)
                         chatMaxIdleTimeSec: Int,
-                        chatMaxTokens: Int,
-                        chatMaxRetries: Int,
-                        chatMaxSequentialTools: Int,
                         // optional debug logging for AI responses
                         debugLogFinalAiResponse: Boolean,
                         // optional prefix applied to every line of the final AI response in logs
                         aiFinalLogPrefix: String,
-                        // safety limits
-                        chatMaxPromptChars: Int,
+                        // safety limits (non-LLM specific)
                         uploadMaxChars: Int,
                         // session expiration in minutes (-1 = no expiration)
                         sessionExpirationMinutes: Int
@@ -133,13 +128,24 @@ object Config {
 
   case class LlmProviderConfig(
                                 name: String,
+                                provider: String, // "openai" or "ollama"
                                 apiKey: String,
                                 chatModel: String,
                                 chatModelTemp: Double,
                                 reasonModel: String,
                                 reasonModelTemp: Double,
                                 embeddingModel: String,
-                                embeddingDim: Int
+                                embeddingDim: Int,
+                                // Ollama-specific settings
+                                ollamaBaseUrl: Option[String] = None,
+                                ollamaTimeout: Option[Int] = None,
+                                // LLM chat/memory settings
+                                chatMaxMemorySize: Int,
+                                chatMaxTokens: Int,
+                                chatMaxRetries: Int,
+                                chatMaxSequentialTools: Int,
+                                // Safety limit for context window (model-dependent)
+                                chatMaxPromptChars: Int
                               ) derives ConfigReader
 
   case class FeedbackLogConfig(

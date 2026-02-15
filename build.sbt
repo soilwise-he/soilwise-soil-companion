@@ -28,7 +28,7 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
     libraryDependencies ++= Seq(
       // scala libraries
       "com.lihaoyi"     %% "cask"      % "0.11.3",
-      "com.lihaoyi"     %% "upickle"   % "4.4.2",
+      "com.lihaoyi"     %% "upickle"   % "4.4.3",
       "com.lihaoyi"     %% "os-lib"    % "0.11.8",
       "com.lihaoyi"     %% "requests"  % "0.9.3",
       // config
@@ -36,16 +36,16 @@ lazy val chatbot = (crossProject(JSPlatform, JVMPlatform) in file("chatbot"))
       "com.github.pureconfig" %% "pureconfig-generic-base"  % pureconfigVersion,
       // java logging
       "org.apache.logging.log4j" % "log4j-to-slf4j"   % "3.0.0-beta2",
-      "ch.qos.logback"           % "logback-classic"  % "1.5.28",
+      "ch.qos.logback"           % "logback-classic"  % "1.5.31",
       // java langchain4j
       "dev.langchain4j" % "langchain4j"             % langchain4jVersion,
       "dev.langchain4j" % "langchain4j-open-ai"     % langchain4jVersion,
+      "dev.langchain4j" % "langchain4j-ollama"      % langchain4jVersion,
       "dev.langchain4j" % "langchain4j-agentic"     % langchain4jBetaVersion,
       "dev.langchain4j" % "langchain4j-embeddings"  % langchain4jBetaVersion,
-      "dev.langchain4j" % "langchain4j-embeddings-all-minilm-l6-v2" % langchain4jBetaVersion,
       "dev.langchain4j" % "langchain4j-chroma"      % langchain4jBetaVersion,
       "dev.langchain4j" % "langchain4j-easy-rag"    % langchain4jBetaVersion,
-      // probably already pulled in by easy-rag ...
+      "dev.langchain4j" % "langchain4j-embeddings-all-minilm-l6-v2" % langchain4jBetaVersion,
       "dev.langchain4j" % "langchain4j-document-parser-apache-tika" % langchain4jBetaVersion,
       // java testcontainers
       "org.testcontainers" % "chromadb" % "1.21.4"

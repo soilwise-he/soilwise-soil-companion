@@ -30,7 +30,7 @@ object VocabLinker {
   private def loadVocabulary(): List[VocabTerm] = {
     try {
       val vocabFile = Config.vocabConfig.vocabFilePath
-      logger.info(s"Loading vocabulary from: $vocabFile")
+      logger.debug(s"Loading vocabulary from: $vocabFile")
 
       val source = Source.fromFile(vocabFile)
       val lines = source.getLines().toList
@@ -56,12 +56,12 @@ object VocabLinker {
 
             Some(VocabTerm(id, prefLabel, altLabels))
           case None =>
-            logger.debug(s"Failed to parse vocabulary line: $line")
+            logger.warn(s"Failed to parse vocabulary line: $line")
             None
         }
       }
 
-      logger.info(s"Loaded ${terms.size} vocabulary terms")
+      logger.debug(s"Loaded ${terms.size} vocabulary terms")
       terms
     } catch {
       case e: Throwable =>
@@ -92,7 +92,7 @@ object VocabLinker {
       }
     } catch {
       case e: Throwable =>
-        logger.debug(s"Error parsing CSV line: ${e.getMessage}")
+        logger.warn(s"Error parsing CSV line: ${e.getMessage}")
         None
     }
   }

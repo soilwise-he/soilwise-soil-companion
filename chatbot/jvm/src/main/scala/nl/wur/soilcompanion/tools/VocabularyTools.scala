@@ -4,7 +4,6 @@ import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecification
 import nl.wur.soilcompanion.Config
 import upickle.default.*
 
-import java.net.URLEncoder
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -285,7 +284,7 @@ class VocabularyTools {
           localName
         }
         val result = config.actualPrefix + capitalizedLocalName
-        logger.info(s"Replaced IRI prefix: $uri -> $result")
+        logger.trace(s"Replaced IRI prefix: $uri -> $result")
         result
       } else {
         logger.warn(s"Could not extract local name from URI: $uri")
@@ -309,14 +308,14 @@ class VocabularyTools {
   def getVocabConceptInfo(
     @P("The URI of the vocabulary concept to look up") conceptUri: String
   ): String = {
-    logger.info(s"Looking up vocabulary concept: $conceptUri")
+    logger.trace(s"Looking up vocabulary concept: $conceptUri")
 
     // First, replace LLM prefix with actual prefix if needed
     val prefixReplacedUri = replacePrefixIfNeeded(conceptUri)
 
     // Then extract the actual concept URI from redirect URL if needed
     val actualUri = extractActualUri(prefixReplacedUri)
-    logger.info(s"Actual concept URI: $actualUri")
+    logger.trace(s"Actual concept URI: $actualUri")
 
     val query = buildConceptQuery(actualUri)
     logger.trace(s"SPARQL Query: $query")
@@ -327,10 +326,10 @@ class VocabularyTools {
         parseSparqlResults(jsonResponse, actualUri) match {
           case Some(concept) =>
             val result = upickle.default.write(concept)
-            logger.info(s"Retrieved concept info: ${concept.prefLabel.getOrElse("unknown")} with ${concept.exactMatch.length} exactMatch, ${concept.broader.length} broader, ${concept.narrower.length} narrower, ${concept.related.length} related")
+            logger.debug(s"Found uri $actualUri with ${concept.exactMatch.length} exactMatch, ${concept.broader.length} broader, ${concept.narrower.length} narrower, ${concept.related.length} related")
             result
           case None =>
-            logger.warn(s"No concept found for URI: $actualUri")
+            logger.debug(s"No concept found for uri $actualUri")
             s"""{"error": "No concept found for URI: $actualUri"}"""
         }
       case Failure(e) =>
@@ -350,7 +349,7 @@ class VocabularyTools {
     @P("Comma-separated list of vocabulary concept URIs to look up") conceptUris: String
   ): String = {
     val uris = conceptUris.split(",").map(_.trim).filter(_.nonEmpty).toList
-    logger.info(s"Batch looking up ${uris.length} vocabulary concepts")
+    logger.debug(s"Batch looking up ${uris.length} vocabulary concepts")
 
     val concepts = uris.flatMap { uri =>
       val prefixReplacedUri = replacePrefixIfNeeded(uri)

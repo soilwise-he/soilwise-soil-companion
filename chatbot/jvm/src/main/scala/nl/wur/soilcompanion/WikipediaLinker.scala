@@ -240,6 +240,65 @@ object WikipediaLinker {
   }
 
   /**
+   * Convert plain Wikipedia URLs in the text to markdown links.
+   * E.g., "see https://en.wikipedia.org/wiki/Soil_health" becomes "see [Soil health](https://en.wikipedia.org/wiki/Soil_health)"
+   *
+   * @param text The text containing plain Wikipedia URLs
+   * @return The text with Wikipedia URLs converted to markdown links
+   */
+  private def convertWikipediaUrlsToMarkdown(text: String): String = {
+    // Pattern to match Wikipedia URLs that are NOT already inside markdown links
+    // Matches: https://en.wikipedia.org/wiki/Article_Name or http://en.wikipedia.org/wiki/Article_Name
+    // Case-insensitive for protocol (http/HTTP/Https) but case-sensitive for the rest
+    val wikiUrlPattern = """(?<!\]\()(?i:https?)://([a-z]{2})\.wikipedia\.org/wiki/([\w\-%]+)(?!\))""".r
+
+    var result = text
+    wikiUrlPattern.findAllMatchIn(text).toList.reverse.foreach { m =>
+      val fullUrl = m.matched
+      val articleName = m.group(2)
+      // Convert underscores to spaces for the display label
+      val displayName = articleName.replace("_", " ").replace("%20", " ")
+      // Decode any URL-encoded characters in the display name
+      val decodedName = try {
+        java.net.URLDecoder.decode(displayName, "UTF-8")
+      } catch {
+        case _: Throwable => displayName
+      }
+
+      // Normalize the URL to lowercase https for consistency
+      val normalizedUrl = fullUrl.replaceFirst("(?i)^https?://", "https://")
+      val markdownLink = s"[$decodedName]($normalizedUrl)"
+      result = result.substring(0, m.start) + markdownLink + result.substring(m.end)
+      logger.debug(s"Converted Wikipedia URL to markdown: $fullUrl -> $markdownLink")
+    }
+    result
+  }
+
+  /**
+   * Strip any existing markdown links and convert them to plain URLs.
+   * This handles cases where the LLM already generated markdown links.
+   * E.g., "[Soil health](https://en.wikipedia.org/wiki/Soil_health)" becomes "https://en.wikipedia.org/wiki/Soil_health"
+   *
+   * @param text The text containing markdown links
+   * @return The text with markdown links converted to plain URLs
+   */
+  private def stripMarkdownLinksToUrls(text: String): String = {
+    // Pattern to match markdown links: [text](url)
+    val markdownLinkPattern = """\[([^\]]+)\]\((https?://[^\)]+)\)""".r
+    markdownLinkPattern.replaceAllIn(text, m => {
+      val linkText = m.group(1)
+      val url = m.group(2)
+      // If the URL is a Wikipedia link, keep just the URL
+      // Otherwise keep the link text followed by the URL
+      if (url.contains("wikipedia.org") || url.contains("voc.soilwise-he")) {
+        url
+      } else {
+        s"$linkText ($url)"
+      }
+    })
+  }
+
+  /**
    * Process response text and add Wikipedia links to technical terms.
    * Only processes if auto-linking is enabled in config.
    * Detects language and uses appropriate Wikipedia edition.
@@ -254,19 +313,25 @@ object WikipediaLinker {
     }
 
     try {
+      // First, strip any existing markdown links that the LLM may have generated
+      var result = stripMarkdownLinksToUrls(text)
+
+      // Then, convert any plain Wikipedia URLs in the text to markdown links
+      result = convertWikipediaUrlsToMarkdown(result)
+
       val minLength = Config.wikipediaConfig.minTermLength
 
       // Detect the language of the response
-      val language = detectLanguage(text)
+      val language = detectLanguage(result)
       val baseUrl = languageWikipediaUrls.getOrElse(language, Config.wikipediaConfig.baseUrl)
 
-      logger.debug(s"Using Wikipedia edition: $baseUrl for language: $language")
+      logger.trace(s"Using Wikipedia edition: $baseUrl for language: $language")
 
-      // Find all potential technical terms in the text
-      val candidates = findCandidateTerms(text, minLength, language)
+      // Find all potential technical terms in the text (use result which now has markdown links)
+      val candidates = findCandidateTerms(result, minLength, language)
 
       if (candidates.isEmpty) {
-        return text
+        return result
       }
 
       logger.debug(s"Found ${candidates.size} candidate terms for Wikipedia linking: ${candidates.mkString(", ")}")
@@ -275,23 +340,22 @@ object WikipediaLinker {
       val verifiedTerms = candidates.flatMap { term =>
         findBestWikipediaArticle(term, baseUrl, language) match {
           case Some(articleTitle) =>
-            logger.debug(s"Verified Wikipedia article exists for '$term': $articleTitle")
+            logger.trace(s"Verified Wikipedia article exists for '$term': $articleTitle")
             Some((term, articleTitle))
           case None =>
-            logger.debug(s"No Wikipedia article found for: $term")
+            logger.trace(s"No Wikipedia article found for: $term")
             None
         }
       }
 
       if (verifiedTerms.isEmpty) {
-        logger.debug("No verified Wikipedia articles found for any candidate terms")
-        return text
+        logger.trace("No verified Wikipedia articles found for any candidate terms")
+        return result
       }
 
       logger.debug(s"Adding links for ${verifiedTerms.size} verified terms: ${verifiedTerms.map(_._1).mkString(", ")}")
 
-      // For each verified term, add a Wikipedia link
-      var result = text
+      // For each verified term, add a Wikipedia link (continue working on result)
       val linkedTerms = scala.collection.mutable.Set[String]() // Track terms we've already linked
 
       verifiedTerms.foreach { case (term, articleTitle) =>
@@ -301,24 +365,43 @@ object WikipediaLinker {
         if (!linkedTerms.contains(lowerTerm)) {
           val wikiUrl = s"$baseUrl/wiki/${articleTitle.replace(" ", "_")}"
 
-          // Only link the first occurrence of each term to avoid clutter
-          // Use a regex that matches the term as a whole word
-          val pattern = s"\\b${Regex.quote(term)}\\b".r
+          // Check if a Wikipedia URL for this article already exists in the text
+          val urlPattern = s"https?://[a-z]{2}\\.wikipedia\\.org/wiki/${Regex.quote(articleTitle.replace(" ", "_"))}"
+          val urlAlreadyExists = urlPattern.r.findFirstIn(result).isDefined
 
-          // Find first match
-          val firstValidMatch = pattern.findFirstMatchIn(result)
-
-          firstValidMatch.foreach { m =>
-            val matched = m.matched
-            // Use the article title as the label if it's different from the original term
-            // This shows soil-specific terms like "soil structure" instead of just "structure"
-            val label = if (articleTitle.toLowerCase != term.toLowerCase) articleTitle else matched
-            // Replace only the first occurrence with a markdown link
-            val before = result.substring(0, m.start)
-            val after = result.substring(m.end)
-            result = before + s"[$label]($wikiUrl)" + after
+          if (urlAlreadyExists) {
+            logger.trace(s"Skipping term '$term' - Wikipedia URL already exists in text")
             linkedTerms.add(lowerTerm)
-            logger.debug(s"Added Wikipedia link for term: $matched -> $label at $wikiUrl")
+          } else {
+            // Only link the first occurrence of each term to avoid clutter
+            // Use a regex that matches the term as a whole word
+            val pattern = s"\\b${Regex.quote(term)}\\b".r
+
+            // Find first match that is not already inside a markdown link or near a URL
+            val firstValidMatch = pattern.findAllMatchIn(result).find { m =>
+              val position = m.start
+              // Skip if inside a markdown link
+              val insideLink = isInsideMarkdownLink(result, position)
+              // Skip if immediately followed by a colon and URL (e.g., "term: https://...")
+              val followedByUrl = {
+                val afterMatch = result.substring(m.end).trim
+                afterMatch.startsWith(":") && afterMatch.substring(1).trim.startsWith("http")
+              }
+              !insideLink && !followedByUrl
+            }
+
+            firstValidMatch.foreach { m =>
+              val matched = m.matched
+              // Use the article title as the label if it's different from the original term
+              // This shows soil-specific terms like "soil structure" instead of just "structure"
+              val label = if (articleTitle.toLowerCase != term.toLowerCase) articleTitle else matched
+              // Replace only the first occurrence with a markdown link
+              val before = result.substring(0, m.start)
+              val after = result.substring(m.end)
+              result = before + s"[$label]($wikiUrl)" + after
+              linkedTerms.add(lowerTerm)
+              logger.debug(s"Added Wikipedia link for term: $matched -> $label at $wikiUrl")
+            }
           }
         }
       }

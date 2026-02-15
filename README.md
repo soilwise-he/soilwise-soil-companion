@@ -84,7 +84,9 @@ readinessProbe:
 ```
 
 Notes:
-- Readiness depends on `llm-provider-config.apiKey` being non-empty (e.g., `OPENAI_API_KEY`).
+- Readiness depends on the configured LLM provider:
+  - For OpenAI: `OPENAI_API_KEY` must be non-empty
+  - For Ollama: `ollama-base-url` must be configured
 - Probes are fast and do not perform external network calls.
 - WebSocket keep-alive heartbeats are sent every 15s; ensure ingress timeouts are configured accordingly (see Kubernetes runbook below).
 
@@ -118,7 +120,9 @@ Accessibility and UX:
 
 ## Configuration
 - An *application.conf* resource file is used to configure the application.
-- An OpenAI API key is needed, and must be provided as an environment variable (OPENAI_API_KEY).
+- **LLM Provider**: The chatbot supports both **OpenAI** (hosted) and **Ollama** (local) models.
+  - For OpenAI: An API key is required and must be provided as an environment variable (`OPENAI_API_KEY`).
+  - For Ollama: A running Ollama instance is required (default: `http://localhost:11434`).
 - Demo authentication: a single demo user account is configured under `demo-user` in `chatbot/jvm/src/main/resources/application.conf`.
   - Default credentials: username `demo@soilwise`, password `*******` (can be overridden via env vars `DEMO_USERNAME`, `DEMO_PASSWORD`, `DEMO_DISPLAY_NAME`).
 
@@ -130,7 +134,6 @@ Most settings in `application.conf` can be overridden via environment variables.
   - `SOIL_COMPANION_HOST` — HTTP host to bind
   - `SOIL_COMPANION_PORT` — HTTP port to bind
   - `DEBUG_LOG_FINAL_AI_RESPONSE` — set to `true` to enable a single debug log entry with the final AI response per question
-  - `CHAT_MAX_PROMPT_CHARS` — safety limit for max prompt size
   - `UPLOAD_MAX_CHARS` — safety limit for uploaded text size
   - `SESSION_EXPIRATION_MINUTES` — chat session expiration (-1 to disable)
 - Authentication (demo)
@@ -140,7 +143,12 @@ Most settings in `application.conf` can be overridden via environment variables.
   - `FEEDBACK_LOG_DIR` — directory for feedback logs
   - `FEEDBACK_LOG_PREFIX` — filename prefix for feedback logs
 - LLM provider
-  - `OPENAI_API_KEY` — API key used for chat and embeddings
+  - `LLM_PROVIDER` — Select LLM provider: "openai" (default) or "ollama"
+  - `OPENAI_API_KEY` — API key for OpenAI (required when `LLM_PROVIDER=openai`)
+  - `OLLAMA_BASE_URL` — Base URL for Ollama service (default: `http://localhost:11434`, used when `LLM_PROVIDER=ollama`)
+  - `OLLAMA_TIMEOUT` — Timeout for Ollama requests in milliseconds (default: 60000)
+  - `CHAT_MAX_SEQUENTIAL_TOOLS` — Maximum number of sequential tool invocations allowed (default: 10)
+  - `CHAT_MAX_PROMPT_CHARS` — Safety limit for max prompt size to avoid exceeding model context windows (default: 800000)
 - SoilWise catalog and Solr
   - `CATALOG_TIMEOUT_MS` — HTTP timeout for catalog/Solr requests
   - `SOLR_BASE_URL` — Solr `/select` endpoint URL (records core)
@@ -156,6 +164,163 @@ Most settings in `application.conf` can be overridden via environment variables.
 - SoilGrids (ISRIC)
   - `SOILGRIDS_BASE_URL` — base API URL
   - `SOILGRIDS_QUERY_ENDPOINT` — properties query endpoint path
+
+### LLM Provider Configuration (OpenAI vs Ollama)
+
+The chatbot can use either OpenAI's hosted models or local models via Ollama. The provider is configured in `application.conf` under `llm-provider-config`.
+
+#### Using OpenAI (default)
+
+Configuration block (in `chatbot/jvm/src/main/resources/application.conf`):
+
+```hocon
+llm-provider-config: {
+  provider: "openai"
+  api-key: ${?OPENAI_API_KEY}
+  chat-model: "gpt-4.1-mini"
+  chat-model-temp: 0.1
+  reason-model: "gpt-4.1-mini"
+  reason-model-temp: 0.0
+  # ... other settings
+}
+```
+
+Environment variables:
+- `LLM_PROVIDER=openai` (or omit, as "openai" is the default)
+- `OPENAI_API_KEY=your-api-key-here`
+
+#### Using Ollama (local models)
+
+To use local models via Ollama:
+
+1. **Install and run Ollama**:
+   ```bash
+   # Install Ollama from https://ollama.ai
+   # Pull a recommended model for tool calling
+   ollama pull qwen2.5:7b
+   ```
+
+2. **Configure the application** by setting environment variables:
+   ```bash
+   export LLM_PROVIDER=ollama
+   export OLLAMA_BASE_URL=http://localhost:11434  # optional, this is the default
+   ```
+
+3. **Update model names** in `application.conf` (or override via environment):
+   ```hocon
+   llm-provider-config: {
+     provider: "ollama"
+     chat-model: "qwen2.5:7b"
+     reason-model: "qwen2.5:7b"
+     ollama-base-url: "http://localhost:11434"
+     ollama-timeout: 60000  # milliseconds
+     # ... other settings
+   }
+   ```
+
+#### Recommended Ollama models for tool calling
+
+The chatbot uses LangChain4j's tool/function calling capabilities. For best results with Ollama, use models that support tool calling:
+
+- **qwen2.5:7b** (recommended) — Good balance of size (~4.7GB) and tool calling capability
+- **mistral** — Strong performance with function calling
+- **llama3.1:8b** — Good general performance
+
+Note: Smaller models (< 7B parameters) may have limited tool calling capabilities.
+
+#### Configuration comparison
+
+| Setting | OpenAI | Ollama |
+|---------|--------|--------|
+| `provider` | `"openai"` | `"ollama"` |
+| `api-key` | Required (from env) | Not used |
+| `chat-model` | e.g., `"gpt-4.1-mini"` | e.g., `"qwen2.5:7b"` |
+| `reason-model` | e.g., `"gpt-4.1-mini"` | e.g., `"qwen2.5:7b"` |
+| `ollama-base-url` | Not used | `"http://localhost:11434"` (default) |
+| `ollama-timeout` | Not used | `60000` (ms, default) |
+
+#### Health checks with different providers
+
+The `/readyz` health endpoint adapts to the configured provider:
+
+- **OpenAI**: Checks if `OPENAI_API_KEY` is present
+- **Ollama**: Checks if `ollama-base-url` is configured
+
+Example response:
+```json
+{
+  "status": "ready",
+  "checks": {
+    "configLoaded": true,
+    "llmProvider": "ollama",
+    "llmProviderReady": true
+  }
+}
+```
+
+#### Running with Docker and Ollama
+
+To use Ollama with the Docker container, you need to ensure the container can reach your Ollama instance:
+
+**Option 1: Ollama on host machine**
+```bash
+docker run --rm \
+  -e LLM_PROVIDER=ollama \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -e SOIL_COMPANION_HOST=0.0.0.0 \
+  -e SOIL_COMPANION_PORT=8080 \
+  -v $(pwd)/data:/app/data \
+  -p 8080:8080 soil-companion
+```
+
+**Option 2: Ollama in a separate container**
+```bash
+# Start Ollama container
+docker run -d --name ollama -p 11434:11434 ollama/ollama
+docker exec ollama ollama pull qwen2.5:7b
+
+# Start Soil Companion container
+docker run --rm \
+  -e LLM_PROVIDER=ollama \
+  -e OLLAMA_BASE_URL=http://ollama:11434 \
+  --link ollama \
+  -v $(pwd)/data:/app/data \
+  -p 8080:8080 soil-companion
+```
+
+**Option 3: Using Docker Compose**
+```yaml
+version: '3.8'
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  soil-companion:
+    image: soil-companion
+    environment:
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - SOIL_COMPANION_HOST=0.0.0.0
+      - SOIL_COMPANION_PORT=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - ollama
+
+volumes:
+  ollama-data:
+```
+
+After starting the services, pull the model:
+```bash
+docker exec <ollama-container-name> ollama pull qwen2.5:7b
+```
 
 ### SoilGrids tools configuration
 The chatbot includes LLM tools to query ISRIC SoilGrids v2.0 for estimated soil properties at a given location.

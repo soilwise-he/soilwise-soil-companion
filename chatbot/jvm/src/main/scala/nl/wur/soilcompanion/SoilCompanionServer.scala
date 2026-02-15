@@ -55,6 +55,27 @@ object SoilCompanionServer extends MainRoutes {
   private def touchActivity(sessionId: String): Unit =
     lastActivity.put(sessionId, java.lang.Long.valueOf(System.currentTimeMillis()))
 
+  /**
+   * Strip markdown links from streaming tokens to avoid showing raw markdown syntax in the chat.
+   * Converts [text](url) to just "text" for Wikipedia/vocab links, or "text (url)" for other links.
+   * This handles partial markdown that may span multiple tokens.
+   */
+  private def stripMarkdownLinksFromToken(token: String): String = {
+    // Pattern to match complete markdown links: [text](url)
+    val markdownLinkPattern = """\[([^\]]+)\]\((https?://[^\)]+)\)""".r
+    markdownLinkPattern.replaceAllIn(token, m => {
+      val linkText = m.group(1)
+      val url = m.group(2)
+      // For Wikipedia and vocab links, keep only the text (links will be added by auto-linker)
+      // For other links, keep text and URL
+      if (url.contains("wikipedia.org") || url.contains("voc.soilwise-he")) {
+        linkText
+      } else {
+        s"$linkText ($url)"
+      }
+    })
+  }
+
   // background scheduler to expire sessions
   private val sessionExpirationMinutes: Int = Config.appConfig.sessionExpirationMinutes
   private val scheduler = if sessionExpirationMinutes >= 0 then Some(Executors.newSingleThreadScheduledExecutor()) else None
@@ -196,14 +217,22 @@ object SoilCompanionServer extends MainRoutes {
       case _: Throwable => false
     }
 
-    // Consider LLM API key a hard requirement for readiness in this app
-    val openAiKeyPresent = Option(Config.llmProviderConfig.apiKey).exists(_.trim.nonEmpty)
+    // Check LLM provider readiness based on provider type
+    val provider = Config.llmProviderConfig.provider.toLowerCase
+    val llmProviderReady = provider match {
+      case "openai" =>
+        Option(Config.llmProviderConfig.apiKey).exists(_.trim.nonEmpty)
+      case "ollama" =>
+        // For Ollama, just check that base URL is configured (actual connectivity will be checked on first use)
+        Config.llmProviderConfig.ollamaBaseUrl.exists(_.trim.nonEmpty)
+      case _ => false
+    }
 
     // Basic internal metrics (do not fail readiness on these)
     val wsCount = wsConnections.size()
     val sessionsCount = assistants.size()
 
-    val ready = cfgOk && openAiKeyPresent
+    val ready = cfgOk && llmProviderReady
 
     val payload = ujson.Obj(
       "status" -> (if ready then "ready" else "not_ready"),
@@ -215,7 +244,8 @@ object SoilCompanionServer extends MainRoutes {
       ),
       "checks" -> ujson.Obj(
         "configLoaded" -> cfgOk,
-        "llmApiKeyPresent" -> openAiKeyPresent
+        "llmProvider" -> provider,
+        "llmProviderReady" -> llmProviderReady
       )
     )
 
@@ -383,7 +413,7 @@ object SoilCompanionServer extends MainRoutes {
         val augmentedContentPreCap = s"${locationSection}${uploadSection}Question: ${content}"
 
         // Apply overall prompt safety cap
-        val promptLimit = math.max(5000, Config.appConfig.chatMaxPromptChars)
+        val promptLimit = math.max(5000, Config.llmProviderConfig.chatMaxPromptChars)
         val (augmentedContent, wasPromptTruncated) =
           if (augmentedContentPreCap.length > promptLimit) then
             (augmentedContentPreCap.take(promptLimit) + "\n\n...[prompt truncated to fit model limit]", true)
@@ -407,9 +437,13 @@ object SoilCompanionServer extends MainRoutes {
           .onPartialResponse { token =>
             // AI activity
             touchActivity(sessionId)
+            // Strip markdown links from streaming tokens to avoid showing raw markdown in chat
+            // This is needed because the LLM sometimes generates markdown links that won't be properly
+            // rendered until after completion when auto-linking is applied
+            val cleanedToken = stripMarkdownLinksFromToken(token)
             // Accumulate only when enabled; do not log partials
-            responseBufOpt.foreach(_.append(token))
-            connection.send(Ws.Text(upickle.default.write(QueryPartialResponse(token))))
+            responseBufOpt.foreach(_.append(token)) // Accumulate original token with markdown for post-processing
+            connection.send(Ws.Text(upickle.default.write(QueryPartialResponse(cleanedToken)))) // Send cleaned token to UI
           }
           .onCompleteResponse { _ =>
             logger.info(s"Query for session $sessionId completed")

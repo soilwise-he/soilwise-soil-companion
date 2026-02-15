@@ -177,7 +177,7 @@ class WikipediaTools {
         s"Wikipedia service returned status ${response.statusCode}. Please try again later."
       } else {
         val results = parseSearchResults(response.text())
-        logger.debug(s"Wikipedia search found ${results.length} results")
+        logger.info(s"Wikipedia search found ${results.length} results")
         formatSearchResults(results)
       }
     } catch {

@@ -299,6 +299,81 @@ object WikipediaLinker {
   }
 
   /**
+   * Strip Wikipedia and vocabulary markdown links from text, keeping only the link text.
+   * Other links (e.g., repository, DOI, external) are preserved as markdown.
+   * E.g., "[Soil health](https://en.wikipedia.org/wiki/Soil_health)" becomes "Soil health"
+   * But "[View in catalog](https://repository.soilwise-he.eu/...)" stays as is
+   *
+   * @param text The text containing markdown links
+   * @return The text with Wikipedia/vocab links removed, other links preserved
+   */
+  def stripAllLinks(text: String): String = {
+    val markdownLinkPattern = """\[([^\]]+)\]\((https?://[^\)]+)\)""".r
+    markdownLinkPattern.replaceAllIn(text, m => {
+      val linkText = m.group(1)
+      val url = m.group(2)
+      // Only strip Wikipedia and vocabulary links; keep others intact
+      if (url.contains("wikipedia.org") || url.contains("voc.soilwise-he")) {
+        linkText // Strip to just text
+      } else {
+        m.matched // Keep markdown link intact
+      }
+    })
+  }
+
+  /**
+   * Extract Wikipedia links from text by identifying technical terms and verifying articles exist.
+   * Returns a list of unique Wikipedia URLs without modifying the text.
+   *
+   * @param text The text to analyze
+   * @return List of Wikipedia article URLs
+   */
+  def extractWikipediaLinks(text: String): List[String] = {
+    if (!Config.wikipediaConfig.autoLinkTerms) {
+      return List.empty
+    }
+
+    try {
+      // First strip any existing markdown to work with plain text
+      val plainText = stripAllLinks(text)
+
+      val minLength = Config.wikipediaConfig.minTermLength
+      val language = detectLanguage(plainText)
+      val baseUrl = languageWikipediaUrls.getOrElse(language, Config.wikipediaConfig.baseUrl)
+
+      logger.trace(s"Extracting Wikipedia links using edition: $baseUrl for language: $language")
+
+      // Find all potential technical terms in the text
+      val candidates = findCandidateTerms(plainText, minLength, language)
+
+      if (candidates.isEmpty) {
+        return List.empty
+      }
+
+      logger.debug(s"Found ${candidates.size} candidate terms for Wikipedia links: ${candidates.mkString(", ")}")
+
+      // Verify which candidates have existing Wikipedia articles and get the actual article titles
+      val verifiedUrls = candidates.flatMap { term =>
+        findBestWikipediaArticle(term, baseUrl, language) match {
+          case Some(articleTitle) =>
+            val url = s"$baseUrl/wiki/${articleTitle.replace(" ", "_")}"
+            logger.trace(s"Verified Wikipedia article exists for '$term': $url")
+            Some(url)
+          case None =>
+            logger.trace(s"No Wikipedia article found for: $term")
+            None
+        }
+      }
+
+      verifiedUrls.toList.distinct
+    } catch {
+      case e: Throwable =>
+        logger.error("Failed to extract Wikipedia links from response", e)
+        List.empty
+    }
+  }
+
+  /**
    * Process response text and add Wikipedia links to technical terms.
    * Only processes if auto-linking is enabled in config.
    * Detects language and uses appropriate Wikipedia edition.

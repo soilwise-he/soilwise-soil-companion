@@ -1,7 +1,7 @@
 package nl.wur.soilcompanion
 
 import cask.*
-import nl.wur.soilcompanion.domain.{QueryEvent, QueryPartialResponse}
+import nl.wur.soilcompanion.domain.{LinksMetadata, QueryEvent, QueryPartialResponse}
 import upickle.default.*
 import os.*
 
@@ -57,7 +57,8 @@ object SoilCompanionServer extends MainRoutes {
 
   /**
    * Strip markdown links from streaming tokens to avoid showing raw markdown syntax in the chat.
-   * Converts [text](url) to just "text" for Wikipedia/vocab links, or "text (url)" for other links.
+   * Converts [text](url) to just "text" for Wikipedia/vocab links (which will be re-added by auto-linker).
+   * Keeps markdown syntax for repository and other external links so they remain clickable.
    * This handles partial markdown that may span multiple tokens.
    */
   private def stripMarkdownLinksFromToken(token: String): String = {
@@ -67,11 +68,12 @@ object SoilCompanionServer extends MainRoutes {
       val linkText = m.group(1)
       val url = m.group(2)
       // For Wikipedia and vocab links, keep only the text (links will be added by auto-linker)
-      // For other links, keep text and URL
+      // For repository and other external links, keep the markdown syntax so they remain clickable
       if (url.contains("wikipedia.org") || url.contains("voc.soilwise-he")) {
         linkText
       } else {
-        s"$linkText ($url)"
+        // Keep the markdown link intact for repository and other URLs
+        m.matched
       }
     })
   }
@@ -447,44 +449,47 @@ object SoilCompanionServer extends MainRoutes {
           }
           .onCompleteResponse { _ =>
             logger.info(s"Query for session $sessionId completed")
-            // Apply auto-linking if enabled and response was accumulated
+            // Extract link metadata and send clean display text
             responseBufOpt.foreach { sb =>
-              var linkedResponse = sb.result()
-              var linksAdded = false
+              val rawResponse = sb.result()
 
-              // Apply Wikipedia auto-linking
-              if (Config.wikipediaConfig.autoLinkTerms) {
+              // Extract Wikipedia links
+              val wikiLinks = if (Config.wikipediaConfig.autoLinkTerms) {
                 try {
-                  val wikiLinked = WikipediaLinker.addWikipediaLinks(linkedResponse)
-                  if (wikiLinked != linkedResponse) {
-                    logger.debug(s"Added Wikipedia links to response for session $sessionId")
-                    linkedResponse = wikiLinked
-                    linksAdded = true
+                  val links = WikipediaLinker.extractWikipediaLinks(rawResponse)
+                  if (links.nonEmpty) {
+                    logger.debug(s"Extracted ${links.size} Wikipedia links for session $sessionId")
                   }
+                  links
                 } catch {
                   case e: Throwable =>
-                    logger.error(s"Failed to add Wikipedia links for session $sessionId", e)
+                    logger.error(s"Failed to extract Wikipedia links for session $sessionId", e)
+                    List.empty
                 }
-              }
+              } else List.empty
 
-              // Apply Vocabulary auto-linking
-              if (Config.vocabConfig.autoLinkTerms) {
+              // Extract Vocabulary links
+              val vocabLinks = if (Config.vocabConfig.autoLinkTerms) {
                 try {
-                  val vocabLinked = VocabLinker.addVocabLinks(linkedResponse)
-                  if (vocabLinked != linkedResponse) {
-                    logger.debug(s"Added vocabulary links to response for session $sessionId")
-                    linkedResponse = vocabLinked
-                    linksAdded = true
+                  val links = VocabLinker.extractVocabLinks(rawResponse)
+                  if (links.nonEmpty) {
+                    logger.debug(s"Extracted ${links.size} vocabulary links for session $sessionId")
                   }
+                  links
                 } catch {
                   case e: Throwable =>
-                    logger.error(s"Failed to add vocabulary links for session $sessionId", e)
+                    logger.error(s"Failed to extract vocabulary links for session $sessionId", e)
+                    List.empty
                 }
-              }
+              } else List.empty
 
-              // Send the updated response if any links were added
-              if (linksAdded) {
-                connection.send(Ws.Text(upickle.default.write(QueryEvent("links_added", Some(linkedResponse)))))
+              // Generate clean display text (strip all markdown links)
+              val displayText = WikipediaLinker.stripAllLinks(rawResponse)
+
+              // Send metadata if any links were found
+              if (wikiLinks.nonEmpty || vocabLinks.nonEmpty) {
+                val metadata = LinksMetadata(wikiLinks, vocabLinks, displayText)
+                connection.send(Ws.Text(upickle.default.write(QueryEvent("links_metadata", Some(upickle.default.write(metadata))))))
               }
             }
             // Emit a debug log with the user question followed by the final AI response text if enabled

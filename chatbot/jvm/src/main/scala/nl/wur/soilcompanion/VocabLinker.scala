@@ -136,10 +136,18 @@ object VocabLinker {
 
   /**
    * Build vocabulary URL for a term ID.
+   * If termId is already a full URL (starts with http), return it as-is.
+   * Otherwise, build the URL using the base URL and /id/ path.
    */
   private def buildVocabUrl(termId: String): String = {
-    val encoded = java.net.URLEncoder.encode(termId, "UTF-8")
-    s"${Config.vocabConfig.baseUrl}/id/$encoded"
+    if (termId.startsWith("http://") || termId.startsWith("https://")) {
+      // termId is already a full URL, return as-is
+      termId
+    } else {
+      // termId is a simple identifier, build the full URL
+      val encoded = java.net.URLEncoder.encode(termId, "UTF-8")
+      s"${Config.vocabConfig.baseUrl}/id/$encoded"
+    }
   }
 
   /**
@@ -166,6 +174,58 @@ object VocabLinker {
     }
 
     false
+  }
+
+  /**
+   * Strip all markdown links from text, keeping only the link text.
+   * E.g., "[Soil health](https://example.com)" becomes "Soil health"
+   *
+   * @param text The text containing markdown links
+   * @return The text with all markdown links removed, keeping only link text
+   */
+  def stripAllLinks(text: String): String = {
+    val markdownLinkPattern = """\[([^\]]+)\]\([^\)]+\)""".r
+    markdownLinkPattern.replaceAllIn(text, m => m.group(1)) // Keep only link text
+  }
+
+  /**
+   * Extract vocabulary links from text by identifying recognized vocabulary terms.
+   * Returns a list of unique vocabulary URLs without modifying the text.
+   *
+   * @param text The text to analyze
+   * @return List of vocabulary URLs
+   */
+  def extractVocabLinks(text: String): List[String] = {
+    if (!Config.vocabConfig.autoLinkTerms) {
+      return List.empty
+    }
+
+    try {
+      // First strip any existing markdown to work with plain text
+      val plainText = stripAllLinks(text)
+
+      val minLength = Config.vocabConfig.minTermLength
+
+      // Find all vocabulary terms that appear in the text
+      val candidates = findCandidateTerms(plainText, minLength)
+
+      if (candidates.isEmpty) {
+        return List.empty
+      }
+
+      logger.debug(s"Found ${candidates.size} vocabulary term candidates: ${candidates.map(_._2).mkString(", ")}")
+
+      // Build list of unique vocabulary URLs
+      val urls = candidates.map { case (term, matchedLabel) =>
+        buildVocabUrl(term.id)
+      }.distinct
+
+      urls
+    } catch {
+      case e: Throwable =>
+        logger.error("Failed to extract vocabulary links from response", e)
+        List.empty
+    }
   }
 
   /**

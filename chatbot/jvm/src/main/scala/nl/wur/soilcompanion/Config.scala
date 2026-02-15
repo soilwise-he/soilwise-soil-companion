@@ -58,6 +58,8 @@ object Config {
                           knowledgeDocTypes: List[String] = List("journalpaper"),
                           knowledgeContentDocTypes: List[String] = List("journalpaper"),
                           itemContentDocTypes: List[String] = List("dataset", "journalpaper"),
+                          // Keywords that trigger special marking/highlighting (case-insensitive)
+                          specialKeywords: List[String] = List("EJPSoil"),
                           // HTTP behavior for CatalogTools
                           timeoutMs: Int = 15000,
                           userAgent: String = "SoilCompanionBot/0.1 (+https://soilwise-he.eu)"

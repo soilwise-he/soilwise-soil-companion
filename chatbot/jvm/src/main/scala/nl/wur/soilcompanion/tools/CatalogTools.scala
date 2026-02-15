@@ -175,14 +175,33 @@ class CatalogTools {
   }
 
   /**
+   * Checks if the document contains any special keywords that should trigger special marking.
+   *
+   * @param doc The document to check for special keywords.
+   * @return true if the document contains any special keywords (case-insensitive match), false otherwise.
+   */
+  private def hasSpecialKeywords(doc: Doc): Boolean = {
+    doc.keywords.exists { kwList =>
+      val lowerKwList = kwList.map(_.toLowerCase)
+      Config.catalogConfig.specialKeywords.exists(specialKw => lowerKwList.contains(specialKw.toLowerCase))
+    }
+  }
+
+  /**
    * Formats the abstract and related metadata of a given document (Doc) into a structured string.
    * The resulting string includes the document's abstract, identifier, and various reference URLs.
+   * If the document contains special keywords (e.g., "EJPSoil"), an alert icon is added to the title.
    *
    * @param doc The document from which the abstract and metadata are to be extracted and formatted.
    * @return A string representing the formatted abstract and metadata of the document.
    */
   private def formatAbstract(doc: Doc): String = {
-    s"""### SoilWise Catalog Item
+    val catalogUrl = createCatalogURL(doc.identifier)
+    val catalogLink = s"[View in catalog]($catalogUrl)"
+    val directLink = doc.docLink.map(url => s"[Direct link]($url)").getOrElse("Not available")
+    val specialMarker = if (hasSpecialKeywords(doc)) " ⚠️" else ""
+
+    s"""### SoilWise Catalog Item$specialMarker
        |Title:
        |${doc.docTitle}
        |\n
@@ -191,8 +210,8 @@ class CatalogTools {
        |\n
        |Reference:
        |- SoilWise identifier: ${doc.identifier}
-       |- SoilWise catalog URL: ${createCatalogURL(doc.identifier)}
-       |- Direct URL: ${doc.docLink.getOrElse("Not available.")}
+       |- $catalogLink
+       |- $directLink
        |""".stripMargin
   }
 
@@ -205,6 +224,10 @@ class CatalogTools {
    * @return A string representing the formatted document metadata and content, including references.
    */
   private def formatContent(doc: Doc): String = {
+    val catalogUrl = createCatalogURL(doc.identifier)
+    val catalogLink = s"[View in catalog]($catalogUrl)"
+    val directLink = doc.docLink.map(url => s"[Direct link]($url)").getOrElse("Not available")
+
     s"""### Publication
        |Title:
        |${doc.docTitle}
@@ -217,8 +240,8 @@ class CatalogTools {
        |\n
        |Reference:
        |- SoilWise identifier: ${doc.identifier}
-       |- SoilWise catalog URL: ${createCatalogURL(doc.identifier)}
-       |- Direct URL: ${doc.docLink.getOrElse("Not available.")}
+       |- $catalogLink
+       |- $directLink
        |""".stripMargin
   }
 

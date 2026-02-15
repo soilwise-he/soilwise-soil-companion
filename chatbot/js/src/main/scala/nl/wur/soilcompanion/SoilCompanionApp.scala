@@ -1578,24 +1578,31 @@ object SoilCompanionApp extends App {
               val msg = evt.detail.getOrElse("Your session expired due to inactivity. Please login to start a new chat.")
               addMessage("AI", msg)
               updateFooterStatus(None)
-            case "links_added" =>
-              // Replace the content of the last bot message with the linked version
+            case "links_metadata" =>
+              // Parse the metadata and update the last bot message
               val messageContainer = dom.document.getElementById("messages")
               val last = messageContainer.lastElementChild
               Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
-                evt.detail.foreach { linkedContent =>
-                  // Store the linked version with links for insight panel extraction
-                  el.setAttribute("data-raw-content-with-links", linkedContent)
+                evt.detail.foreach { metadataJson =>
+                  try {
+                    // Parse the LinksMetadata JSON
+                    val metadata = upickle.default.read[nl.wur.soilcompanion.domain.LinksMetadata](metadataJson)
 
-                  // Parse and render the linked content first (so links exist in DOM for extraction)
-                  val parsed = marked.parse(linkedContent)
-                  val sanitized = DOMPurify.sanitize(parsed)
-                  val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
-                  if (contentEl != null) {
-                    contentEl.innerHTML = sanitized
-                    fixExternalLinks(contentEl)
+                    // Store link URLs as data attributes (never render them in the message)
+                    el.setAttribute("data-wikipedia-links", metadata.wikipediaLinks.mkString(","))
+                    el.setAttribute("data-vocabulary-links", metadata.vocabularyLinks.mkString(","))
 
-                    // Manually trigger insight panel update before stripping links
+                    // Update display with clean text (no markdown links)
+                    el.setAttribute("data-raw-content", metadata.displayText)
+                    val parsed = marked.parse(metadata.displayText)
+                    val sanitized = DOMPurify.sanitize(parsed)
+                    val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
+                    if (contentEl != null) {
+                      contentEl.innerHTML = sanitized
+                      fixExternalLinks(contentEl) // For non-Wikipedia/vocab links only
+                    }
+
+                    // Trigger insight panel update to read from data attributes
                     try {
                       val updateFn = js.Dynamic.global.updateInsightLinks
                       if (!js.isUndefined(updateFn) && js.typeOf(updateFn) == "function") {
@@ -1603,41 +1610,11 @@ object SoilCompanionApp extends App {
                       }
                     } catch { case _: Throwable => () }
 
-                    // Pause the MutationObserver to prevent it from re-running when we strip links
-                    try {
-                      val pauseFn = js.Dynamic.global.pauseInsightObserver
-                      if (!js.isUndefined(pauseFn) && js.typeOf(pauseFn) == "function") {
-                        pauseFn.asInstanceOf[js.Function0[Unit]]()
-                      }
-                    } catch { case _: Throwable => () }
-
-                    // Now strip Wikipedia and vocab links from display
-                    val links = contentEl.querySelectorAll("a[href]")
-                    var i = 0
-                    while (i < links.length) {
-                      val link = links(i).asInstanceOf[dom.html.Anchor]
-                      val href = link.getAttribute("href")
-                      if (href != null && (href.contains("wikipedia.org") || href.contains("voc.soilwise-he"))) {
-                        // Replace link with just its text content
-                        val textNode = dom.document.createTextNode(link.textContent)
-                        link.parentNode.replaceChild(textNode, link)
-                      }
-                      i += 1
-                    }
-
-                    // Update raw content to the version without links
-                    el.setAttribute("data-raw-content", contentEl.textContent)
-
-                    // Resume the MutationObserver
-                    try {
-                      val resumeFn = js.Dynamic.global.resumeInsightObserver
-                      if (!js.isUndefined(resumeFn) && js.typeOf(resumeFn) == "function") {
-                        resumeFn.asInstanceOf[js.Function0[Unit]]()
-                      }
-                    } catch { case _: Throwable => () }
-
                     hljs.highlightAll()
                     messageContainer.scrollTop = messageContainer.scrollHeight
+                  } catch {
+                    case e: Throwable =>
+                      dom.console.error(s"[DEBUG_LOG] Failed to parse links metadata: ${e.getMessage}")
                   }
                 }
               }

@@ -934,26 +934,58 @@
 
             // Get the latest bot message
             const latestMessage = botMessages[botMessages.length - 1];
-            const messageContent = latestMessage.querySelector('.message-content');
-            if (!messageContent) return;
 
-            // Extract all links and filter
-            const allLinks = messageContent.querySelectorAll('a[href]');
-            const wikiLinks = Array.from(allLinks).filter(link => link.href.includes('wikipedia.org'));
-            const vocabLinks = Array.from(allLinks).filter(link => link.href.includes('voc.soilwise-he'));
+            // Read links from data attributes (never from DOM)
+            const wikiLinksStr = latestMessage.getAttribute('data-wikipedia-links') || '';
+            const vocabLinksStr = latestMessage.getAttribute('data-vocabulary-links') || '';
 
-            console.log('[Insight] Wikipedia links:', wikiLinks.length, 'Vocab links:', vocabLinks.length);
+            const wikiUrls = wikiLinksStr.split(',').filter(l => l.trim());
+            const vocabUrls = vocabLinksStr.split(',').filter(l => l.trim());
+
+            console.log('[Insight] Wikipedia links:', wikiUrls.length, 'Vocab links:', vocabUrls.length);
+
+            // Helper to extract title from Wikipedia URL
+            function extractTitleFromWikiUrl(url) {
+                const match = url.match(/\/wiki\/(.+)$/);
+                if (match) {
+                    return decodeURIComponent(match[1].replace(/_/g, ' '));
+                }
+                return url;
+            }
+
+            // Helper to extract term from vocabulary URL
+            function extractTermFromVocabUrl(url) {
+                // Handle URLs with /id/ path format
+                let match = url.match(/\/id\/(.+)$/);
+                if (match) {
+                    return decodeURIComponent(match[1]);
+                }
+                // Handle URLs with # hash format (e.g., https://example.com/vocab#term)
+                match = url.match(/#(.+)$/);
+                if (match) {
+                    // Convert camelCase or PascalCase to readable text
+                    const term = match[1];
+                    // Insert spaces before capital letters and lowercase the result
+                    const readable = term
+                        .replace(/([A-Z])/g, ' $1')
+                        .trim()
+                        .toLowerCase();
+                    return readable;
+                }
+                return url;
+            }
 
             // Update Wikipedia links card
-            if (wikiLinks.length > 0) {
+            if (wikiUrls.length > 0) {
                 wikipediaList.innerHTML = '';
                 const ul = document.createElement('ul');
                 ul.className = 'insight-links-list';
-                wikiLinks.forEach(link => {
+                wikiUrls.forEach(url => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
-                    a.href = link.href;
-                    a.textContent = capitalizeTermProperly(link.textContent);
+                    a.href = url;
+                    const title = extractTitleFromWikiUrl(url);
+                    a.textContent = capitalizeTermProperly(title);
                     a.target = '_blank';
                     a.rel = 'noopener noreferrer';
                     li.appendChild(a);
@@ -965,7 +997,7 @@
             }
 
             // Update Vocabulary links card and chips
-            if (vocabLinks.length > 0) {
+            if (vocabUrls.length > 0) {
                 // Update sidebar card
                 vocabList.innerHTML = '';
 
@@ -996,12 +1028,12 @@
                 // Create chips
                 chipsScroll.innerHTML = '';
 
-                // Deduplicate terms by text content
+                // Deduplicate terms by URL (already unique from backend)
                 const uniqueTerms = new Map();
-                vocabLinks.forEach(link => {
-                    const term = link.textContent.trim();
+                vocabUrls.forEach(url => {
+                    const term = extractTermFromVocabUrl(url);
                     if (term && !uniqueTerms.has(term)) {
-                        uniqueTerms.set(term, link.href);
+                        uniqueTerms.set(term, url);
                     }
                 });
 
@@ -1065,9 +1097,23 @@
             }
         }
 
+        // Cache to prevent duplicate fetches for the same URIs
+        let lastFetchedUris = null;
+        let fetchInProgress = false;
+
         // Fetch additional vocabulary information from the backend
         async function fetchVocabularyInfo(conceptUris) {
             if (!conceptUris || conceptUris.length === 0) return;
+
+            // Deduplicate: check if we're already fetching or just fetched the same URIs
+            const urisKey = conceptUris.sort().join('|');
+            if (fetchInProgress || lastFetchedUris === urisKey) {
+                console.log('[Insight] Skipping duplicate fetch for same URIs');
+                return;
+            }
+
+            fetchInProgress = true;
+            lastFetchedUris = urisKey;
 
             console.log('[Insight] Fetching vocab info for', conceptUris.length, 'concepts');
 
@@ -1113,6 +1159,8 @@
                 }
             } catch (error) {
                 console.error('[Insight] Error fetching vocabulary info:', error);
+            } finally {
+                fetchInProgress = false;
             }
         }
 
@@ -1120,6 +1168,10 @@
         function displayVocabularyRelations(concepts) {
             console.log('[Insight] displayVocabularyRelations called with', concepts.length, 'concepts');
             console.log('[Insight] First concept:', concepts[0]);
+
+            // Remove any existing "Additional concepts" section to avoid duplicates
+            const existingSections = vocabList.querySelectorAll('.vocab-related-section');
+            existingSections.forEach(section => section.remove());
 
             // Collect all unique broader, narrower, and related terms with their info
             const allBroader = new Map();
@@ -1196,7 +1248,7 @@
 
                 // Add single header for all related concepts
                 const relatedTitle = document.createElement('h5');
-                relatedTitle.textContent = 'Related concepts:';
+                relatedTitle.textContent = 'Additional concepts:';
                 relatedTitle.style.margin = '0 0 6px 0';
                 relatedTitle.style.fontSize = '0.85rem';
                 relatedTitle.style.fontWeight = '600';
@@ -1464,18 +1516,6 @@
 
         // Expose updateInsightLinks globally so it can be called from Scala code
         window.updateInsightLinks = updateInsightLinks;
-
-        // Expose observer control so Scala code can pause/resume observation
-        window.pauseInsightObserver = function() {
-            observer.disconnect();
-        };
-        window.resumeInsightObserver = function() {
-            observer.observe(messagesContainer, {
-                childList: true,
-                subtree: true,
-                characterData: true
-            });
-        };
     })();
 </script>
 </body>

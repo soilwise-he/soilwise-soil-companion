@@ -924,5 +924,17 @@ sbt "chatbotJVM/runMain nl.wur.soilcompanion.eval.FeedbackMetrics --no-color"
 Notes:
 - When no arguments are provided, the tool scans all `feedback-*.jsonl` files in the default feedback directory.
 - Files are read using UTF‑8.
- - The console report uses ANSI colors; use `--no-color` if your terminal doesn’t support colors.
+ - The console report uses ANSI colors; use `--no-color` if your terminal doesn't support colors.
+
+## License
+
+This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+<img src="chatbot/js/static/img/eu-funding-banner-w500.png" alt="Funded by the European Union" width="250" />
+
+This project has received funding from the European Union's HORIZON Innovation Actions 2022 under grant agreement No. **101112838** ([SoilWise](https://soilwise-he.eu)).
+
+Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Executive Agency (REA). Neither the European Union nor the granting authority can be held responsible for them.
 

@@ -1,0 +1,44 @@
+SoilWise Soil Companion
+Copyright 2024-2026 Wageningen University & Research
+
+This product is licensed under the Apache License 2.0 (the "License").
+You may obtain a copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+================================================================================
+EU Funding Acknowledgement
+================================================================================
+
+This project has received funding from the European Union's HORIZON Innovation
+Actions 2022 under grant agreement No. 101112838.
+
+Project: SoilWise (https://soilwise-he.eu)
+Grant:   HORIZON-IA, No. 101112838
+CORDIS:  https://doi.org/10.3030/101112838
+
+Views and opinions expressed are however those of the author(s) only and do not
+necessarily reflect those of the European Union or the European Research
+Executive Agency (REA). Neither the European Union nor the granting authority
+can be held responsible for them.
+
+================================================================================
+Third-Party Notices
+================================================================================
+
+This software makes use of the following third-party services and data sources:
+
+- ISRIC SoilGrids v2.0 (https://soilgrids.org/)
+  Licensed under CC BY 4.0
+
+- Wikipedia content (https://www.wikipedia.org/)
+  Licensed under CC BY-SA 3.0
+
+- WUR AgroDataCube v2 (https://agrodatacube.wur.nl/)
+  Licensed under CC BY-NC-SA 4.0
+
+- WUR OpenAgroKPI (https://openagrokpi.wur.nl/)
+  Licensed under CC BY-NC-SA 4.0
+
+- LangChain4j (https://github.com/langchain4j/langchain4j)
+  Licensed under Apache License 2.0

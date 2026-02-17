@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "SoilWise Soil Companion"
+type: software
+authors:
+  - family-names: "Knapen"
+    given-names: "Rob"
+    email: "rob.knapen@wur.nl"
+    affiliation: "Wageningen University & Research"
+    orcid: "https://orcid.org/0000-0003-0556-158X"
+repository-code: "https://git.wur.nl/soilwise/soil-companion"
+url: "https://soilwise-he.eu"
+abstract: >-
+  An AI-powered chatbot for answering soil-related questions,
+  developed as part of the European SoilWise project. It integrates
+  with the SoilWise catalog, ISRIC SoilGrids, agricultural field
+  data services, and soil vocabulary resources to provide
+  comprehensive soil information.
+keywords:
+  - soil
+  - chatbot
+  - soilwise
+  - langchain4j
+  - scala
+license: Apache-2.0
+version: "1.2.2"
+date-released: "2026-02-06"
+identifiers:
+  - type: doi
+    value: ""
+    description: "DOI for the software (to be assigned)"
+  - type: other
+    value: "101112838"
+    description: "EU Horizon grant agreement number"
+references:
+  - type: grant
+    title: "SoilWise — Enabling Soil Data and Knowledge for Informed Decision-Making"
+    authors:
+      - name: "European Commission"
+    number: "101112838"
+    institution:
+      name: "European Union"
+    url: "https://doi.org/10.3030/101112838"

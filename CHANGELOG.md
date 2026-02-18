@@ -1,3 +1,10 @@
+## [1.2.4](https://git.wur.nl/soilwise/soil-companion/compare/1.2.3...1.2.4) (2026-02-18)
+
+
+### Bug Fixes
+
+* JS DOM bug; added energy hint. ([d07fa8d](https://git.wur.nl/soilwise/soil-companion/commit/d07fa8d461807fba01278e24b6799be8448bc6bd))
+
 ## [1.2.3](https://git.wur.nl/soilwise/soil-companion/compare/1.2.2...1.2.3) (2026-02-18)
 
 

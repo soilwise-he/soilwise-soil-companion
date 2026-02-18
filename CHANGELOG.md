@@ -1,3 +1,10 @@
+## [1.2.3](https://git.wur.nl/soilwise/soil-companion/compare/1.2.2...1.2.3) (2026-02-18)
+
+
+### Bug Fixes
+
+* Wrapping up various small improvements. ([09fd831](https://git.wur.nl/soilwise/soil-companion/commit/09fd831b9c687093fe914ae7b5d3f4797c6edbb1))
+
 ## [1.2.2](https://git.wur.nl/soilwise/soil-companion/compare/1.2.1...1.2.2) (2026-02-06)
 
 

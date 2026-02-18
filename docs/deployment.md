@@ -114,18 +114,37 @@ docker exec <ollama-container-name> ollama pull qwen2.5:7b
 ## Health endpoints and Kubernetes probes
 
 The backend exposes lightweight health endpoints at the server root:
-- `GET /healthz` — liveness: always returns 200 OK with JSON `{ status, uptimeSeconds, version, gitTag, now }` while the process is running.
+- `GET /healthz` — liveness: always returns 200 OK with JSON `{ status, uptimeSeconds, version, gitTag, now, llmProvider, llmModel, catalogItemLinkBaseUrl }` while the process is running.
 - `GET /readyz` — readiness: returns 200 OK when core config is loaded and the LLM API key is present; otherwise returns 503 with JSON payload including `checks` and simple `metrics`.
 
 Example responses:
 
 ```
 GET /healthz -> 200 OK
-{"status":"ok","uptimeSeconds":123,"version":"1.0.0","gitTag":"v1.0.0","now":"2025-11-21T13:45:00Z"}
+{
+  "status":"ok",
+  "uptimeSeconds":123,
+  "version":"1.0.0",
+  "gitTag":"v1.0.0",
+  "now":"2025-11-21T13:45:00Z",
+  "llmProvider":"openai",
+  "llmModel":"gpt-4.1-mini",
+  "catalogItemLinkBaseUrl":"https://repository.soilwise-he.eu/cat/collections/metadata:main/items/"
+}
 
 GET /readyz -> 200 OK or 503 Service Unavailable
 {"status":"ready","uptimeSeconds":123,"version":"1.0.0","metrics":{"wsConnections":0,"sessions":0},"checks":{"configLoaded":true,"llmApiKeyPresent":true}}
 ```
+
+**Health endpoint fields:**
+- `status`: Always "ok" for liveness
+- `uptimeSeconds`: Server uptime in seconds
+- `version`: Application version from config
+- `gitTag`: Git tag from CI environment or fallback to version
+- `now`: Current server timestamp (ISO 8601)
+- `llmProvider`: Configured LLM provider ("openai" or "ollama")
+- `llmModel`: Configured chat model name
+- `catalogItemLinkBaseUrl`: Base URL for SoilWise catalog item links (used by frontend for link generation)
 
 Kubernetes probe examples:
 
@@ -181,10 +200,13 @@ To avoid users staying on an outdated client after a new deployment, the fronten
 
 How it works:
 
-- On startup, the UI calls `GET /healthz` and displays a version label in the footer (element `#version-text`).
-  - It prefers the `gitTag` returned by `/healthz`; if absent, it falls back to `version`.
-  - The label is normalized to include a leading `v` when missing (e.g., `v1.2.3`).
-- The initial value is remembered by the client.
+- On startup, the UI calls `GET /healthz` and:
+  - Displays a version label in the footer (element `#version-text`) showing LLM provider, model, and version
+  - Extracts and stores `catalogItemLinkBaseUrl` for generating catalog links
+  - Prefers the `gitTag` returned by `/healthz`; if absent, it falls back to `version`
+  - The version label is normalized to include a leading `v` when missing (e.g., `v1.2.3`)
+  - Example footer display: `openai: gpt-4.1-mini - v1.0.0`
+- The initial version value is remembered by the client.
 - In the background, the client polls `/healthz` periodically and compares the current `gitTag`/`version` to the initial one.
   - Default polling interval: 60 seconds.
   - When a change is detected, a small, accessible banner appears above the footer asking the user to reload.

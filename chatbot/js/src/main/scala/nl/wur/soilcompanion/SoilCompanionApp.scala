@@ -95,6 +95,10 @@ object SoilCompanionApp extends App {
   // Handle to a periodic timer used for polling /healthz
   private var versionPollTimer: Option[Int] = None
 
+  // --- Backend configuration ---
+  // Catalog item link base URL from backend config
+  private var catalogItemLinkBaseUrl: String = "https://repository.soilwise-he.eu/cat/collections/metadata:main/items/"
+
   // execution context for futures
   given ExecutionContext = ExecutionContext.Implicits.global
 
@@ -192,7 +196,7 @@ object SoilCompanionApp extends App {
           val doi = m.group(1)
           if (doi.nonEmpty) {
             val encodedDoi = js.Dynamic.global.encodeURIComponent(doi).asInstanceOf[String]
-            val url = s"https://repository.soilwise-he.eu/cat/collections/metadata:main/items/$encodedDoi"
+            val url = s"$catalogItemLinkBaseUrl$encodedDoi"
             s"""SoilWise ID: <a href="$url" target="_blank" rel="noopener noreferrer">$doi</a>"""
           } else {
             m.matched
@@ -1872,9 +1876,15 @@ object SoilCompanionApp extends App {
           val llmProvider = optStr(dyn.selectDynamic("llmProvider")).getOrElse("")
           val llmModel = optStr(dyn.selectDynamic("llmModel")).getOrElse("")
 
+          // Extract and store catalog configuration
+          optStr(dyn.selectDynamic("catalogItemLinkBaseUrl")).foreach { url =>
+            catalogItemLinkBaseUrl = url
+            dom.console.log(s"[DEBUG_LOG] Catalog item link base URL: $catalogItemLinkBaseUrl")
+          }
+
           // Build the full display text: "provider: model - version"
           val fullText = if (llmProvider.nonEmpty && llmModel.nonEmpty && display.nonEmpty) {
-            s"[using $llmProvider $llmModel] - $display"
+            s"$llmProvider: $llmModel - $display"
           } else if (display.nonEmpty) {
             display
           } else {

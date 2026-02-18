@@ -17397,7 +17397,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__convertDoiToLinks__Lorg_sca
             var this$20 = $n(doi);
             if ((!(this$20 === ""))) {
               var encodedDoi = $as_T(encodeURIComponent(doi));
-              var url = ("https://repository.soilwise-he.eu/cat/collections/metadata:main/items/" + encodedDoi);
+              var url = (("" + $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_catalogItemLinkBaseUrl) + encodedDoi);
               var replacement = (((("SoilWise ID: <a href=\"" + url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">") + doi) + "</a>");
             } else {
               var this$22 = $n(x0$1);
@@ -19168,36 +19168,43 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__renderVersionFromHealthz__V
       var llmProvider = $as_T((this$5.isEmpty__Z() ? "" : this$5.get__O()));
       var this$6 = $n($p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$3__sjs_js_Dynamic__s_Option($thiz, dyn.llmModel));
       var llmModel = $as_T((this$6.isEmpty__Z() ? "" : this$6.get__O()));
+      var this$7 = $n($p_Lnl_wur_soilcompanion_SoilCompanionApp$__optStr$3__sjs_js_Dynamic__s_Option($thiz, dyn.catalogItemLinkBaseUrl));
+      if ((!this$7.isEmpty__Z())) {
+        var x0 = this$7.get__O();
+        var url$1 = $as_T(x0);
+        $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_catalogItemLinkBaseUrl = url$1;
+        console.log(("[DEBUG_LOG] Catalog item link base URL: " + $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_catalogItemLinkBaseUrl));
+      }
       $m_sc_StringOps$();
-      var this$9 = $n(llmProvider);
-      if ((!(this$9 === ""))) {
+      var this$10 = $n(llmProvider);
+      if ((!(this$10 === ""))) {
         $m_sc_StringOps$();
-        var this$12 = $n(llmModel);
-        var $x_2 = (!(this$12 === ""));
+        var this$13 = $n(llmModel);
+        var $x_2 = (!(this$13 === ""));
       } else {
         var $x_2 = false;
       }
       if ($x_2) {
         $m_sc_StringOps$();
-        var this$15 = $n(display);
-        var $x_1 = (!(this$15 === ""));
+        var this$16 = $n(display);
+        var $x_1 = (!(this$16 === ""));
       } else {
         var $x_1 = false;
       }
       if ($x_1) {
-        var fullText = ((((("[using " + llmProvider) + " ") + llmModel) + "] - ") + display);
+        var fullText = ((((llmProvider + ": ") + llmModel) + " - ") + display);
       } else {
         $m_sc_StringOps$();
-        var this$18 = $n(display);
-        if ((!(this$18 === ""))) {
+        var this$19 = $n(display);
+        if ((!(this$19 === ""))) {
           var fullText = display;
         } else {
           var fullText = "";
         }
       }
       $m_sc_StringOps$();
-      var this$21 = $n(fullText);
-      if ((!(this$21 === ""))) {
+      var this$22 = $n(fullText);
+      if ((!(this$22 === ""))) {
         el.textContent = fullText;
         if ($n($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag).isEmpty__Z()) {
           $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = new $c_s_Some(display);
@@ -19739,6 +19746,7 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = null;
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_catalogItemLinkBaseUrl = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_given_ExecutionContext$lzy1 = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_given_ExecutionContextbitmap$1 = false;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap = null;
@@ -19766,6 +19774,7 @@ function $c_Lnl_wur_soilcompanion_SoilCompanionApp$() {
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated = false;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_initialVersionTag = $m_s_None$();
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_versionPollTimer = $m_s_None$();
+  this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_catalogItemLinkBaseUrl = "https://repository.soilwise-he.eu/cat/collections/metadata:main/items/";
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker = null;
   this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle = null;

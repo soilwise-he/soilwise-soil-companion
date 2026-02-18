@@ -469,6 +469,21 @@ catalog-config: {
   // knowledge-content-doc-types: used by getAllKnowledgeContent (full text content search)
   // item-content-doc-types: used by getItemContent (identifier-based content retrieval)
 }
+```
+
+**Key configuration:**
+- `base-url`: Base URL for the SoilWise repository
+- `item-link-base-url`: Base URL for catalog item links (used by both backend tools and frontend for creating direct links to catalog items)
+  - The frontend fetches this URL from the backend via the `/healthz` endpoint on startup
+  - This ensures catalog links (e.g., "SoilWise ID: 10.xxxx/yyyy") use the correct URL configured in the backend
+  - Default: `https://repository.soilwise-he.eu/cat/collections/metadata:main/items/`
+
+**Frontend catalog link generation:**
+- When the frontend detects "SoilWise ID: 10.xxxx/yyyy" patterns in AI responses, it automatically converts them to clickable links
+- The link URL is constructed using `item-link-base-url` + URL-encoded DOI
+- Example: `SoilWise ID: 10.1016/j.agee.2011.01.005` becomes a link to `https://repository.soilwise-he.eu/cat/collections/metadata:main/items/10.1016%2Fj.agee.2011.01.005`
+
+**Configuration updates:**
 
 solr-config-server: {
   base-url: "https://solr.soilwise-he.containers.wur.nl/solr/records/select"

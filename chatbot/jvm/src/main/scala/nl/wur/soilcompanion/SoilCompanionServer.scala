@@ -203,7 +203,8 @@ object SoilCompanionServer extends MainRoutes {
       "gitTag" -> latestGitTag(),
       "now" -> java.time.Instant.now().toString,
       "llmProvider" -> Config.llmProviderConfig.provider,
-      "llmModel" -> Config.llmProviderConfig.chatModel
+      "llmModel" -> Config.llmProviderConfig.chatModel,
+      "catalogItemLinkBaseUrl" -> Config.catalogConfig.itemLinkBaseUrl
     )
     upickle.default.write(json)
   }

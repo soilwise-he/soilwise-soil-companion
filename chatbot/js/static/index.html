@@ -371,6 +371,9 @@
                                 <div style="display: flex; align-items: center; flex: 1;">
                                     <i class="fa-brands fa-wikipedia-w" aria-hidden="true"></i>
                                     <span class="insight-card-title">Wikipedia</span>
+                                    <span class="energy-hint-wrapper" title="Reading Wikipedia uses less energy than asking the AI">
+                                        <i class="fa-solid fa-leaf energy-hint" aria-hidden="true"></i>
+                                    </span>
                                 </div>
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true" style="font-size: 0.8em; transition: transform 0.2s;"></i>
                             </div>
@@ -902,11 +905,21 @@
             const header = wikiCard.querySelector('.insight-card-header');
             const body = wikiCard.querySelector('.insight-card-body');
             const chevron = header.querySelector('.fa-chevron-down');
+            const energyHint = wikiCard.querySelector('.energy-hint');
+
             if (header && body && chevron) {
                 header.addEventListener('click', function() {
                     const isCollapsed = body.style.display === 'none';
                     body.style.display = isCollapsed ? '' : 'none';
                     chevron.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
+                });
+            }
+
+            // Prevent energy hint wrapper from triggering card collapse
+            const energyHintWrapper = wikiCard.querySelector('.energy-hint-wrapper');
+            if (energyHintWrapper) {
+                energyHintWrapper.addEventListener('click', function(e) {
+                    e.stopPropagation();
                 });
             }
         }

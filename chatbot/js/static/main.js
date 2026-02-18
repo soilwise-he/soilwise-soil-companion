@@ -4750,6 +4750,330 @@ function $m_ju_internal_MurmurHash3$() {
   }
   return $n_ju_internal_MurmurHash3$;
 }
+/** @constructor */
+function $c_ju_regex_IndicesBuilder(pattern, flags, node, groupCount, jsRegExpForFind, jsRegExpForMatches) {
+  this.ju_regex_IndicesBuilder__f_pattern = null;
+  this.ju_regex_IndicesBuilder__f_flags = null;
+  this.ju_regex_IndicesBuilder__f_node = null;
+  this.ju_regex_IndicesBuilder__f_groupCount = 0;
+  this.ju_regex_IndicesBuilder__f_jsRegExpForFind = null;
+  this.ju_regex_IndicesBuilder__f_jsRegExpForMatches = null;
+  this.ju_regex_IndicesBuilder__f_pattern = pattern;
+  this.ju_regex_IndicesBuilder__f_flags = flags;
+  this.ju_regex_IndicesBuilder__f_node = node;
+  this.ju_regex_IndicesBuilder__f_groupCount = groupCount;
+  this.ju_regex_IndicesBuilder__f_jsRegExpForFind = jsRegExpForFind;
+  this.ju_regex_IndicesBuilder__f_jsRegExpForMatches = jsRegExpForMatches;
+}
+$c_ju_regex_IndicesBuilder.prototype = new $h_O();
+$c_ju_regex_IndicesBuilder.prototype.constructor = $c_ju_regex_IndicesBuilder;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder() {
+}
+$h_ju_regex_IndicesBuilder.prototype = $c_ju_regex_IndicesBuilder.prototype;
+$c_ju_regex_IndicesBuilder.prototype.apply__Z__T__I__O = (function(forMatches, string, index) {
+  var regExp = (forMatches ? this.ju_regex_IndicesBuilder__f_jsRegExpForMatches : this.ju_regex_IndicesBuilder__f_jsRegExpForFind);
+  regExp.lastIndex = index;
+  var allMatchResult = regExp.exec(string);
+  if (((allMatchResult === null) || ($uI(allMatchResult.index) !== index))) {
+    throw $ct_jl_AssertionError__O__(new $c_jl_AssertionError(), (((((("[Internal error] Executed '" + regExp) + "' on ") + ((("'" + string) + "' at position ") + index)) + ", got an error.\n") + ((("Original pattern '" + this.ju_regex_IndicesBuilder__f_pattern) + "' with flags '") + this.ju_regex_IndicesBuilder__f_flags)) + "' did match however."));
+  }
+  var x = allMatchResult[0];
+  var this$2 = $n($as_T(x));
+  var end = ((index + this$2.length) | 0);
+  var len = ((1 + this.ju_regex_IndicesBuilder__f_groupCount) | 0);
+  var indices = new Array(len);
+  indices[0] = [index, end];
+  var i = 1;
+  while ((i !== len)) {
+    indices[i] = (void 0);
+    i = ((1 + i) | 0);
+  }
+  $n(this.ju_regex_IndicesBuilder__f_node).propagate__O__O__I__I__V(allMatchResult, indices, index, end);
+  return indices;
+});
+var $d_ju_regex_IndicesBuilder = new $TypeData().initClass($c_ju_regex_IndicesBuilder, "java.util.regex.IndicesBuilder", ({
+  ju_regex_IndicesBuilder: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$() {
+}
+$c_ju_regex_IndicesBuilder$.prototype = new $h_O();
+$c_ju_regex_IndicesBuilder$.prototype.constructor = $c_ju_regex_IndicesBuilder$;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$() {
+}
+$h_ju_regex_IndicesBuilder$.prototype = $c_ju_regex_IndicesBuilder$.prototype;
+$c_ju_regex_IndicesBuilder$.prototype.apply__T__T__ju_regex_IndicesBuilder = (function(pattern, flags) {
+  var parser = new $c_ju_regex_IndicesBuilder$Parser(pattern);
+  var node = $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node(parser);
+  $n(node).setNewGroup__I__I(1);
+  var allMatchingPattern = $n(node).buildRegex__O__T(parser.ju_regex_IndicesBuilder$Parser__f_groupNodeMap);
+  var jsRegExpForFind = new RegExp(allMatchingPattern, (flags + "g"));
+  var jsRegExpForMatches = new RegExp((("^(?:" + allMatchingPattern) + ")$"), flags);
+  return new $c_ju_regex_IndicesBuilder(pattern, flags, node, parser.parsedGroupCount__I(), jsRegExpForFind, jsRegExpForMatches);
+});
+var $d_ju_regex_IndicesBuilder$ = new $TypeData().initClass($c_ju_regex_IndicesBuilder$, "java.util.regex.IndicesBuilder$", ({
+  ju_regex_IndicesBuilder$: 1
+}));
+var $n_ju_regex_IndicesBuilder$;
+function $m_ju_regex_IndicesBuilder$() {
+  if ((!$n_ju_regex_IndicesBuilder$)) {
+    $n_ju_regex_IndicesBuilder$ = new $c_ju_regex_IndicesBuilder$();
+  }
+  return $n_ju_regex_IndicesBuilder$;
+}
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$Node() {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+}
+$c_ju_regex_IndicesBuilder$Node.prototype = new $h_O();
+$c_ju_regex_IndicesBuilder$Node.prototype.constructor = $c_ju_regex_IndicesBuilder$Node;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$Node() {
+}
+$h_ju_regex_IndicesBuilder$Node.prototype = $c_ju_regex_IndicesBuilder$Node.prototype;
+$c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = newGroupIndex;
+  return ((1 + newGroupIndex) | 0);
+});
+$c_ju_regex_IndicesBuilder$Node.prototype.propagateFromEnd__O__O__I__V = (function(matchResult, indices, end) {
+  var x = matchResult[this.ju_regex_IndicesBuilder$Node__f_newGroup];
+  if ((x !== (void 0))) {
+    var t = $as_T(x);
+    var this$2 = $n(t);
+    var start = ((end - this$2.length) | 0);
+  } else {
+    var start = (-1);
+  }
+  this.propagate__O__O__I__I__V(matchResult, indices, start, end);
+});
+$c_ju_regex_IndicesBuilder$Node.prototype.propagateFromStart__O__O__I__I = (function(matchResult, indices, start) {
+  var x = matchResult[this.ju_regex_IndicesBuilder$Node__f_newGroup];
+  if ((x !== (void 0))) {
+    var t = $as_T(x);
+    var this$2 = $n(t);
+    var end = ((start + this$2.length) | 0);
+  } else {
+    var end = (-1);
+  }
+  this.propagate__O__O__I__I__V(matchResult, indices, start, end);
+  return end;
+});
+function $as_ju_regex_IndicesBuilder$Node(obj) {
+  return (((obj instanceof $c_ju_regex_IndicesBuilder$Node) || (obj === null)) ? obj : $throwClassCastException(obj, "java.util.regex.IndicesBuilder$Node"));
+}
+function $isArrayOf_ju_regex_IndicesBuilder$Node(obj, depth) {
+  return (!(!(((obj && obj.$classData) && (obj.$classData.arrayDepth === depth)) && obj.$classData.arrayBase.ancestors.ju_regex_IndicesBuilder$Node)));
+}
+function $asArrayOf_ju_regex_IndicesBuilder$Node(obj, depth) {
+  return (($isArrayOf_ju_regex_IndicesBuilder$Node(obj, depth) || (obj === null)) ? obj : $throwArrayCastException(obj, "Ljava.util.regex.IndicesBuilder$Node;", depth));
+}
+function $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node($thiz) {
+  var alternatives = [];
+  var sequence = [];
+  while (true) {
+    var dispatchCP = $f_T__codePointAt__I__I($n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern), $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex);
+    switch (dispatchCP) {
+      case 124: {
+        alternatives.push($ps_ju_regex_IndicesBuilder$Parser__completeSequence$1__O__ju_regex_IndicesBuilder$Node(sequence));
+        sequence = [];
+        $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+        var baseNode = null;
+        break;
+      }
+      case 41: {
+        var baseNode;
+        $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+        var lastAlternative = $ps_ju_regex_IndicesBuilder$Parser__completeSequence$1__O__ju_regex_IndicesBuilder$Node(sequence);
+        if (($uI(alternatives.length) === 0)) {
+          return lastAlternative;
+        } else {
+          alternatives.push(lastAlternative);
+          return new $c_ju_regex_IndicesBuilder$AlternativesNode(alternatives);
+        }
+        break;
+      }
+      case 40: {
+        var indicator = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0), ((3 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0)));
+        if (((indicator === "?=") || (indicator === "?!"))) {
+          $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((3 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          var inner = $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node($thiz);
+          var baseNode = new $c_ju_regex_IndicesBuilder$LookAroundNode(false, indicator, inner);
+        } else if ((indicator === "?<")) {
+          var fullIndicator = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0), ((4 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0)));
+          $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((4 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          var inner$2 = $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node($thiz);
+          var baseNode = new $c_ju_regex_IndicesBuilder$LookAroundNode(true, fullIndicator, inner$2);
+        } else if ((indicator === "?:")) {
+          $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((3 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          var inner$3 = $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node($thiz);
+          var baseNode = ((inner$3 instanceof $c_ju_regex_IndicesBuilder$LeafRegexNode) ? new $c_ju_regex_IndicesBuilder$SequenceNode([inner$3]) : inner$3);
+        } else {
+          $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          var groupIndex = $uI($thiz.ju_regex_IndicesBuilder$Parser__f_groupNodeMap.length);
+          $thiz.ju_regex_IndicesBuilder$Parser__f_groupNodeMap.push(null);
+          var inner$4 = $p_ju_regex_IndicesBuilder$Parser__parseInsideParensAndClosingParen__ju_regex_IndicesBuilder$Node($thiz);
+          var groupNode = new $c_ju_regex_IndicesBuilder$GroupNode(groupIndex, inner$4);
+          $thiz.ju_regex_IndicesBuilder$Parser__f_groupNodeMap[groupIndex] = groupNode;
+          var baseNode = groupNode;
+        }
+        break;
+      }
+      case 92: {
+        var startIndex = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+        var this$2 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+        var index = ((1 + startIndex) | 0);
+        var c = $charAt(this$2, index);
+        $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((2 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+        if (((c >= 48) && (c <= 57))) {
+          while (true) {
+            var this$3 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+            var index$1 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+            var c$1 = $charAt(this$3, index$1);
+            if (((c$1 >= 48) && (c$1 <= 57))) {
+              $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+            } else {
+              break;
+            }
+          }
+          var this$4 = $m_jl_Integer$();
+          var s = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(((1 + startIndex) | 0), $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex));
+          var baseNode = new $c_ju_regex_IndicesBuilder$BackReferenceNode(this$4.java$lang$Integer$$parseIntImpl__T__I__I__I(s, 10, 214748364));
+        } else {
+          if (((c === 112) || (c === 80))) {
+            while (true) {
+              var this$5 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+              var index$2 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+              if (($charAt(this$5, index$2) !== 125)) {
+                $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+              } else {
+                break;
+              }
+            }
+            $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          }
+          var baseNode = new $c_ju_regex_IndicesBuilder$LeafRegexNode($as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(startIndex, $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex)));
+        }
+        break;
+      }
+      case 91: {
+        var startIndex$2 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+        $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = $p_ju_regex_IndicesBuilder$Parser__loop$1__I__I($thiz, ((1 + startIndex$2) | 0));
+        var regex = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(startIndex$2, $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex));
+        var baseNode = new $c_ju_regex_IndicesBuilder$LeafRegexNode(regex);
+        break;
+      }
+      default: {
+        var start = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+        $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = (($thiz.ju_regex_IndicesBuilder$Parser__f_pIndex + ((dispatchCP >= 65536) ? 2 : 1)) | 0);
+        var baseNode = new $c_ju_regex_IndicesBuilder$LeafRegexNode($as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(start, $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex)));
+      }
+    }
+    if ((baseNode !== null)) {
+      var this$7 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+      var index$3 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+      var x1$2 = $charAt(this$7, index$3);
+      switch (x1$2) {
+        case 43:
+        case 42:
+        case 63: {
+          var startIndex$3 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+          var this$8 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+          var index$4 = ((1 + startIndex$3) | 0);
+          if (($charAt(this$8, index$4) === 63)) {
+            $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((2 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          } else {
+            $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          }
+          var repeater = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(startIndex$3, $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex));
+          $uI(sequence.push(new $c_ju_regex_IndicesBuilder$RepeatedNode(baseNode, repeater)));
+          break;
+        }
+        case 123: {
+          var startIndex$4 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+          var this$9 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+          var fromIndex = ((1 + startIndex$4) | 0);
+          $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $uI(this$9.indexOf("}", fromIndex))) | 0);
+          var this$10 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+          var index$5 = $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex;
+          if (($charAt(this$10, index$5) === 63)) {
+            $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex = ((1 + $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex) | 0);
+          }
+          var repeater$2 = $as_T($thiz.ju_regex_IndicesBuilder$Parser__f_pattern.substring(startIndex$4, $thiz.ju_regex_IndicesBuilder$Parser__f_pIndex));
+          $uI(sequence.push(new $c_ju_regex_IndicesBuilder$RepeatedNode(baseNode, repeater$2)));
+          break;
+        }
+        default: {
+          var sequenceLen = $uI(sequence.length);
+          if ((((sequenceLen !== 0) && (baseNode instanceof $c_ju_regex_IndicesBuilder$LeafRegexNode)) && (sequence[(((-1) + sequenceLen) | 0)] instanceof $c_ju_regex_IndicesBuilder$LeafRegexNode))) {
+            var fused = new $c_ju_regex_IndicesBuilder$LeafRegexNode((("" + $n($as_ju_regex_IndicesBuilder$LeafRegexNode(sequence[(((-1) + sequenceLen) | 0)])).ju_regex_IndicesBuilder$LeafRegexNode__f_regex) + $n($as_ju_regex_IndicesBuilder$LeafRegexNode(baseNode)).ju_regex_IndicesBuilder$LeafRegexNode__f_regex));
+            sequence[(((-1) + sequenceLen) | 0)] = fused;
+          } else {
+            $uI(sequence.push(baseNode));
+          }
+        }
+      }
+    }
+  }
+}
+function $ps_ju_regex_IndicesBuilder$Parser__completeSequence$1__O__ju_regex_IndicesBuilder$Node(sequence) {
+  var x1 = $uI(sequence.length);
+  switch (x1) {
+    case 0: {
+      return new $c_ju_regex_IndicesBuilder$LeafRegexNode("");
+      break;
+    }
+    case 1: {
+      return $as_ju_regex_IndicesBuilder$Node(sequence[0]);
+      break;
+    }
+    default: {
+      return new $c_ju_regex_IndicesBuilder$SequenceNode(sequence);
+    }
+  }
+}
+function $p_ju_regex_IndicesBuilder$Parser__loop$1__I__I($thiz, pIndex) {
+  while (true) {
+    var this$1 = $n($thiz.ju_regex_IndicesBuilder$Parser__f_pattern);
+    var index = pIndex;
+    var x1 = $charAt(this$1, index);
+    switch (x1) {
+      case 92: {
+        pIndex = ((2 + pIndex) | 0);
+        break;
+      }
+      case 93: {
+        return ((1 + pIndex) | 0);
+        break;
+      }
+      default: {
+        pIndex = ((1 + pIndex) | 0);
+      }
+    }
+  }
+}
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$Parser(pattern0) {
+  this.ju_regex_IndicesBuilder$Parser__f_pattern = null;
+  this.ju_regex_IndicesBuilder$Parser__f_pIndex = 0;
+  this.ju_regex_IndicesBuilder$Parser__f_groupNodeMap = null;
+  this.ju_regex_IndicesBuilder$Parser__f_pattern = (pattern0 + ")");
+  this.ju_regex_IndicesBuilder$Parser__f_pIndex = 0;
+  this.ju_regex_IndicesBuilder$Parser__f_groupNodeMap = [null];
+}
+$c_ju_regex_IndicesBuilder$Parser.prototype = new $h_O();
+$c_ju_regex_IndicesBuilder$Parser.prototype.constructor = $c_ju_regex_IndicesBuilder$Parser;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$Parser() {
+}
+$h_ju_regex_IndicesBuilder$Parser.prototype = $c_ju_regex_IndicesBuilder$Parser.prototype;
+$c_ju_regex_IndicesBuilder$Parser.prototype.parsedGroupCount__I = (function() {
+  return (((-1) + $uI(this.ju_regex_IndicesBuilder$Parser__f_groupNodeMap.length)) | 0);
+});
+var $d_ju_regex_IndicesBuilder$Parser = new $TypeData().initClass($c_ju_regex_IndicesBuilder$Parser, "java.util.regex.IndicesBuilder$Parser", ({
+  ju_regex_IndicesBuilder$Parser: 1
+}));
 function $p_ju_regex_PatternCompiler__parseError__T__E($thiz, desc) {
   throw new $c_ju_regex_PatternSyntaxException(desc, $thiz.ju_regex_PatternCompiler__f_pattern, $thiz.ju_regex_PatternCompiler__f_java$util$regex$PatternCompiler$$pIndex);
 }
@@ -5919,6 +6243,7 @@ function $c_ju_regex_PatternCompiler$() {
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsUnicode = false;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsSticky = false;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsDotAll = false;
+  this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsIndices = false;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$ASCIIDigit = null;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$UnicodeDigit = null;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$UniversalHorizontalWhiteSpace = null;
@@ -5935,7 +6260,7 @@ function $c_ju_regex_PatternCompiler$() {
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsUnicode = true;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsSticky = true;
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsDotAll = $p_ju_regex_PatternCompiler$__featureTest__T__Z(this, "us");
-  $p_ju_regex_PatternCompiler$__featureTest__T__Z(this, "d");
+  this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsIndices = $p_ju_regex_PatternCompiler$__featureTest__T__Z(this, "d");
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$ASCIIDigit = new $c_ju_regex_PatternCompiler$CompiledCharClass(2, "0-9");
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$UnicodeDigit = new $c_ju_regex_PatternCompiler$CompiledCharClass(0, "Nd");
   this.ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$UniversalHorizontalWhiteSpace = new $c_ju_regex_PatternCompiler$CompiledCharClass(2, "\t \u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000");
@@ -7342,6 +7667,10 @@ $c_sc_StringOps$.prototype.stripMargin$extension__T__C__T = (function(this$, mar
     sb.jl_StringBuilder__f_java$lang$StringBuilder$$content = (("" + sb.jl_StringBuilder__f_java$lang$StringBuilder$$content) + stripped);
   }
   return sb.jl_StringBuilder__f_java$lang$StringBuilder$$content;
+});
+$c_sc_StringOps$.prototype.r$extension__T__s_util_matching_Regex = (function(this$) {
+  var array = [];
+  return $ct_s_util_matching_Regex__T__sci_Seq__(new $c_s_util_matching_Regex(), this$, $ct_sjsr_WrappedVarArgs__sjs_js_Array__(new $c_sjsr_WrappedVarArgs(), array));
 });
 $c_sc_StringOps$.prototype.scala$collection$StringOps$$$toBooleanImpl$extension__T__T__Z = (function(this$, s) {
   if ((s === null)) {
@@ -9957,6 +10286,23 @@ $c_s_util_hashing_MurmurHash3.prototype.listHash__sci_List__I__I = (function(xs,
   }
   return ((rangeState === 2) ? this.rangeHash__I__I__I__I__I(initial, rangeDiff, prev, seed) : this.finalizeHash__I__I__I(h, n));
 });
+function $f_s_util_matching_Regex$MatchData__matched__T($thiz) {
+  return (($thiz.start__I() >= 0) ? $dp_toString__T($n($dp_subSequence__I__I__jl_CharSequence($n($thiz.source__jl_CharSequence()), $thiz.start__I(), $thiz.end__I()))) : null);
+}
+function $f_s_util_matching_Regex$MatchData__group__I__T($thiz, i) {
+  return (($thiz.start__I__I(i) >= 0) ? $dp_toString__T($n($dp_subSequence__I__I__jl_CharSequence($n($thiz.source__jl_CharSequence()), $thiz.start__I__I(i), $thiz.end__I__I(i)))) : null);
+}
+function $f_s_util_matching_Regex$MatchData__toString__T($thiz) {
+  var x$proxy2 = $f_s_util_matching_Regex$MatchData__matched__T($thiz);
+  if ((x$proxy2 === null)) {
+    $m_sr_Scala3RunTime$().nnFail__E();
+  }
+  return x$proxy2;
+}
+function $f_s_util_matching_Regex$Replacement__replaced__T($thiz) {
+  $n($thiz.matcher__ju_regex_Matcher()).appendTail__jl_StringBuffer__jl_StringBuffer($thiz.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb);
+  return $n($thiz.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb).toString__T();
+}
 function $p_Lujson_BaseCharRenderer$__appendIntString0__I__I__AC__I($thiz, i0, index, arr) {
   var i = i0;
   var q = 0;
@@ -13635,11 +13981,254 @@ function $m_ju_internal_GenericArrayOps$ReusableAnyRefArrayOps$() {
   }
   return $n_ju_internal_GenericArrayOps$ReusableAnyRefArrayOps$;
 }
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$AlternativesNode(alternatives) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives = null;
+  this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives = alternatives;
+}
+$c_ju_regex_IndicesBuilder$AlternativesNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$AlternativesNode.prototype.constructor = $c_ju_regex_IndicesBuilder$AlternativesNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$AlternativesNode() {
+}
+$h_ju_regex_IndicesBuilder$AlternativesNode.prototype = $c_ju_regex_IndicesBuilder$AlternativesNode.prototype;
+$c_ju_regex_IndicesBuilder$AlternativesNode.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  var nextIndex = $c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I.call(this, newGroupIndex);
+  var len = $uI(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives.length);
+  var i = 0;
+  while ((i !== len)) {
+    nextIndex = $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives[i])).setNewGroup__I__I(nextIndex);
+    i = ((1 + i) | 0);
+  }
+  return nextIndex;
+});
+$c_ju_regex_IndicesBuilder$AlternativesNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  var result = "(";
+  var len = $uI(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives.length);
+  var i = 0;
+  while ((i !== len)) {
+    if ((i !== 0)) {
+      result = (result + "|");
+    }
+    result = (("" + result) + $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives[i])).buildRegex__O__T(groupNodeMap));
+    i = ((1 + i) | 0);
+  }
+  return (result + ")");
+});
+$c_ju_regex_IndicesBuilder$AlternativesNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+  var len = $uI(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives.length);
+  var i = 0;
+  while ((i !== len)) {
+    $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$AlternativesNode__f_alternatives[i])).propagate__O__O__I__I__V(matchResult, indices, start, end);
+    i = ((1 + i) | 0);
+  }
+});
+var $d_ju_regex_IndicesBuilder$AlternativesNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$AlternativesNode, "java.util.regex.IndicesBuilder$AlternativesNode", ({
+  ju_regex_IndicesBuilder$AlternativesNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$BackReferenceNode(groupNumber) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$BackReferenceNode__f_groupNumber = 0;
+  this.ju_regex_IndicesBuilder$BackReferenceNode__f_groupNumber = groupNumber;
+}
+$c_ju_regex_IndicesBuilder$BackReferenceNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$BackReferenceNode.prototype.constructor = $c_ju_regex_IndicesBuilder$BackReferenceNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$BackReferenceNode() {
+}
+$h_ju_regex_IndicesBuilder$BackReferenceNode.prototype = $c_ju_regex_IndicesBuilder$BackReferenceNode.prototype;
+$c_ju_regex_IndicesBuilder$BackReferenceNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  var newGroupNumber = ((this.ju_regex_IndicesBuilder$BackReferenceNode__f_groupNumber >= $uI(groupNodeMap.length)) ? 0 : $n($as_ju_regex_IndicesBuilder$Node(groupNodeMap[this.ju_regex_IndicesBuilder$BackReferenceNode__f_groupNumber])).ju_regex_IndicesBuilder$Node__f_newGroup);
+  return (("(\\" + newGroupNumber) + ")");
+});
+$c_ju_regex_IndicesBuilder$BackReferenceNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+});
+var $d_ju_regex_IndicesBuilder$BackReferenceNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$BackReferenceNode, "java.util.regex.IndicesBuilder$BackReferenceNode", ({
+  ju_regex_IndicesBuilder$BackReferenceNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$GroupNode(number, inner) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$GroupNode__f_number = 0;
+  this.ju_regex_IndicesBuilder$GroupNode__f_inner = null;
+  this.ju_regex_IndicesBuilder$GroupNode__f_number = number;
+  this.ju_regex_IndicesBuilder$GroupNode__f_inner = inner;
+}
+$c_ju_regex_IndicesBuilder$GroupNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$GroupNode.prototype.constructor = $c_ju_regex_IndicesBuilder$GroupNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$GroupNode() {
+}
+$h_ju_regex_IndicesBuilder$GroupNode.prototype = $c_ju_regex_IndicesBuilder$GroupNode.prototype;
+$c_ju_regex_IndicesBuilder$GroupNode.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  return $n(this.ju_regex_IndicesBuilder$GroupNode__f_inner).setNewGroup__I__I($c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I.call(this, newGroupIndex));
+});
+$c_ju_regex_IndicesBuilder$GroupNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  return (("(" + $n(this.ju_regex_IndicesBuilder$GroupNode__f_inner).buildRegex__O__T(groupNodeMap)) + ")");
+});
+$c_ju_regex_IndicesBuilder$GroupNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+  var x = matchResult[this.ju_regex_IndicesBuilder$Node__f_newGroup];
+  if ((x !== (void 0))) {
+    indices[this.ju_regex_IndicesBuilder$GroupNode__f_number] = [start, end];
+  }
+  $n(this.ju_regex_IndicesBuilder$GroupNode__f_inner).propagate__O__O__I__I__V(matchResult, indices, start, end);
+});
+var $d_ju_regex_IndicesBuilder$GroupNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$GroupNode, "java.util.regex.IndicesBuilder$GroupNode", ({
+  ju_regex_IndicesBuilder$GroupNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$LeafRegexNode(regex) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$LeafRegexNode__f_regex = null;
+  this.ju_regex_IndicesBuilder$LeafRegexNode__f_regex = regex;
+}
+$c_ju_regex_IndicesBuilder$LeafRegexNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$LeafRegexNode.prototype.constructor = $c_ju_regex_IndicesBuilder$LeafRegexNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$LeafRegexNode() {
+}
+$h_ju_regex_IndicesBuilder$LeafRegexNode.prototype = $c_ju_regex_IndicesBuilder$LeafRegexNode.prototype;
+$c_ju_regex_IndicesBuilder$LeafRegexNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  return (("(" + this.ju_regex_IndicesBuilder$LeafRegexNode__f_regex) + ")");
+});
+$c_ju_regex_IndicesBuilder$LeafRegexNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+});
+function $as_ju_regex_IndicesBuilder$LeafRegexNode(obj) {
+  return (((obj instanceof $c_ju_regex_IndicesBuilder$LeafRegexNode) || (obj === null)) ? obj : $throwClassCastException(obj, "java.util.regex.IndicesBuilder$LeafRegexNode"));
+}
+function $isArrayOf_ju_regex_IndicesBuilder$LeafRegexNode(obj, depth) {
+  return (!(!(((obj && obj.$classData) && (obj.$classData.arrayDepth === depth)) && obj.$classData.arrayBase.ancestors.ju_regex_IndicesBuilder$LeafRegexNode)));
+}
+function $asArrayOf_ju_regex_IndicesBuilder$LeafRegexNode(obj, depth) {
+  return (($isArrayOf_ju_regex_IndicesBuilder$LeafRegexNode(obj, depth) || (obj === null)) ? obj : $throwArrayCastException(obj, "Ljava.util.regex.IndicesBuilder$LeafRegexNode;", depth));
+}
+var $d_ju_regex_IndicesBuilder$LeafRegexNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$LeafRegexNode, "java.util.regex.IndicesBuilder$LeafRegexNode", ({
+  ju_regex_IndicesBuilder$LeafRegexNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$LookAroundNode(isLookBehind, indicator, inner) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_isLookBehind = false;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_indicator = null;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_inner = null;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_isLookBehind = isLookBehind;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_indicator = indicator;
+  this.ju_regex_IndicesBuilder$LookAroundNode__f_inner = inner;
+}
+$c_ju_regex_IndicesBuilder$LookAroundNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$LookAroundNode.prototype.constructor = $c_ju_regex_IndicesBuilder$LookAroundNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$LookAroundNode() {
+}
+$h_ju_regex_IndicesBuilder$LookAroundNode.prototype = $c_ju_regex_IndicesBuilder$LookAroundNode.prototype;
+$c_ju_regex_IndicesBuilder$LookAroundNode.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  return $n(this.ju_regex_IndicesBuilder$LookAroundNode__f_inner).setNewGroup__I__I($c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I.call(this, newGroupIndex));
+});
+$c_ju_regex_IndicesBuilder$LookAroundNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  return ((("((" + this.ju_regex_IndicesBuilder$LookAroundNode__f_indicator) + $n(this.ju_regex_IndicesBuilder$LookAroundNode__f_inner).buildRegex__O__T(groupNodeMap)) + "))");
+});
+$c_ju_regex_IndicesBuilder$LookAroundNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+  if (this.ju_regex_IndicesBuilder$LookAroundNode__f_isLookBehind) {
+    $n(this.ju_regex_IndicesBuilder$LookAroundNode__f_inner).propagateFromEnd__O__O__I__V(matchResult, indices, end);
+  } else {
+    $n(this.ju_regex_IndicesBuilder$LookAroundNode__f_inner).propagateFromStart__O__O__I__I(matchResult, indices, start);
+  }
+});
+var $d_ju_regex_IndicesBuilder$LookAroundNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$LookAroundNode, "java.util.regex.IndicesBuilder$LookAroundNode", ({
+  ju_regex_IndicesBuilder$LookAroundNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$RepeatedNode(inner, repeater) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$RepeatedNode__f_inner = null;
+  this.ju_regex_IndicesBuilder$RepeatedNode__f_repeater = null;
+  this.ju_regex_IndicesBuilder$RepeatedNode__f_inner = inner;
+  this.ju_regex_IndicesBuilder$RepeatedNode__f_repeater = repeater;
+}
+$c_ju_regex_IndicesBuilder$RepeatedNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$RepeatedNode.prototype.constructor = $c_ju_regex_IndicesBuilder$RepeatedNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$RepeatedNode() {
+}
+$h_ju_regex_IndicesBuilder$RepeatedNode.prototype = $c_ju_regex_IndicesBuilder$RepeatedNode.prototype;
+$c_ju_regex_IndicesBuilder$RepeatedNode.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  return $n(this.ju_regex_IndicesBuilder$RepeatedNode__f_inner).setNewGroup__I__I($c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I.call(this, newGroupIndex));
+});
+$c_ju_regex_IndicesBuilder$RepeatedNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  return ((("(" + $n(this.ju_regex_IndicesBuilder$RepeatedNode__f_inner).buildRegex__O__T(groupNodeMap)) + this.ju_regex_IndicesBuilder$RepeatedNode__f_repeater) + ")");
+});
+$c_ju_regex_IndicesBuilder$RepeatedNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+  $n(this.ju_regex_IndicesBuilder$RepeatedNode__f_inner).propagateFromEnd__O__O__I__V(matchResult, indices, end);
+});
+var $d_ju_regex_IndicesBuilder$RepeatedNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$RepeatedNode, "java.util.regex.IndicesBuilder$RepeatedNode", ({
+  ju_regex_IndicesBuilder$RepeatedNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
+/** @constructor */
+function $c_ju_regex_IndicesBuilder$SequenceNode(sequence) {
+  this.ju_regex_IndicesBuilder$Node__f_newGroup = 0;
+  this.ju_regex_IndicesBuilder$SequenceNode__f_sequence = null;
+  this.ju_regex_IndicesBuilder$SequenceNode__f_sequence = sequence;
+}
+$c_ju_regex_IndicesBuilder$SequenceNode.prototype = new $h_ju_regex_IndicesBuilder$Node();
+$c_ju_regex_IndicesBuilder$SequenceNode.prototype.constructor = $c_ju_regex_IndicesBuilder$SequenceNode;
+/** @constructor */
+function $h_ju_regex_IndicesBuilder$SequenceNode() {
+}
+$h_ju_regex_IndicesBuilder$SequenceNode.prototype = $c_ju_regex_IndicesBuilder$SequenceNode.prototype;
+$c_ju_regex_IndicesBuilder$SequenceNode.prototype.setNewGroup__I__I = (function(newGroupIndex) {
+  var nextIndex = $c_ju_regex_IndicesBuilder$Node.prototype.setNewGroup__I__I.call(this, newGroupIndex);
+  var len = $uI(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence.length);
+  var i = 0;
+  while ((i !== len)) {
+    nextIndex = $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence[i])).setNewGroup__I__I(nextIndex);
+    i = ((1 + i) | 0);
+  }
+  return nextIndex;
+});
+$c_ju_regex_IndicesBuilder$SequenceNode.prototype.buildRegex__O__T = (function(groupNodeMap) {
+  var result = "(";
+  var len = $uI(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence.length);
+  var i = 0;
+  while ((i !== len)) {
+    result = (("" + result) + $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence[i])).buildRegex__O__T(groupNodeMap));
+    i = ((1 + i) | 0);
+  }
+  return (result + ")");
+});
+$c_ju_regex_IndicesBuilder$SequenceNode.prototype.propagate__O__O__I__I__V = (function(matchResult, indices, start, end) {
+  var len = $uI(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence.length);
+  var i = 0;
+  var nextStart = start;
+  while ((i !== len)) {
+    nextStart = $n($as_ju_regex_IndicesBuilder$Node(this.ju_regex_IndicesBuilder$SequenceNode__f_sequence[i])).propagateFromStart__O__O__I__I(matchResult, indices, nextStart);
+    i = ((1 + i) | 0);
+  }
+});
+var $d_ju_regex_IndicesBuilder$SequenceNode = new $TypeData().initClass($c_ju_regex_IndicesBuilder$SequenceNode, "java.util.regex.IndicesBuilder$SequenceNode", ({
+  ju_regex_IndicesBuilder$SequenceNode: 1,
+  ju_regex_IndicesBuilder$Node: 1
+}));
 function $p_ju_regex_Matcher__ensureLastMatch__O($thiz) {
   if (($thiz.ju_regex_Matcher__f_lastMatch === null)) {
     throw $ct_jl_IllegalStateException__T__(new $c_jl_IllegalStateException(), "No match available");
   }
   return $thiz.ju_regex_Matcher__f_lastMatch;
+}
+function $p_ju_regex_Matcher__startInternal__I__I($thiz, compiledGroup) {
+  var x = $n($thiz.ju_regex_Matcher__f_pattern0).getIndices__O__Z__O($p_ju_regex_Matcher__ensureLastMatch__O($thiz), $thiz.ju_regex_Matcher__f_lastMatchIsForMatches)[compiledGroup];
+  return ((x !== (void 0)) ? (($uI(x[0]) + $thiz.ju_regex_Matcher__f_regionStart0) | 0) : (-1));
+}
+function $p_ju_regex_Matcher__endInternal__I__I($thiz, compiledGroup) {
+  var x = $n($thiz.ju_regex_Matcher__f_pattern0).getIndices__O__Z__O($p_ju_regex_Matcher__ensureLastMatch__O($thiz), $thiz.ju_regex_Matcher__f_lastMatchIsForMatches)[compiledGroup];
+  return ((x !== (void 0)) ? (($uI(x[1]) + $thiz.ju_regex_Matcher__f_regionStart0) | 0) : (-1));
 }
 /** @constructor */
 function $c_ju_regex_Matcher(pattern0, input0) {
@@ -13649,6 +14238,8 @@ function $c_ju_regex_Matcher(pattern0, input0) {
   this.ju_regex_Matcher__f_inputstr = null;
   this.ju_regex_Matcher__f_position = 0;
   this.ju_regex_Matcher__f_lastMatch = null;
+  this.ju_regex_Matcher__f_lastMatchIsForMatches = false;
+  this.ju_regex_Matcher__f_appendPos = 0;
   this.ju_regex_Matcher__f_pattern0 = pattern0;
   this.ju_regex_Matcher__f_java$util$regex$Matcher$$input0 = input0;
   this.ju_regex_Matcher__f_regionStart0 = 0;
@@ -13656,6 +14247,8 @@ function $c_ju_regex_Matcher(pattern0, input0) {
   this.ju_regex_Matcher__f_inputstr = this.ju_regex_Matcher__f_java$util$regex$Matcher$$input0;
   this.ju_regex_Matcher__f_position = 0;
   this.ju_regex_Matcher__f_lastMatch = null;
+  this.ju_regex_Matcher__f_lastMatchIsForMatches = false;
+  this.ju_regex_Matcher__f_appendPos = 0;
 }
 $c_ju_regex_Matcher.prototype = new $h_O();
 $c_ju_regex_Matcher.prototype.constructor = $c_ju_regex_Matcher;
@@ -13677,7 +14270,101 @@ $c_ju_regex_Matcher.prototype.find__Z = (function() {
   }
   this.ju_regex_Matcher__f_position = $x_1;
   this.ju_regex_Matcher__f_lastMatch = mtch;
+  this.ju_regex_Matcher__f_lastMatchIsForMatches = false;
   return (mtch !== null);
+});
+$c_ju_regex_Matcher.prototype.appendReplacement__jl_StringBuffer__T__ju_regex_Matcher = (function(sb, replacement) {
+  var $x_1 = $n(sb);
+  var this$1 = $n(this.ju_regex_Matcher__f_inputstr);
+  var beginIndex = this.ju_regex_Matcher__f_appendPos;
+  var endIndex = this.start__I();
+  if ((beginIndex < 0)) {
+    $charAt(this$1, beginIndex);
+  }
+  if ((endIndex > this$1.length)) {
+    $charAt(this$1, endIndex);
+  }
+  if ((endIndex < beginIndex)) {
+    $charAt(this$1, (-1));
+  }
+  $x_1.append__T__jl_StringBuffer($as_T(this$1.substring(beginIndex, endIndex)));
+  var this$2 = $n(replacement);
+  var len = this$2.length;
+  var i = 0;
+  while ((i < len)) {
+    var this$3 = $n(replacement);
+    var index = i;
+    var x1 = $charAt(this$3, index);
+    switch (x1) {
+      case 36: {
+        i = ((1 + i) | 0);
+        var j = i;
+        while (true) {
+          if ((i < len)) {
+            var this$4 = $n(replacement);
+            var index$1 = i;
+            var c = $charAt(this$4, index$1);
+            var $x_2 = ((c >= 48) && (c <= 57));
+          } else {
+            var $x_2 = false;
+          }
+          if ($x_2) {
+            i = ((1 + i) | 0);
+          } else {
+            break;
+          }
+        }
+        var this$6 = $m_jl_Integer$();
+        var this$5 = $n(replacement);
+        var endIndex$1 = i;
+        if ((j < 0)) {
+          $charAt(this$5, j);
+        }
+        if ((endIndex$1 > this$5.length)) {
+          $charAt(this$5, endIndex$1);
+        }
+        if ((endIndex$1 < j)) {
+          $charAt(this$5, (-1));
+        }
+        var s = $as_T(this$5.substring(j, endIndex$1));
+        var group = this$6.java$lang$Integer$$parseIntImpl__T__I__I__I(s, 10, 214748364);
+        var replaced = this.group__I__T(group);
+        if ((replaced !== null)) {
+          $n(sb).append__T__jl_StringBuffer(replaced);
+        }
+        break;
+      }
+      case 92: {
+        i = ((1 + i) | 0);
+        if ((i < len)) {
+          var $x_3 = $n(sb);
+          var this$7 = $n(replacement);
+          var index$2 = i;
+          $x_3.append__C__jl_StringBuffer($charAt(this$7, index$2));
+        }
+        i = ((1 + i) | 0);
+        break;
+      }
+      default: {
+        $n(sb).append__C__jl_StringBuffer(x1);
+        i = ((1 + i) | 0);
+      }
+    }
+  }
+  this.ju_regex_Matcher__f_appendPos = this.end__I();
+  return this;
+});
+$c_ju_regex_Matcher.prototype.appendTail__jl_StringBuffer__jl_StringBuffer = (function(sb) {
+  var $x_1 = $n(sb);
+  var this$1 = $n(this.ju_regex_Matcher__f_inputstr);
+  var beginIndex = this.ju_regex_Matcher__f_appendPos;
+  if (((beginIndex < 0) || (beginIndex > this$1.length))) {
+    $charAt(this$1, beginIndex);
+  }
+  $x_1.append__T__jl_StringBuffer($as_T(this$1.substring(beginIndex)));
+  var this$2 = $n(this.ju_regex_Matcher__f_inputstr);
+  this.ju_regex_Matcher__f_appendPos = this$2.length;
+  return sb;
 });
 $c_ju_regex_Matcher.prototype.start__I = (function() {
   return (($uI($p_ju_regex_Matcher__ensureLastMatch__O(this).index) + this.ju_regex_Matcher__f_regionStart0) | 0);
@@ -13691,21 +14378,52 @@ $c_ju_regex_Matcher.prototype.group__T = (function() {
   var x = $p_ju_regex_Matcher__ensureLastMatch__O(this)[0];
   return $as_T(x);
 });
+$c_ju_regex_Matcher.prototype.start__I__I = (function(group) {
+  return $p_ju_regex_Matcher__startInternal__I__I(this, $n(this.ju_regex_Matcher__f_pattern0).numberedGroup__I__I(group));
+});
+$c_ju_regex_Matcher.prototype.end__I__I = (function(group) {
+  return $p_ju_regex_Matcher__endInternal__I__I(this, $n(this.ju_regex_Matcher__f_pattern0).numberedGroup__I__I(group));
+});
+$c_ju_regex_Matcher.prototype.group__I__T = (function(group) {
+  var x = $p_ju_regex_Matcher__ensureLastMatch__O(this)[$n(this.ju_regex_Matcher__f_pattern0).numberedGroup__I__I(group)];
+  return $as_T(((x !== (void 0)) ? x : null));
+});
 var $d_ju_regex_Matcher = new $TypeData().initClass($c_ju_regex_Matcher, "java.util.regex.Matcher", ({
   ju_regex_Matcher: 1,
   ju_regex_MatchResult: 1
 }));
+function $p_ju_regex_Pattern__indicesBuilder$lzycompute__ju_regex_IndicesBuilder($thiz) {
+  if ((!$thiz.ju_regex_Pattern__f_bitmap$0)) {
+    $thiz.ju_regex_Pattern__f_indicesBuilder = $m_ju_regex_IndicesBuilder$().apply__T__T__ju_regex_IndicesBuilder($thiz.ju_regex_Pattern__f_jsPattern, $thiz.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags);
+    $thiz.ju_regex_Pattern__f_bitmap$0 = true;
+  }
+  return $thiz.ju_regex_Pattern__f_indicesBuilder;
+}
+function $p_ju_regex_Pattern__indicesBuilder__ju_regex_IndicesBuilder($thiz) {
+  return ((!$thiz.ju_regex_Pattern__f_bitmap$0) ? $p_ju_regex_Pattern__indicesBuilder$lzycompute__ju_regex_IndicesBuilder($thiz) : $thiz.ju_regex_Pattern__f_indicesBuilder);
+}
 /** @constructor */
 function $c_ju_regex_Pattern(_pattern, _flags, jsPattern, jsFlags, sticky, groupCount, groupNumberMap, namedGroups) {
+  this.ju_regex_Pattern__f_indicesBuilder = null;
   this.ju_regex_Pattern__f__pattern = null;
+  this.ju_regex_Pattern__f_jsPattern = null;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags = null;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$sticky = false;
+  this.ju_regex_Pattern__f_groupCount = 0;
+  this.ju_regex_Pattern__f_groupNumberMap = null;
+  this.ju_regex_Pattern__f_enabledNativeIndices = false;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsRegExpForFind = null;
+  this.ju_regex_Pattern__f_jsRegExpForMatches = null;
+  this.ju_regex_Pattern__f_bitmap$0 = false;
   this.ju_regex_Pattern__f__pattern = _pattern;
+  this.ju_regex_Pattern__f_jsPattern = jsPattern;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags = jsFlags;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$sticky = sticky;
+  this.ju_regex_Pattern__f_groupCount = groupCount;
+  this.ju_regex_Pattern__f_groupNumberMap = groupNumberMap;
+  this.ju_regex_Pattern__f_enabledNativeIndices = false;
   this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsRegExpForFind = new RegExp(jsPattern, (this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags + (this.ju_regex_Pattern__f_java$util$regex$Pattern$$sticky ? "gy" : "g")));
-  new RegExp((("^(?:" + jsPattern) + ")$"), jsFlags);
+  this.ju_regex_Pattern__f_jsRegExpForMatches = new RegExp((("^(?:" + jsPattern) + ")$"), jsFlags);
 }
 $c_ju_regex_Pattern.prototype = new $h_O();
 $c_ju_regex_Pattern.prototype.constructor = $c_ju_regex_Pattern;
@@ -13717,6 +14435,33 @@ $c_ju_regex_Pattern.prototype.java$util$regex$Pattern$$execFindInternal__T__I__O
   var regexp = this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsRegExpForFind;
   regexp.lastIndex = start;
   return regexp.exec(input);
+});
+$c_ju_regex_Pattern.prototype.numberedGroup__I__I = (function(group) {
+  if (((group < 0) || (group > this.ju_regex_Pattern__f_groupCount))) {
+    throw $ct_jl_IndexOutOfBoundsException__T__(new $c_jl_IndexOutOfBoundsException(), ("" + group));
+  }
+  return $uI(this.ju_regex_Pattern__f_groupNumberMap[group]);
+});
+$c_ju_regex_Pattern.prototype.getIndices__O__Z__O = (function(lastMatch, forMatches) {
+  var x = lastMatch.indices;
+  if ((x === (void 0))) {
+    if ($m_ju_regex_PatternCompiler$().ju_regex_PatternCompiler$__f_java$util$regex$PatternCompiler$$_supportsIndices) {
+      if ((!this.ju_regex_Pattern__f_enabledNativeIndices)) {
+        this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsRegExpForFind = new RegExp(this.ju_regex_Pattern__f_jsPattern, ((this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags + (this.ju_regex_Pattern__f_java$util$regex$Pattern$$sticky ? "gy" : "g")) + "d"));
+        var $x_2 = RegExp;
+        var jsPattern = this.ju_regex_Pattern__f_jsPattern;
+        var $x_1 = new $x_2((("^(?:" + jsPattern) + ")$"), (this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsFlags + "d"));
+        this.ju_regex_Pattern__f_jsRegExpForMatches = $x_1;
+        this.ju_regex_Pattern__f_enabledNativeIndices = true;
+      }
+      var regexp = (forMatches ? this.ju_regex_Pattern__f_jsRegExpForMatches : this.ju_regex_Pattern__f_java$util$regex$Pattern$$jsRegExpForFind);
+      regexp.lastIndex = $uI(lastMatch.index);
+      lastMatch.indices = regexp.exec($as_T(lastMatch.input)).indices;
+    } else {
+      lastMatch.indices = $n($p_ju_regex_Pattern__indicesBuilder__ju_regex_IndicesBuilder(this)).apply__Z__T__I__O(forMatches, $as_T(lastMatch.input), $uI(lastMatch.index));
+    }
+  }
+  return lastMatch.indices;
 });
 $c_ju_regex_Pattern.prototype.toString__T = (function() {
   return this.ju_regex_Pattern__f__pattern;
@@ -14310,6 +15055,134 @@ $c_s_util_hashing_MurmurHash3$accum$1.prototype.apply__O__O__O = (function(v1, v
 var $d_s_util_hashing_MurmurHash3$accum$1 = new $TypeData().initClass($c_s_util_hashing_MurmurHash3$accum$1, "scala.util.hashing.MurmurHash3$accum$1", ({
   s_util_hashing_MurmurHash3$accum$1: 1,
   F2: 1
+}));
+function $ct_s_util_matching_Regex__ju_regex_Pattern__sci_Seq__($thiz, pattern, groupNames) {
+  $thiz.s_util_matching_Regex__f_pattern = pattern;
+  $thiz.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames = groupNames;
+  return $thiz;
+}
+function $ct_s_util_matching_Regex__T__sci_Seq__($thiz, regex, groupNames) {
+  $ct_s_util_matching_Regex__ju_regex_Pattern__sci_Seq__($thiz, $m_ju_regex_PatternCompiler$().compile__T__I__ju_regex_Pattern(regex, 0), groupNames);
+  return $thiz;
+}
+/** @constructor */
+function $c_s_util_matching_Regex() {
+  this.s_util_matching_Regex__f_pattern = null;
+  this.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames = null;
+}
+$c_s_util_matching_Regex.prototype = new $h_O();
+$c_s_util_matching_Regex.prototype.constructor = $c_s_util_matching_Regex;
+/** @constructor */
+function $h_s_util_matching_Regex() {
+}
+$h_s_util_matching_Regex.prototype = $c_s_util_matching_Regex.prototype;
+$c_s_util_matching_Regex.prototype.findAllIn__jl_CharSequence__s_util_matching_Regex$MatchIterator = (function(source) {
+  return new $c_s_util_matching_Regex$MatchIterator(source, this, this.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames);
+});
+$c_s_util_matching_Regex.prototype.findAllMatchIn__jl_CharSequence__sc_Iterator = (function(source) {
+  var matchIterator = this.findAllIn__jl_CharSequence__s_util_matching_Regex$MatchIterator(source);
+  return new $c_s_util_matching_Regex$$anon$1(matchIterator);
+});
+$c_s_util_matching_Regex.prototype.toString__T = (function() {
+  return $n(this.s_util_matching_Regex__f_pattern).ju_regex_Pattern__f__pattern;
+});
+var $d_s_util_matching_Regex = new $TypeData().initClass($c_s_util_matching_Regex, "scala.util.matching.Regex", ({
+  s_util_matching_Regex: 1,
+  Ljava_io_Serializable: 1
+}));
+function $p_s_util_matching_Regex$Match__starts__AI($thiz) {
+  if ((!$thiz.s_util_matching_Regex$Match__f_startsbitmap$1)) {
+    var this$1 = $n($thiz.s_util_matching_Regex$Match__f_matcher);
+    var n = ((1 + $n(this$1.ju_regex_Matcher__f_pattern0).ju_regex_Pattern__f_groupCount) | 0);
+    $m_s_reflect_ManifestFactory$IntManifest$();
+    if ((n <= 0)) {
+      var $x_1 = new $ac_I(0);
+    } else {
+      var array = new $ac_I(n);
+      var i = 0;
+      while ((i < n)) {
+        var $x_2 = i;
+        var x0 = i;
+        array.set($x_2, $n($thiz.s_util_matching_Regex$Match__f_matcher).start__I__I(x0));
+        i = ((1 + i) | 0);
+      }
+      var $x_1 = array;
+    }
+    $thiz.s_util_matching_Regex$Match__f_starts$lzy1 = $x_1;
+    $thiz.s_util_matching_Regex$Match__f_startsbitmap$1 = true;
+  }
+  return $thiz.s_util_matching_Regex$Match__f_starts$lzy1;
+}
+function $p_s_util_matching_Regex$Match__ends__AI($thiz) {
+  if ((!$thiz.s_util_matching_Regex$Match__f_endsbitmap$1)) {
+    var this$1 = $n($thiz.s_util_matching_Regex$Match__f_matcher);
+    var n = ((1 + $n(this$1.ju_regex_Matcher__f_pattern0).ju_regex_Pattern__f_groupCount) | 0);
+    $m_s_reflect_ManifestFactory$IntManifest$();
+    if ((n <= 0)) {
+      var $x_1 = new $ac_I(0);
+    } else {
+      var array = new $ac_I(n);
+      var i = 0;
+      while ((i < n)) {
+        var $x_2 = i;
+        var x0 = i;
+        array.set($x_2, $n($thiz.s_util_matching_Regex$Match__f_matcher).end__I__I(x0));
+        i = ((1 + i) | 0);
+      }
+      var $x_1 = array;
+    }
+    $thiz.s_util_matching_Regex$Match__f_ends$lzy1 = $x_1;
+    $thiz.s_util_matching_Regex$Match__f_endsbitmap$1 = true;
+  }
+  return $thiz.s_util_matching_Regex$Match__f_ends$lzy1;
+}
+/** @constructor */
+function $c_s_util_matching_Regex$Match(source, matcher, _groupNames) {
+  this.s_util_matching_Regex$Match__f_source = null;
+  this.s_util_matching_Regex$Match__f_matcher = null;
+  this.s_util_matching_Regex$Match__f_start = 0;
+  this.s_util_matching_Regex$Match__f_end = 0;
+  this.s_util_matching_Regex$Match__f_starts$lzy1 = null;
+  this.s_util_matching_Regex$Match__f_startsbitmap$1 = false;
+  this.s_util_matching_Regex$Match__f_ends$lzy1 = null;
+  this.s_util_matching_Regex$Match__f_endsbitmap$1 = false;
+  this.s_util_matching_Regex$Match__f_source = source;
+  this.s_util_matching_Regex$Match__f_matcher = matcher;
+  this.s_util_matching_Regex$Match__f_start = $n(matcher).start__I();
+  this.s_util_matching_Regex$Match__f_end = $n(matcher).end__I();
+}
+$c_s_util_matching_Regex$Match.prototype = new $h_O();
+$c_s_util_matching_Regex$Match.prototype.constructor = $c_s_util_matching_Regex$Match;
+/** @constructor */
+function $h_s_util_matching_Regex$Match() {
+}
+$h_s_util_matching_Regex$Match.prototype = $c_s_util_matching_Regex$Match.prototype;
+$c_s_util_matching_Regex$Match.prototype.toString__T = (function() {
+  return $f_s_util_matching_Regex$MatchData__toString__T(this);
+});
+$c_s_util_matching_Regex$Match.prototype.source__jl_CharSequence = (function() {
+  return this.s_util_matching_Regex$Match__f_source;
+});
+$c_s_util_matching_Regex$Match.prototype.start__I = (function() {
+  return this.s_util_matching_Regex$Match__f_start;
+});
+$c_s_util_matching_Regex$Match.prototype.end__I = (function() {
+  return this.s_util_matching_Regex$Match__f_end;
+});
+$c_s_util_matching_Regex$Match.prototype.start__I__I = (function(i) {
+  return $n($p_s_util_matching_Regex$Match__starts__AI(this)).get(i);
+});
+$c_s_util_matching_Regex$Match.prototype.end__I__I = (function(i) {
+  return $n($p_s_util_matching_Regex$Match__ends__AI(this)).get(i);
+});
+$c_s_util_matching_Regex$Match.prototype.force__s_util_matching_Regex$Match = (function() {
+  $p_s_util_matching_Regex$Match__starts__AI(this);
+  $p_s_util_matching_Regex$Match__ends__AI(this);
+  return this;
+});
+var $d_s_util_matching_Regex$Match = new $TypeData().initClass($c_s_util_matching_Regex$Match, "scala.util.matching.Regex$Match", ({
+  s_util_matching_Regex$Match: 1,
+  s_util_matching_Regex$MatchData: 1
 }));
 function $ct_Lujson_CharParser__($thiz) {
   $f_Lupickle_core_BufferingCharParser__$init$__V($thiz);
@@ -16413,6 +17286,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scal
     if ((container === null)) {
       return (void 0);
     }
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__convertDoiToLinks__Lorg_scalajs_dom_Element__V($thiz, container);
     var anchors = container.querySelectorAll("a");
     var i = 0;
     while ((i < $uI(anchors.length))) {
@@ -16468,6 +17342,99 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scal
       i = ((1 + i) | 0);
     }
   } catch (e) {
+  }
+}
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__convertDoiToLinks__Lorg_scalajs_dom_Element__V($thiz, container) {
+  try {
+    var doiPattern = $m_sc_StringOps$().r$extension__T__s_util_matching_Regex("(?:https?://)?(?:dx\\.)?doi\\.org/(10\\.\\S+)|(?:doi:\\s*)(10\\.\\S+)|(?:DOI:\\s*)(10\\.\\S+)");
+    var walker = document.createTreeWalker(container, $uI(NodeFilter.SHOW_TEXT), null, false);
+    var this$5 = $m_scm_ArrayBuffer$();
+    var array = [];
+    var elems = $ct_sjsr_WrappedVarArgs__sjs_js_Array__(new $c_sjsr_WrappedVarArgs(), array);
+    var nodesToReplace = this$5.from__sc_IterableOnce__scm_ArrayBuffer(elems);
+    var currentNode = walker.nextNode();
+    while ((currentNode !== null)) {
+      var textContent = $as_T(currentNode.textContent);
+      if ((textContent !== null)) {
+        $m_sc_StringOps$();
+        var this$8 = $n(textContent);
+        var $x_1 = (!(this$8 === ""));
+      } else {
+        var $x_1 = false;
+      }
+      if ($x_1) {
+        var matches = $n(doiPattern).findAllMatchIn__jl_CharSequence__sc_Iterator(textContent);
+        var this$9 = $n(matches);
+        if (this$9.hasNext__Z()) {
+          var this$11 = $n(nodesToReplace);
+          var _1 = currentNode;
+          var elem = new $c_T2(_1, textContent);
+          this$11.addOne__O__scm_ArrayBuffer(elem);
+        }
+      }
+      currentNode = walker.nextNode();
+    }
+    var this$12 = $n(nodesToReplace);
+    var it = $n(this$12.view__scm_ArrayBufferView()).iterator__sc_Iterator();
+    while ($n(it).hasNext__Z()) {
+      var x0 = $n(it).next__O();
+      var x$1 = $as_T2(x0);
+      matchResult1: {
+        if ((x$1 !== null)) {
+          var node = $n(x$1).T2__f__1;
+          var text = $as_T($n(x$1).T2__f__2);
+          var this$13 = $n(doiPattern);
+          var this$14 = new $c_s_util_matching_Regex$MatchIterator(text, this$13, this$13.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames);
+          var rit = new $c_s_util_matching_Regex$MatchIterator$$anon$4(this$14);
+          while (rit.hasNext__Z()) {
+            var x0$1 = rit.next__s_util_matching_Regex$Match();
+            var $x_2 = $m_s_Option$();
+            var this$15 = $n(x0$1);
+            var this$16 = $n($x_2.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$15, 1)));
+            if (this$16.isEmpty__Z()) {
+              var $x_4 = $m_s_Option$();
+              var this$17 = $n(x0$1);
+              var $x_3 = $x_4.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$17, 2));
+            } else {
+              var $x_3 = this$16;
+            }
+            var this$18 = $n($x_3);
+            if (this$18.isEmpty__Z()) {
+              var $x_6 = $m_s_Option$();
+              var this$19 = $n(x0$1);
+              var $x_5 = $x_6.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$19, 3));
+            } else {
+              var $x_5 = this$18;
+            }
+            var this$20 = $n($x_5);
+            var doi = $as_T((this$20.isEmpty__Z() ? "" : this$20.get__O()));
+            $m_sc_StringOps$();
+            var this$23 = $n(doi);
+            if ((!(this$23 === ""))) {
+              var url = ("https://doi.org/" + doi);
+              var replacement = (((("<a href=\"" + url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">") + doi) + "</a>");
+            } else {
+              var this$24 = $n(x0$1);
+              var replacement = $f_s_util_matching_Regex$MatchData__matched__T(this$24);
+            }
+            $n(rit.matcher__ju_regex_Matcher()).appendReplacement__jl_StringBuffer__T__ju_regex_Matcher(rit.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb, replacement);
+          }
+          var newHtml = $f_s_util_matching_Regex$Replacement__replaced__T(rit);
+          if ((newHtml !== text)) {
+            var span = document.createElement("span");
+            span.innerHTML = newHtml;
+            node.parentNode.replaceChild(span, node);
+            break matchResult1;
+          } else {
+            break matchResult1;
+          }
+        }
+        throw new $c_s_MatchError(x$1);
+      }
+    }
+  } catch (e) {
+    var e$2 = ((e instanceof $c_jl_Throwable) ? e : new $c_sjs_js_JavaScriptException(e));
+    console.warn("[DEBUG_LOG] Failed to convert DOI patterns to links", e$2);
   }
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureBotPlaceholder__V($thiz) {
@@ -17176,36 +18143,36 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationSummary__T__V($thiz, (("Searching: '" + q) + "' \u2026"));
       $p_Lnl_wur_soilcompanion_SoilCompanionApp$__forwardGeocode__T__F1__V($thiz, q, new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((x$1$3) => {
         var x$1 = $as_s_Option(x$1$3);
-        matchResult7: {
+        matchResult8: {
           var x = $m_s_None$();
           if ((x === x$1)) {
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLocationSummary__T__V($thiz, "Place not found. Try a different name.");
-            break matchResult7;
+            break matchResult8;
           }
           if ((x$1 instanceof $c_s_Some)) {
-            var x16 = $as_s_Some(x$1);
-            var x17 = $as_T9($n(x16).s_Some__f_value);
-            if ((x17 !== null)) {
-              var x18 = $uD($n(x17).T9__f__1);
-              var x19 = $uD($n(x17).T9__f__2);
-              var x20 = $uI($n(x17).T9__f__3);
-              var x21 = $as_s_Option($n(x17).T9__f__4);
-              var x22 = $as_s_Option($n(x17).T9__f__5);
-              var x23 = $as_s_Option($n(x17).T9__f__6);
-              var x24 = $as_s_Option($n(x17).T9__f__7);
-              var x25 = $as_s_Option($n(x17).T9__f__8);
-              var x26 = $as_s_Option($n(x17).T9__f__9);
+            var x19 = $as_s_Some(x$1);
+            var x20 = $as_T9($n(x19).s_Some__f_value);
+            if ((x20 !== null)) {
+              var x21 = $uD($n(x20).T9__f__1);
+              var x22 = $uD($n(x20).T9__f__2);
+              var x23 = $uI($n(x20).T9__f__3);
+              var x24 = $as_s_Option($n(x20).T9__f__4);
+              var x25 = $as_s_Option($n(x20).T9__f__5);
+              var x26 = $as_s_Option($n(x20).T9__f__6);
+              var x27 = $as_s_Option($n(x20).T9__f__7);
+              var x28 = $as_s_Option($n(x20).T9__f__8);
+              var x29 = $as_s_Option($n(x20).T9__f__9);
               try {
-                var this$53 = $n(x26);
+                var this$53 = $n(x29);
                 if ((!this$53.isEmpty__Z())) {
-                  matchResult6: {
+                  matchResult7: {
                     var \u03b42$;
-                    var x10 = $as_T4($n(x26).get__O());
-                    if ((x10 !== null)) {
-                      var \u03b42$ = x10;
-                      break matchResult6;
+                    var x13 = $as_T4($n(x29).get__O());
+                    if ((x13 !== null)) {
+                      var \u03b42$ = x13;
+                      break matchResult7;
                     }
-                    throw new $c_s_MatchError(x10);
+                    throw new $c_s_MatchError(x13);
                   }
                   var south = $uD($n(\u03b42$).T4__f__1);
                   var west = $uD($n(\u03b42$).T4__f__2);
@@ -17226,10 +18193,10 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
                     "padding": _2
                   }));
                 } else {
-                  $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap.setView([x18, x19], x20);
+                  $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap.setView([x21, x22], x23);
                 }
               } catch (e$5) {
-                $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap.setView([x18, x19], x20);
+                $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap.setView([x21, x22], x23);
               }
               if (($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker !== null)) {
                 var v$2 = $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker;
@@ -17249,18 +18216,18 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
               if ($x_22) {
                 $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle.remove();
               }
-              $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker = L$1.marker([x18, x19]);
+              $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker = L$1.marker([x21, x22]);
               $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMarker.addTo($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap);
-              $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle = L$1.circle([x18, x19], ({
+              $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle = L$1.circle([x21, x22], ({
                 "radius": 10000
               }));
               $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletCircle.addTo($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_leafletMap);
-              var this$85 = $n(x24);
-              var this$86 = $n((this$85.isEmpty__Z() ? x23 : this$85));
-              var this$87 = $n((this$86.isEmpty__Z() ? x21 : this$86));
+              var this$85 = $n(x27);
+              var this$86 = $n((this$85.isEmpty__Z() ? x26 : this$85));
+              var this$87 = $n((this$86.isEmpty__Z() ? x24 : this$86));
               var label$1 = $as_T((this$87.isEmpty__Z() ? "Selected location" : this$87.get__O()));
-              var coordStr$1 = $m_sc_StringOps$().format$extension__T__sci_Seq__T("%.4f, %.4f", $m_sr_ScalaRunTime$().genericWrapArray__O__sci_ArraySeq(new $ac_O([x18, x19])));
-              var this$88 = $n(x21);
+              var coordStr$1 = $m_sc_StringOps$().format$extension__T__sci_Seq__T("%.4f, %.4f", $m_sr_ScalaRunTime$().genericWrapArray__O__sci_ArraySeq(new $ac_O([x21, x22])));
+              var this$88 = $n(x24);
               var cn$1 = $as_T((this$88.isEmpty__Z() ? "" : this$88.get__O()));
               $m_sc_StringOps$();
               var this$91 = $n(cn$1);
@@ -17293,9 +18260,9 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLocationMap__V($thiz) {
                   throw ((e$2$4 instanceof $c_sjs_js_JavaScriptException) ? e$2$4.sjs_js_JavaScriptException__f_exception : e$2$4);
                 }
               }
-              var finalZoom = $uI($x_24.getOrElse__F0__O(new $c_sr_AbstractFunction0_$$Lambda$a02b774b97db8234e08c6a02dd06557c99779855((() => x20))));
-              $p_Lnl_wur_soilcompanion_SoilCompanionApp$__saveLocationContext__D__D__I__s_Option__s_Option__s_Option__s_Option__s_Option__V($thiz, x18, x19, finalZoom, x21, x22, x23, x24, x25);
-              break matchResult7;
+              var finalZoom = $uI($x_24.getOrElse__F0__O(new $c_sr_AbstractFunction0_$$Lambda$a02b774b97db8234e08c6a02dd06557c99779855((() => x23))));
+              $p_Lnl_wur_soilcompanion_SoilCompanionApp$__saveLocationContext__D__D__I__s_Option__s_Option__s_Option__s_Option__s_Option__V($thiz, x21, x22, finalZoom, x24, x25, x26, x27, x28);
+              break matchResult8;
             }
           }
           throw new $c_s_MatchError(x$1);
@@ -17353,18 +18320,18 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__postJson__T__Lujson_Value__
     return $m_Lujson_package$().read__Lujson_Readable__Z__Lujson_Value(new $c_Lujson_Readable$fromTransformer(txt$1, $m_Lujson_StringParser$()), false);
   })), $thiz.given_ExecutionContext__s_concurrent_ExecutionContext())).onComplete__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((x$1$3) => {
     var x$1 = $as_s_util_Try(x$1$3);
-    matchResult8: {
+    matchResult9: {
       if ((x$1 instanceof $c_s_util_Success)) {
-        var x30 = $as_s_util_Success(x$1);
-        var v = $as_Lujson_Value($n(x30).s_util_Success__f_value);
+        var x33 = $as_s_util_Success(x$1);
+        var v = $as_Lujson_Value($n(x33).s_util_Success__f_value);
         $n(onOk).apply__O__O(v);
-        break matchResult8;
+        break matchResult9;
       }
       if ((x$1 instanceof $c_s_util_Failure)) {
-        var x28 = $as_s_util_Failure(x$1);
-        var e = $n(x28).s_util_Failure__f_exception;
+        var x31 = $as_s_util_Failure(x$1);
+        var e = $n(x31).s_util_Failure__f_exception;
         $n(onErr).apply__O__O(e);
-        break matchResult8;
+        break matchResult9;
       }
       throw new $c_s_MatchError(x$1);
     }
@@ -17390,17 +18357,17 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Optio
   } else {
     var base = ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_isAuthenticated ? ($thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_chatEnabled ? "Logged in \u2014 chat enabled." : "Logged in \u2014 chat disabled.") : "Not logged in.");
   }
-  matchResult9: {
+  matchResult10: {
     var text;
     if ((activity instanceof $c_s_Some)) {
-      var x33 = $as_s_Some(activity);
-      var act = $as_T($n(x33).s_Some__f_value);
+      var x36 = $as_s_Some(activity);
+      var act = $as_T($n(x36).s_Some__f_value);
       $m_sc_StringOps$();
       var x = $f_T__trim__T($n(act));
       var this$4 = $n(x);
       if ((!(this$4 === ""))) {
         var text = ((base + " \u2022 ") + act);
-        break matchResult9;
+        break matchResult10;
       }
     }
     var text = base;
@@ -17445,17 +18412,17 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__
     info.textContent = text;
     info.classList.remove("ok");
     info.classList.remove("error");
-    matchResult10: {
+    matchResult11: {
       if ((state instanceof $c_s_Some)) {
-        var x38 = $as_s_Some(state);
-        var x39 = $as_T($n(x38).s_Some__f_value);
-        if ((x39 === "ok")) {
+        var x41 = $as_s_Some(state);
+        var x42 = $as_T($n(x41).s_Some__f_value);
+        if ((x42 === "ok")) {
           info.classList.add("ok");
-          break matchResult10;
+          break matchResult11;
         }
-        if ((x39 === "error")) {
+        if ((x42 === "error")) {
           info.classList.add("error");
-          break matchResult10;
+          break matchResult11;
         }
       }
     }
@@ -17735,12 +18702,12 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setupEventListeners__V($thi
         var isPrimary = ($uI(e$4.button) === 0);
         var hasMods = ((($uZ(e$4.metaKey) || $uZ(e$4.ctrlKey)) || $uZ(e$4.shiftKey)) || $uZ(e$4.altKey));
         if ((isPrimary && (!hasMods))) {
-          matchResult11: {
+          matchResult12: {
             var nodeEl;
-            var x40 = e$4.target;
-            if ($uZ((x40 instanceof Element))) {
-              var nodeEl = x40;
-              break matchResult11;
+            var x43 = e$4.target;
+            if ($uZ((x43 instanceof Element))) {
+              var nodeEl = x43;
+              break matchResult12;
             }
             var nodeEl = null;
           }
@@ -18498,9 +19465,9 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__pxToDouble$2__T__D($thiz, p
 }
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalajs_dom_Element__Lorg_scalajs_dom_HTMLElement__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__s_Option__V($thiz, newDiv$2, feedbackEl$1, upBtn$1, downBtn$1, voteOpt) {
   if ((voteOpt instanceof $c_s_Some)) {
-    var x47 = $as_s_Some(voteOpt);
-    var x48 = $as_T($n(x47).s_Some__f_value);
-    if ((x48 === "up")) {
+    var x50 = $as_s_Some(voteOpt);
+    var x51 = $as_T($n(x50).s_Some__f_value);
+    if ((x51 === "up")) {
       newDiv$2.setAttribute("data-vote", "up");
       feedbackEl$1.classList.remove("voted-down");
       feedbackEl$1.classList.add("voted-up");
@@ -18508,7 +19475,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setVoteState$1__Lorg_scalaj
       downBtn$1.setAttribute("aria-pressed", "false");
       return (void 0);
     }
-    if ((x48 === "down")) {
+    if ((x51 === "down")) {
       newDiv$2.setAttribute("data-vote", "down");
       feedbackEl$1.classList.remove("voted-up");
       feedbackEl$1.classList.add("voted-down");
@@ -18535,15 +19502,15 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalaj
   if ((feedbackEl$2 === null)) {
     return (void 0);
   }
-  matchResult16: {
+  matchResult17: {
     var _1 = $thiz.Lnl_wur_soilcompanion_SoilCompanionApp$__f_nl$wur$soilcompanion$SoilCompanionApp$$$sessionId;
     var _2 = $m_s_Option$().apply__O__s_Option($p_Lnl_wur_soilcompanion_SoilCompanionApp$__getOrCreateDeviceId__T($thiz));
     if ((_1 instanceof $c_s_Some)) {
-      var x55 = $as_s_Some(_1);
-      var sid = $as_T($n(x55).s_Some__f_value);
+      var x58 = $as_s_Some(_1);
+      var sid = $as_T($n(x58).s_Some__f_value);
       if ((_2 instanceof $c_s_Some)) {
-        var x53 = $as_s_Some(_2);
-        var did = $as_T($n(x53).s_Some__f_value);
+        var x56 = $as_s_Some(_2);
+        var did = $as_T($n(x56).s_Some__f_value);
         var this$2 = $n($m_s_Option$().apply__O__s_Option($as_T(newDiv$4.getAttribute("data-question-id"))));
         if (this$2.isEmpty__Z()) {
           var $x_1 = true;
@@ -18624,7 +19591,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__sendFeedback$1__Lorg_scalaj
           $as_jl_Throwable(_$36$3);
           $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setButtonsDisabled$1__Lorg_scalajs_dom_HTMLButtonElement__Lorg_scalajs_dom_HTMLButtonElement__Z__V($thiz, upBtn$3, downBtn$3, false);
         })));
-        break matchResult16;
+        break matchResult17;
       }
     }
     console.warn("[DEBUG_LOG] No session/device id; cannot send feedback");
@@ -18910,10 +19877,10 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.getSession__V = (function()
     return $as_T($f_Lupickle_Api__read__Lujson_Readable__Z__Lupickle_core_Types$Reader__O(this$15, s, trace, evidence$1));
   })), this.given_ExecutionContext__s_concurrent_ExecutionContext())).onComplete__F1__s_concurrent_ExecutionContext__V(new $c_sr_AbstractFunction1_$$Lambda$70e1780b84463d18653aacefee3ab989ac625f28(((x$1$3) => {
     var x$1 = $as_s_util_Try(x$1$3);
-    matchResult17: {
+    matchResult18: {
       if ((x$1 instanceof $c_s_util_Success)) {
-        var x60 = $as_s_util_Success(x$1);
-        var session = $as_T($n(x60).s_util_Success__f_value);
+        var x63 = $as_s_util_Success(x$1);
+        var session = $as_T($n(x63).s_util_Success__f_value);
         console.log(("Server session fetched: " + session));
         this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_nl$wur$soilcompanion$SoilCompanionApp$$$sessionId = new $c_s_Some(session);
         window.localStorage.setItem("soilcompanion.sessionId", session);
@@ -18924,18 +19891,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.getSession__V = (function()
           console.log("[DEBUG_LOG] Performing deferred location clear now that session is ready");
           this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingClearLocation = false;
           $p_Lnl_wur_soilcompanion_SoilCompanionApp$__clearLocationContext__V(this);
-          break matchResult17;
+          break matchResult18;
         } else {
-          break matchResult17;
+          break matchResult18;
         }
       }
       if ((x$1 instanceof $c_s_util_Failure)) {
-        var x58 = $as_s_util_Failure(x$1);
-        var e = $n(x58).s_util_Failure__f_exception;
+        var x61 = $as_s_util_Failure(x$1);
+        var e = $n(x61).s_util_Failure__f_exception;
         console.log(("Error fetching server session: " + e));
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__setLoginInfo__T__s_Option__V(this, "Failed to prepare session. Please reload the page.", new $c_s_Some("error"));
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, new $c_s_Some("Failed to prepare session"));
-        break matchResult17;
+        break matchResult18;
       }
       throw new $c_s_MatchError(x$1);
     }
@@ -18970,7 +19937,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
   socket.onmessage = ((e$2$1) => {
     $uD(Date.now());
     var data = $dp_toString__T($n(e$2$1.data));
-    matchResult19: {
+    matchResult20: {
       try {
         var this$11 = $m_Lupickle_default$();
         var s = new $c_Lujson_Readable$fromTransformer(data, $m_Lujson_StringParser$());
@@ -18992,18 +19959,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
           throw ((e$2$2 instanceof $c_sjs_js_JavaScriptException) ? e$2$2.sjs_js_JavaScriptException__f_exception : e$2$2);
         }
       }
-      var x63 = $x_1.toOption__s_Option();
-      if ((x63 instanceof $c_s_Some)) {
-        var x64 = $as_s_Some(x63);
-        var evt = $as_Lnl_wur_soilcompanion_domain_QueryEvent($n(x64).s_Some__f_value);
-        var x62 = $n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_event;
-        switch (x62) {
+      var x66 = $x_1.toOption__s_Option();
+      if ((x66 instanceof $c_s_Some)) {
+        var x67 = $as_s_Some(x66);
+        var evt = $as_Lnl_wur_soilcompanion_domain_QueryEvent($n(x67).s_Some__f_value);
+        var x65 = $n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_event;
+        switch (x65) {
           case "received": {
             var this$14 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_questionId);
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_currentQuestionId = (this$14.isEmpty__Z() ? this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_currentQuestionId : this$14);
             var this$15 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$15.isEmpty__Z() ? "Received." : this$15.get__O())));
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "thinking": {
@@ -19045,12 +20012,12 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               if ($x_3) {
                 var this$23 = $m_sc_StringOps$();
                 contentEl.innerHTML = this$23.stripMargin$extension__T__C__T("\n                    |<div class='typing-indicator' aria-label='Assistant is thinking'>\n                    |  <span class='dot'></span><span class='dot'></span><span class='dot'></span>\n                    |</div>\n                    |", 124);
-                break matchResult19;
+                break matchResult20;
               } else {
-                break matchResult19;
+                break matchResult20;
               }
             } else {
-              break matchResult19;
+              break matchResult20;
             }
             break;
           }
@@ -19058,17 +20025,17 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__ensureBotPlaceholder__V(this);
             var this$24 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$24.isEmpty__Z() ? "Searching SoilWise catalog via Solr\u2026" : this$24.get__O())));
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "generating": {
             var this$25 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$25.isEmpty__Z() ? "Generating answer\u2026" : this$25.get__O())));
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "heartbeat": {
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "unauthorized": {
@@ -19083,7 +20050,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             var msg = $as_T((this$26.isEmpty__Z() ? "Login required to chat." : this$26.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "logged_out": {
@@ -19098,7 +20065,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             var msg$2 = $as_T((this$27.isEmpty__Z() ? "You have been logged out." : this$27.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg$2, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "session_expired": {
@@ -19113,7 +20080,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
             var msg$3 = $as_T((this$28.isEmpty__Z() ? "Your session expired due to inactivity. Please login to start a new chat." : this$28.get__O()));
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__addMessage__T__T__Z__V(this, "AI", msg$3, false);
             $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateFooterStatus__s_Option__V(this, $m_s_None$());
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "links_metadata": {
@@ -19166,17 +20133,17 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
                   hljs.highlightAll();
                   var x = $uI(messageContainer.scrollHeight);
                   messageContainer.scrollTop = x;
-                  break matchResult19;
+                  break matchResult20;
                 } catch (e$3$1) {
                   var e$4 = ((e$3$1 instanceof $c_jl_Throwable) ? e$3$1 : new $c_sjs_js_JavaScriptException(e$3$1));
                   console.error(("[DEBUG_LOG] Failed to parse links metadata: " + e$4.getMessage__T()));
-                  break matchResult19;
+                  break matchResult20;
                 }
               } else {
-                break matchResult19;
+                break matchResult20;
               }
             } else {
-              break matchResult19;
+              break matchResult20;
             }
             break;
           }
@@ -19212,7 +20179,7 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               window.clearTimeout(handle$1);
             }
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
-            break matchResult19;
+            break matchResult20;
             break;
           }
           case "error": {
@@ -19226,18 +20193,18 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
               window.clearTimeout(handle$2);
             }
             this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
-            break matchResult19;
+            break matchResult20;
             break;
           }
           default: {
             var this$44 = $n($n(evt).Lnl_wur_soilcompanion_domain_QueryEvent__f_detail);
-            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$44.isEmpty__Z() ? x62 : this$44.get__O())));
-            break matchResult19;
+            $p_Lnl_wur_soilcompanion_SoilCompanionApp$__updateStatusFooter$1__T__V(this, $as_T((this$44.isEmpty__Z() ? x65 : this$44.get__O())));
+            break matchResult20;
           }
         }
       }
       var x$1 = $m_s_None$();
-      if ((x$1 === x63)) {
+      if ((x$1 === x66)) {
         var this$47 = $m_Lupickle_default$();
         var s$2 = new $c_Lujson_Readable$fromTransformer(data, $m_Lujson_StringParser$());
         $m_Lupickle_default$();
@@ -19276,9 +20243,9 @@ $c_Lnl_wur_soilcompanion_SoilCompanionApp$.prototype.connectWebSocket__T__V = (f
         }
         this.Lnl_wur_soilcompanion_SoilCompanionApp$__f_pendingResponseTimer = $m_s_None$();
         $p_Lnl_wur_soilcompanion_SoilCompanionApp$__processPartialMessage__Lnl_wur_soilcompanion_domain_QueryPartialResponse__V(this, qpr);
-        break matchResult19;
+        break matchResult20;
       }
-      throw new $c_s_MatchError(x63);
+      throw new $c_s_MatchError(x66);
     }
   });
   window.onbeforeunload = ((_$48$2) => {
@@ -23452,6 +24419,11 @@ $c_jl_StringBuffer.prototype.length__I = (function() {
 $c_jl_StringBuffer.prototype.charAt__I__C = (function(index) {
   return $n(this.jl_StringBuffer__f_builder).charAt__I__C(index);
 });
+$c_jl_StringBuffer.prototype.append__T__jl_StringBuffer = (function(str) {
+  var this$1 = $n(this.jl_StringBuffer__f_builder);
+  this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content = (("" + this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content) + str);
+  return this;
+});
 $c_jl_StringBuffer.prototype.append__jl_CharSequence__jl_StringBuffer = (function(s) {
   var this$1 = $n(this.jl_StringBuffer__f_builder);
   this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content = (("" + this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content) + s);
@@ -23459,6 +24431,12 @@ $c_jl_StringBuffer.prototype.append__jl_CharSequence__jl_StringBuffer = (functio
 });
 $c_jl_StringBuffer.prototype.append__AC__I__I__jl_StringBuffer = (function(str, offset, len) {
   $n(this.jl_StringBuffer__f_builder).append__AC__I__I__jl_StringBuilder(str, offset, len);
+  return this;
+});
+$c_jl_StringBuffer.prototype.append__C__jl_StringBuffer = (function(c) {
+  var this$1 = $n(this.jl_StringBuffer__f_builder);
+  var str = ("" + $cToS(c));
+  this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content = (this$1.jl_StringBuilder__f_java$lang$StringBuilder$$content + str);
   return this;
 });
 $c_jl_StringBuffer.prototype.subSequence__I__I__jl_CharSequence = (function(start, end) {
@@ -29008,6 +29986,10 @@ function $ct_ju_NoSuchElementException__T__($thiz, s) {
   $ct_jl_Throwable__T__jl_Throwable__Z__Z__($thiz, s, null, true, true);
   return $thiz;
 }
+function $ct_ju_NoSuchElementException__($thiz) {
+  $ct_jl_Throwable__T__jl_Throwable__Z__Z__($thiz, null, null, true, true);
+  return $thiz;
+}
 class $c_ju_NoSuchElementException extends $c_jl_RuntimeException {
 }
 var $d_ju_NoSuchElementException = new $TypeData().initClass($c_ju_NoSuchElementException, "java.util.NoSuchElementException", ({
@@ -33937,6 +34919,34 @@ var $d_s_util_Success = new $TypeData().initClass($c_s_util_Success, "scala.util
   s_Product: 1,
   Ljava_io_Serializable: 1
 }));
+/** @constructor */
+function $c_s_util_matching_Regex$$anon$1(matchIterator$2) {
+  this.s_util_matching_Regex$$anon$1__f_matchIterator$1 = null;
+  this.s_util_matching_Regex$$anon$1__f_matchIterator$1 = matchIterator$2;
+}
+$c_s_util_matching_Regex$$anon$1.prototype = new $h_sc_AbstractIterator();
+$c_s_util_matching_Regex$$anon$1.prototype.constructor = $c_s_util_matching_Regex$$anon$1;
+/** @constructor */
+function $h_s_util_matching_Regex$$anon$1() {
+}
+$h_s_util_matching_Regex$$anon$1.prototype = $c_s_util_matching_Regex$$anon$1.prototype;
+$c_s_util_matching_Regex$$anon$1.prototype.hasNext__Z = (function() {
+  return $n(this.s_util_matching_Regex$$anon$1__f_matchIterator$1).hasNext__Z();
+});
+$c_s_util_matching_Regex$$anon$1.prototype.next__s_util_matching_Regex$Match = (function() {
+  $n(this.s_util_matching_Regex$$anon$1__f_matchIterator$1).next__T();
+  return new $c_s_util_matching_Regex$Match($n(this.s_util_matching_Regex$$anon$1__f_matchIterator$1).s_util_matching_Regex$MatchIterator__f_source, $n(this.s_util_matching_Regex$$anon$1__f_matchIterator$1).s_util_matching_Regex$MatchIterator__f_matcher, $n(this.s_util_matching_Regex$$anon$1__f_matchIterator$1).s_util_matching_Regex$MatchIterator__f__groupNames).force__s_util_matching_Regex$Match();
+});
+$c_s_util_matching_Regex$$anon$1.prototype.next__O = (function() {
+  return this.next__s_util_matching_Regex$Match();
+});
+var $d_s_util_matching_Regex$$anon$1 = new $TypeData().initClass($c_s_util_matching_Regex$$anon$1, "scala.util.matching.Regex$$anon$1", ({
+  s_util_matching_Regex$$anon$1: 1,
+  sc_AbstractIterator: 1,
+  sc_IterableOnce: 1,
+  sc_IterableOnceOps: 1,
+  sc_Iterator: 1
+}));
 function $f_Lujson_AstTransformer__transformArray__Lupickle_core_Visitor__sc_Iterable__O($thiz, f, items) {
   var ctx = $n($n(f).visitArray__I__I__Lupickle_core_ArrVisitor($n(items).size__I(), (-1)));
   $n(items).foreach__F1__V(new $c_sjsr_AnonFunction1_$$Lambda$3aa60c34ef08a878abffbf4628007cc68fa3c7ab(((item) => {
@@ -38813,6 +39823,175 @@ var $d_s_reflect_ClassTag$GenericClassTag = new $TypeData().initClass($c_s_refle
   s_reflect_ClassManifestDeprecatedApis: 1,
   s_Equals: 1,
   s_reflect_ClassTag: 1
+}));
+function $p_s_util_matching_Regex$MatchIterator__ensure__V($thiz) {
+  var x6 = $thiz.s_util_matching_Regex$MatchIterator__f_nextSeen;
+  switch (x6) {
+    case 0: {
+      if ((!$thiz.hasNext__Z())) {
+        throw $ct_jl_IllegalStateException__(new $c_jl_IllegalStateException());
+      } else {
+        return (void 0);
+      }
+      break;
+    }
+    case 1: {
+      return (void 0);
+      break;
+    }
+    case 2: {
+      return (void 0);
+      break;
+    }
+    case 3: {
+      throw $ct_jl_IllegalStateException__(new $c_jl_IllegalStateException());
+      break;
+    }
+    default: {
+      throw new $c_s_MatchError(x6);
+    }
+  }
+}
+/** @constructor */
+function $c_s_util_matching_Regex$MatchIterator(source, regex, _groupNames) {
+  this.s_util_matching_Regex$MatchIterator__f_source = null;
+  this.s_util_matching_Regex$MatchIterator__f__groupNames = null;
+  this.s_util_matching_Regex$MatchIterator__f_matcher = null;
+  this.s_util_matching_Regex$MatchIterator__f_nextSeen = 0;
+  this.s_util_matching_Regex$MatchIterator__f_source = source;
+  this.s_util_matching_Regex$MatchIterator__f__groupNames = _groupNames;
+  var this$1 = $n($n(regex).s_util_matching_Regex__f_pattern);
+  this.s_util_matching_Regex$MatchIterator__f_matcher = new $c_ju_regex_Matcher(this$1, $dp_toString__T($n(source)));
+  this.s_util_matching_Regex$MatchIterator__f_nextSeen = 0;
+}
+$c_s_util_matching_Regex$MatchIterator.prototype = new $h_sc_AbstractIterator();
+$c_s_util_matching_Regex$MatchIterator.prototype.constructor = $c_s_util_matching_Regex$MatchIterator;
+/** @constructor */
+function $h_s_util_matching_Regex$MatchIterator() {
+}
+$h_s_util_matching_Regex$MatchIterator.prototype = $c_s_util_matching_Regex$MatchIterator.prototype;
+$c_s_util_matching_Regex$MatchIterator.prototype.source__jl_CharSequence = (function() {
+  return this.s_util_matching_Regex$MatchIterator__f_source;
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.hasNext__Z = (function() {
+  var x4 = this.s_util_matching_Regex$MatchIterator__f_nextSeen;
+  switch (x4) {
+    case 0: {
+      this.s_util_matching_Regex$MatchIterator__f_nextSeen = ($n(this.s_util_matching_Regex$MatchIterator__f_matcher).find__Z() ? 1 : 3);
+      break;
+    }
+    case 1: {
+      break;
+    }
+    case 2: {
+      this.s_util_matching_Regex$MatchIterator__f_nextSeen = 0;
+      this.hasNext__Z();
+      break;
+    }
+    case 3: {
+      break;
+    }
+    default: {
+      throw new $c_s_MatchError(x4);
+    }
+  }
+  return (this.s_util_matching_Regex$MatchIterator__f_nextSeen === 1);
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.next__T = (function() {
+  var x5 = this.s_util_matching_Regex$MatchIterator__f_nextSeen;
+  switch (x5) {
+    case 0: {
+      if ((!this.hasNext__Z())) {
+        throw $ct_ju_NoSuchElementException__(new $c_ju_NoSuchElementException());
+      }
+      this.next__T();
+      break;
+    }
+    case 1: {
+      this.s_util_matching_Regex$MatchIterator__f_nextSeen = 2;
+      break;
+    }
+    case 2: {
+      this.s_util_matching_Regex$MatchIterator__f_nextSeen = 0;
+      this.next__T();
+      break;
+    }
+    case 3: {
+      throw $ct_ju_NoSuchElementException__(new $c_ju_NoSuchElementException());
+      break;
+    }
+    default: {
+      throw new $c_s_MatchError(x5);
+    }
+  }
+  return $n(this.s_util_matching_Regex$MatchIterator__f_matcher).group__T();
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.toString__T = (function() {
+  return "<iterator>";
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.start__I = (function() {
+  $p_s_util_matching_Regex$MatchIterator__ensure__V(this);
+  return $n(this.s_util_matching_Regex$MatchIterator__f_matcher).start__I();
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.start__I__I = (function(i) {
+  $p_s_util_matching_Regex$MatchIterator__ensure__V(this);
+  return $n(this.s_util_matching_Regex$MatchIterator__f_matcher).start__I__I(i);
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.end__I = (function() {
+  $p_s_util_matching_Regex$MatchIterator__ensure__V(this);
+  return $n(this.s_util_matching_Regex$MatchIterator__f_matcher).end__I();
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.end__I__I = (function(i) {
+  $p_s_util_matching_Regex$MatchIterator__ensure__V(this);
+  return $n(this.s_util_matching_Regex$MatchIterator__f_matcher).end__I__I(i);
+});
+$c_s_util_matching_Regex$MatchIterator.prototype.next__O = (function() {
+  return this.next__T();
+});
+var $d_s_util_matching_Regex$MatchIterator = new $TypeData().initClass($c_s_util_matching_Regex$MatchIterator, "scala.util.matching.Regex$MatchIterator", ({
+  s_util_matching_Regex$MatchIterator: 1,
+  sc_AbstractIterator: 1,
+  sc_IterableOnce: 1,
+  sc_IterableOnceOps: 1,
+  sc_Iterator: 1,
+  s_util_matching_Regex$MatchData: 1
+}));
+/** @constructor */
+function $c_s_util_matching_Regex$MatchIterator$$anon$4(outer) {
+  this.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb = null;
+  this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer = null;
+  if ((outer === null)) {
+    throw $ct_jl_NullPointerException__(new $c_jl_NullPointerException());
+  }
+  this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer = outer;
+  this.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb = $ct_jl_StringBuffer__(new $c_jl_StringBuffer());
+}
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype = new $h_sc_AbstractIterator();
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype.constructor = $c_s_util_matching_Regex$MatchIterator$$anon$4;
+/** @constructor */
+function $h_s_util_matching_Regex$MatchIterator$$anon$4() {
+}
+$h_s_util_matching_Regex$MatchIterator$$anon$4.prototype = $c_s_util_matching_Regex$MatchIterator$$anon$4.prototype;
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype.matcher__ju_regex_Matcher = (function() {
+  return $n(this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer).s_util_matching_Regex$MatchIterator__f_matcher;
+});
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype.hasNext__Z = (function() {
+  return $n(this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer).hasNext__Z();
+});
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype.next__s_util_matching_Regex$Match = (function() {
+  $n(this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer).next__T();
+  return new $c_s_util_matching_Regex$Match($n(this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer).s_util_matching_Regex$MatchIterator__f_source, this.matcher__ju_regex_Matcher(), $n(this.s_util_matching_Regex$MatchIterator$$anon$4__f_$outer).s_util_matching_Regex$MatchIterator__f__groupNames).force__s_util_matching_Regex$Match();
+});
+$c_s_util_matching_Regex$MatchIterator$$anon$4.prototype.next__O = (function() {
+  return this.next__s_util_matching_Regex$Match();
+});
+var $d_s_util_matching_Regex$MatchIterator$$anon$4 = new $TypeData().initClass($c_s_util_matching_Regex$MatchIterator$$anon$4, "scala.util.matching.Regex$MatchIterator$$anon$4", ({
+  s_util_matching_Regex$MatchIterator$$anon$4: 1,
+  sc_AbstractIterator: 1,
+  sc_IterableOnce: 1,
+  sc_IterableOnceOps: 1,
+  sc_Iterator: 1,
+  s_util_matching_Regex$Replacement: 1
 }));
 class $c_Lujson_Value$InvalidData extends $c_jl_Exception {
   constructor(data, msg) {

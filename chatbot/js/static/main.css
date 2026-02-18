@@ -1901,6 +1901,27 @@ html[data-theme="dark"] .message-content a[href*="voc.soilwise-he"]:hover {
     font-size: 0.95rem;
 }
 
+/* Energy efficiency hint wrapper and icon */
+.energy-hint-wrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    cursor: help;
+    pointer-events: auto;
+    position: relative;
+}
+
+.energy-hint {
+    font-size: 0.75rem;
+    color: #52a852;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.energy-hint-wrapper:hover .energy-hint {
+    opacity: 1;
+}
+
 .insight-card-body {
     color: #5a4f3e;
     font-size: 0.88rem;
@@ -2107,6 +2128,10 @@ html[data-theme="dark"] .insight-card-header {
 
 html[data-theme="dark"] .insight-card-body {
     color: #c9b79f;
+}
+
+html[data-theme="dark"] .energy-hint {
+    color: #6bc46b;
 }
 
 html[data-theme="dark"] .insight-links-list a {

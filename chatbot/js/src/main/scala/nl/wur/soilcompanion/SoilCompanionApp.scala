@@ -163,7 +163,8 @@ object SoilCompanionApp extends App {
       val walker = dom.document.createTreeWalker(
         container,
         dom.NodeFilter.SHOW_TEXT,
-        null
+        null,
+        false
       )
 
       val nodesToReplace = scala.collection.mutable.ArrayBuffer[(dom.Node, String)]()

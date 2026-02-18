@@ -1,3 +1,10 @@
+## [1.2.5](https://git.wur.nl/soilwise/soil-companion/compare/1.2.4...1.2.5) (2026-02-18)
+
+
+### Bug Fixes
+
+* Retain SoilWise catalogue hyperlinks. ([e255934](https://git.wur.nl/soilwise/soil-companion/commit/e255934d4103a57bd95bfa72301185ebd0affb07))
+
 ## [1.2.4](https://git.wur.nl/soilwise/soil-companion/compare/1.2.3...1.2.4) (2026-02-18)
 
 

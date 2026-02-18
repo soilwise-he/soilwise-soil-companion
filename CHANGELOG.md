@@ -1,3 +1,10 @@
+## [1.2.6](https://git.wur.nl/soilwise/soil-companion/compare/1.2.5...1.2.6) (2026-02-18)
+
+
+### Bug Fixes
+
+* Configuration of base url for SoilWise catalogue resources. ([4c9f12c](https://git.wur.nl/soilwise/soil-companion/commit/4c9f12cd977046b0c624411fe3d9b0eced0a6219))
+
 ## [1.2.5](https://git.wur.nl/soilwise/soil-companion/compare/1.2.4...1.2.5) (2026-02-18)
 
 

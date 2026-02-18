@@ -17347,35 +17347,38 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scal
 function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__convertDoiToLinks__Lorg_scalajs_dom_Element__V($thiz, container) {
   try {
     var doiPattern = $m_sc_StringOps$().r$extension__T__s_util_matching_Regex("(?:https?://)?(?:dx\\.)?doi\\.org/(10\\.\\S+)|(?:doi:\\s*)(10\\.\\S+)|(?:DOI:\\s*)(10\\.\\S+)");
+    var soilwiseIdPattern = $m_sc_StringOps$().r$extension__T__s_util_matching_Regex("(?:SoilWise\\s+ID:\\s*)(10\\.\\S+)");
     var walker = document.createTreeWalker(container, $uI(NodeFilter.SHOW_TEXT), null, false);
-    var this$5 = $m_scm_ArrayBuffer$();
+    var this$6 = $m_scm_ArrayBuffer$();
     var array = [];
     var elems = $ct_sjsr_WrappedVarArgs__sjs_js_Array__(new $c_sjsr_WrappedVarArgs(), array);
-    var nodesToReplace = this$5.from__sc_IterableOnce__scm_ArrayBuffer(elems);
+    var nodesToReplace = this$6.from__sc_IterableOnce__scm_ArrayBuffer(elems);
     var currentNode = walker.nextNode();
     while ((currentNode !== null)) {
       var textContent = $as_T(currentNode.textContent);
       if ((textContent !== null)) {
         $m_sc_StringOps$();
-        var this$8 = $n(textContent);
-        var $x_1 = (!(this$8 === ""));
+        var this$9 = $n(textContent);
+        var $x_1 = (!(this$9 === ""));
       } else {
         var $x_1 = false;
       }
       if ($x_1) {
-        var matches = $n(doiPattern).findAllMatchIn__jl_CharSequence__sc_Iterator(textContent);
-        var this$9 = $n(matches);
-        if (this$9.hasNext__Z()) {
-          var this$11 = $n(nodesToReplace);
+        var this$10 = $n($n(doiPattern).findAllMatchIn__jl_CharSequence__sc_Iterator(textContent));
+        var hasDoi = this$10.hasNext__Z();
+        var this$11 = $n($n(soilwiseIdPattern).findAllMatchIn__jl_CharSequence__sc_Iterator(textContent));
+        var hasSoilwiseId = this$11.hasNext__Z();
+        if ((hasDoi || hasSoilwiseId)) {
+          var this$13 = $n(nodesToReplace);
           var _1 = currentNode;
           var elem = new $c_T2(_1, textContent);
-          this$11.addOne__O__scm_ArrayBuffer(elem);
+          this$13.addOne__O__scm_ArrayBuffer(elem);
         }
       }
       currentNode = walker.nextNode();
     }
-    var this$12 = $n(nodesToReplace);
-    var it = $n(this$12.view__scm_ArrayBufferView()).iterator__sc_Iterator();
+    var this$14 = $n(nodesToReplace);
+    var it = $n(this$14.view__scm_ArrayBufferView()).iterator__sc_Iterator();
     while ($n(it).hasNext__Z()) {
       var x0 = $n(it).next__O();
       var x$1 = $as_T2(x0);
@@ -17383,43 +17386,64 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__convertDoiToLinks__Lorg_sca
         if ((x$1 !== null)) {
           var node = $n(x$1).T2__f__1;
           var text = $as_T($n(x$1).T2__f__2);
-          var this$13 = $n(doiPattern);
-          var this$14 = new $c_s_util_matching_Regex$MatchIterator(text, this$13, this$13.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames);
-          var rit = new $c_s_util_matching_Regex$MatchIterator$$anon$4(this$14);
+          var this$15 = $n(soilwiseIdPattern);
+          var this$16 = new $c_s_util_matching_Regex$MatchIterator(text, this$15, this$15.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames);
+          var rit = new $c_s_util_matching_Regex$MatchIterator$$anon$4(this$16);
           while (rit.hasNext__Z()) {
             var x0$1 = rit.next__s_util_matching_Regex$Match();
-            var $x_2 = $m_s_Option$();
-            var this$15 = $n(x0$1);
-            var this$16 = $n($x_2.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$15, 1)));
-            if (this$16.isEmpty__Z()) {
-              var $x_4 = $m_s_Option$();
-              var this$17 = $n(x0$1);
-              var $x_3 = $x_4.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$17, 2));
-            } else {
-              var $x_3 = this$16;
-            }
-            var this$18 = $n($x_3);
-            if (this$18.isEmpty__Z()) {
-              var $x_6 = $m_s_Option$();
-              var this$19 = $n(x0$1);
-              var $x_5 = $x_6.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$19, 3));
-            } else {
-              var $x_5 = this$18;
-            }
-            var this$20 = $n($x_5);
-            var doi = $as_T((this$20.isEmpty__Z() ? "" : this$20.get__O()));
+            var this$17 = $n(x0$1);
+            var doi = $f_s_util_matching_Regex$MatchData__group__I__T(this$17, 1);
             $m_sc_StringOps$();
-            var this$23 = $n(doi);
-            if ((!(this$23 === ""))) {
-              var url = ("https://doi.org/" + doi);
-              var replacement = (((("<a href=\"" + url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">") + doi) + "</a>");
+            var this$20 = $n(doi);
+            if ((!(this$20 === ""))) {
+              var encodedDoi = $as_T(encodeURIComponent(doi));
+              var url = ("https://repository.soilwise-he.eu/cat/collections/metadata:main/items/" + encodedDoi);
+              var replacement = (((("SoilWise ID: <a href=\"" + url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">") + doi) + "</a>");
             } else {
-              var this$24 = $n(x0$1);
-              var replacement = $f_s_util_matching_Regex$MatchData__matched__T(this$24);
+              var this$22 = $n(x0$1);
+              var replacement = $f_s_util_matching_Regex$MatchData__matched__T(this$22);
             }
             $n(rit.matcher__ju_regex_Matcher()).appendReplacement__jl_StringBuffer__T__ju_regex_Matcher(rit.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb, replacement);
           }
           var newHtml = $f_s_util_matching_Regex$Replacement__replaced__T(rit);
+          var this$23 = $n(doiPattern);
+          var target = newHtml;
+          var this$24 = new $c_s_util_matching_Regex$MatchIterator(target, this$23, this$23.s_util_matching_Regex__f_scala$util$matching$Regex$$groupNames);
+          var rit$1 = new $c_s_util_matching_Regex$MatchIterator$$anon$4(this$24);
+          while (rit$1.hasNext__Z()) {
+            var x0$2 = rit$1.next__s_util_matching_Regex$Match();
+            var $x_2 = $m_s_Option$();
+            var this$25 = $n(x0$2);
+            var this$26 = $n($x_2.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$25, 1)));
+            if (this$26.isEmpty__Z()) {
+              var $x_4 = $m_s_Option$();
+              var this$27 = $n(x0$2);
+              var $x_3 = $x_4.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$27, 2));
+            } else {
+              var $x_3 = this$26;
+            }
+            var this$28 = $n($x_3);
+            if (this$28.isEmpty__Z()) {
+              var $x_6 = $m_s_Option$();
+              var this$29 = $n(x0$2);
+              var $x_5 = $x_6.apply__O__s_Option($f_s_util_matching_Regex$MatchData__group__I__T(this$29, 3));
+            } else {
+              var $x_5 = this$28;
+            }
+            var this$30 = $n($x_5);
+            var doi$1 = $as_T((this$30.isEmpty__Z() ? "" : this$30.get__O()));
+            $m_sc_StringOps$();
+            var this$33 = $n(doi$1);
+            if ((!(this$33 === ""))) {
+              var url$1 = ("https://doi.org/" + doi$1);
+              var replacement$1 = (((("<a href=\"" + url$1) + "\" target=\"_blank\" rel=\"noopener noreferrer\">") + doi$1) + "</a>");
+            } else {
+              var this$34 = $n(x0$2);
+              var replacement$1 = $f_s_util_matching_Regex$MatchData__matched__T(this$34);
+            }
+            $n(rit$1.matcher__ju_regex_Matcher()).appendReplacement__jl_StringBuffer__T__ju_regex_Matcher(rit$1.s_util_matching_Regex$MatchIterator$$anon$4__f_scala$util$matching$Regex$Replacement$$sb, replacement$1);
+          }
+          newHtml = $f_s_util_matching_Regex$Replacement__replaced__T(rit$1);
           if ((newHtml !== text)) {
             var span = document.createElement("span");
             span.innerHTML = newHtml;

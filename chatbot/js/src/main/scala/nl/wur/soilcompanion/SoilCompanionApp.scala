@@ -149,17 +149,19 @@ object SoilCompanionApp extends App {
     } catch { case _: Throwable => () }
   }
 
-  // Convert DOI text patterns to clickable hyperlinks
+  // Convert DOI text patterns and SoilWise ID patterns to clickable hyperlinks
   private def convertDoiToLinks(container: dom.Element): Unit = {
     try {
       // Pattern to match DOI identifiers in various formats:
       // - doi.org/10.xxxx/yyyy
       // - doi:10.xxxx/yyyy
       // - DOI: 10.xxxx/yyyy
-      // - plain 10.xxxx/yyyy (when preceded by common DOI indicators)
       val doiPattern = """(?:https?://)?(?:dx\.)?doi\.org/(10\.\S+)|(?:doi:\s*)(10\.\S+)|(?:DOI:\s*)(10\.\S+)""".r
 
-      // Walk through text nodes and replace DOI patterns
+      // Pattern to match SoilWise ID format: "SoilWise ID: 10.xxxx/yyyy"
+      val soilwiseIdPattern = """(?:SoilWise\s+ID:\s*)(10\.\S+)""".r
+
+      // Walk through text nodes and replace patterns
       val walker = dom.document.createTreeWalker(
         container,
         dom.NodeFilter.SHOW_TEXT,
@@ -173,18 +175,32 @@ object SoilCompanionApp extends App {
       while (currentNode != null) {
         val textContent = currentNode.textContent
         if (textContent != null && textContent.nonEmpty) {
-          // Check if this text node contains a DOI pattern
-          val matches = doiPattern.findAllMatchIn(textContent)
-          if (matches.nonEmpty) {
+          // Check if this text node contains a DOI or SoilWise ID pattern
+          val hasDoi = doiPattern.findAllMatchIn(textContent).nonEmpty
+          val hasSoilwiseId = soilwiseIdPattern.findAllMatchIn(textContent).nonEmpty
+          if (hasDoi || hasSoilwiseId) {
             nodesToReplace += ((currentNode, textContent))
           }
         }
         currentNode = walker.nextNode()
       }
 
-      // Replace text nodes with DOI links
+      // Replace text nodes with links
       nodesToReplace.foreach { case (node, text) =>
-        val newHtml = doiPattern.replaceAllIn(text, m => {
+        // First replace SoilWise IDs with catalog links
+        var newHtml = soilwiseIdPattern.replaceAllIn(text, m => {
+          val doi = m.group(1)
+          if (doi.nonEmpty) {
+            val encodedDoi = js.Dynamic.global.encodeURIComponent(doi).asInstanceOf[String]
+            val url = s"https://repository.soilwise-he.eu/cat/collections/metadata:main/items/$encodedDoi"
+            s"""SoilWise ID: <a href="$url" target="_blank" rel="noopener noreferrer">$doi</a>"""
+          } else {
+            m.matched
+          }
+        })
+
+        // Then replace DOI patterns with doi.org links
+        newHtml = doiPattern.replaceAllIn(newHtml, m => {
           // Extract the DOI identifier from whichever group matched
           val doi = Option(m.group(1)).orElse(Option(m.group(2))).orElse(Option(m.group(3))).getOrElse("")
           if (doi.nonEmpty) {

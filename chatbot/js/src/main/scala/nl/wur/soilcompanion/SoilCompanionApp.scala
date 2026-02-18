@@ -127,6 +127,11 @@ object SoilCompanionApp extends App {
     try {
       if (container == null) return
       val scope = container.asInstanceOf[dom.Element]
+
+      // First, convert DOI text patterns to hyperlinks
+      convertDoiToLinks(scope)
+
+      // Then fix all anchor tags to open in new tab with security attributes
       val anchors = scope.querySelectorAll("a")
       var i = 0
       while (i < anchors.length) {
@@ -142,6 +147,63 @@ object SoilCompanionApp extends App {
         i += 1
       }
     } catch { case _: Throwable => () }
+  }
+
+  // Convert DOI text patterns to clickable hyperlinks
+  private def convertDoiToLinks(container: dom.Element): Unit = {
+    try {
+      // Pattern to match DOI identifiers in various formats:
+      // - doi.org/10.xxxx/yyyy
+      // - doi:10.xxxx/yyyy
+      // - DOI: 10.xxxx/yyyy
+      // - plain 10.xxxx/yyyy (when preceded by common DOI indicators)
+      val doiPattern = """(?:https?://)?(?:dx\.)?doi\.org/(10\.\S+)|(?:doi:\s*)(10\.\S+)|(?:DOI:\s*)(10\.\S+)""".r
+
+      // Walk through text nodes and replace DOI patterns
+      val walker = dom.document.createTreeWalker(
+        container,
+        dom.NodeFilter.SHOW_TEXT,
+        null
+      )
+
+      val nodesToReplace = scala.collection.mutable.ArrayBuffer[(dom.Node, String)]()
+      var currentNode = walker.nextNode()
+
+      while (currentNode != null) {
+        val textContent = currentNode.textContent
+        if (textContent != null && textContent.nonEmpty) {
+          // Check if this text node contains a DOI pattern
+          val matches = doiPattern.findAllMatchIn(textContent)
+          if (matches.nonEmpty) {
+            nodesToReplace += ((currentNode, textContent))
+          }
+        }
+        currentNode = walker.nextNode()
+      }
+
+      // Replace text nodes with DOI links
+      nodesToReplace.foreach { case (node, text) =>
+        val newHtml = doiPattern.replaceAllIn(text, m => {
+          // Extract the DOI identifier from whichever group matched
+          val doi = Option(m.group(1)).orElse(Option(m.group(2))).orElse(Option(m.group(3))).getOrElse("")
+          if (doi.nonEmpty) {
+            val url = s"https://doi.org/$doi"
+            s"""<a href="$url" target="_blank" rel="noopener noreferrer">$doi</a>"""
+          } else {
+            m.matched
+          }
+        })
+
+        if (newHtml != text) {
+          val span = dom.document.createElement("span")
+          span.innerHTML = newHtml
+          node.parentNode.replaceChild(span, node)
+        }
+      }
+    } catch {
+      case e: Throwable =>
+        dom.console.warn("[DEBUG_LOG] Failed to convert DOI patterns to links", e)
+    }
   }
 
   // --- Helper: ensure there's a bot bubble to render into ---
@@ -309,6 +371,16 @@ object SoilCompanionApp extends App {
       if (as != null) as.removeAttribute("hidden")
     }, 50)
     catch { case _: Throwable => () }
+  }
+
+  // Activate the First Use tab by clicking it (triggers the JS tab system)
+  private def activateFirstUseTab(): Unit = {
+    try {
+      val firstUseTab = dom.document.getElementById("tab-firstuse").asInstanceOf[dom.html.Element]
+      if (firstUseTab != null) {
+        firstUseTab.click()
+      }
+    } catch { case _: Throwable => () }
   }
 
   private def saveLocationContext(
@@ -845,6 +917,8 @@ object SoilCompanionApp extends App {
         updateLoginUi()
         // Re-enable the Location tab when logged in
         setLocationTabEnabled(true)
+        // Switch to the First Use tab after login
+        activateFirstUseTab()
         // Ensure any previous informational bubbles (e.g., "logged out") are removed
         clearChat()
         addMessage("AI", s"Welcome, $name! You can start chatting now.")
@@ -1772,10 +1846,31 @@ object SoilCompanionApp extends App {
     fetch(url).toFuture
       .flatMap(_.text().toFuture)
       .foreach { txt =>
-        val display = extractVersionLabel(txt)
-        if (display.nonEmpty) {
-          el.textContent = display
-          if (initialVersionTag.isEmpty) initialVersionTag = Some(display)
+        try {
+          val dyn = js.JSON.parse(txt).asInstanceOf[js.Dynamic]
+          def optStr(v: js.Dynamic): Option[String] =
+            if (js.isUndefined(v) || v == null) None else Option(v.asInstanceOf[String]).filter(_.trim.nonEmpty)
+
+          val display = extractVersionLabel(txt)
+          val llmProvider = optStr(dyn.selectDynamic("llmProvider")).getOrElse("")
+          val llmModel = optStr(dyn.selectDynamic("llmModel")).getOrElse("")
+
+          // Build the full display text: "provider: model - version"
+          val fullText = if (llmProvider.nonEmpty && llmModel.nonEmpty && display.nonEmpty) {
+            s"[using $llmProvider $llmModel] - $display"
+          } else if (display.nonEmpty) {
+            display
+          } else {
+            ""
+          }
+
+          if (fullText.nonEmpty) {
+            el.textContent = fullText
+            if (initialVersionTag.isEmpty) initialVersionTag = Some(display)
+          }
+        } catch {
+          case e: Throwable =>
+            dom.console.error("[DEBUG_LOG] Failed to parse healthz response", e)
         }
       }
   }

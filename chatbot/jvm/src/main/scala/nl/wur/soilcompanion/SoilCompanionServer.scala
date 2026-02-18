@@ -201,7 +201,9 @@ object SoilCompanionServer extends MainRoutes {
       "uptimeSeconds" -> uptimeSeconds(),
       "version" -> Config.appConfig.version,
       "gitTag" -> latestGitTag(),
-      "now" -> java.time.Instant.now().toString
+      "now" -> java.time.Instant.now().toString,
+      "llmProvider" -> Config.llmProviderConfig.provider,
+      "llmModel" -> Config.llmProviderConfig.chatModel
     )
     upickle.default.write(json)
   }
@@ -690,7 +692,7 @@ object SoilCompanionServer extends MainRoutes {
   @staticFiles("/app")
   def serveStatic(): String = {
     val homePathStr = homePath.toString
-    logger.info(s"Serving static files from $homePathStr...")
+    // logger.info(s"Serving static files from $homePathStr...")
     homePathStr
   }
 

@@ -323,6 +323,7 @@ object WikipediaLinker {
 
   /**
    * Extract Wikipedia links from text by identifying technical terms and verifying articles exist.
+   * Also extracts explicit Wikipedia URLs that the LLM mentioned in markdown links.
    * Returns a list of unique Wikipedia URLs without modifying the text.
    *
    * @param text The text to analyze
@@ -334,7 +335,13 @@ object WikipediaLinker {
     }
 
     try {
-      // First strip any existing markdown to work with plain text
+      // First, extract any explicit Wikipedia URLs from markdown links that the LLM generated
+      val explicitWikiUrls = extractExplicitWikipediaUrls(text)
+      if (explicitWikiUrls.nonEmpty) {
+        logger.debug(s"Found ${explicitWikiUrls.size} explicit Wikipedia URLs in LLM response")
+      }
+
+      // Then strip any existing markdown to work with plain text for term extraction
       val plainText = stripAllLinks(text)
 
       val minLength = Config.wikipediaConfig.minTermLength
@@ -346,7 +353,7 @@ object WikipediaLinker {
       // Find all potential technical terms in the text
       val candidates = findCandidateTerms(plainText, minLength, language)
 
-      if (candidates.isEmpty) {
+      if (candidates.isEmpty && explicitWikiUrls.isEmpty) {
         return List.empty
       }
 
@@ -365,12 +372,29 @@ object WikipediaLinker {
         }
       }
 
-      verifiedUrls.toList.distinct
+      // Combine explicit URLs with auto-detected ones, remove duplicates
+      (explicitWikiUrls ++ verifiedUrls).toList.distinct
     } catch {
       case e: Throwable =>
         logger.error("Failed to extract Wikipedia links from response", e)
         List.empty
     }
+  }
+
+  /**
+   * Extract explicit Wikipedia URLs from markdown links in the text.
+   * E.g., "[Soil health](https://en.wikipedia.org/wiki/Soil_health)" -> "https://en.wikipedia.org/wiki/Soil_health"
+   *
+   * @param text The text containing potential markdown links
+   * @return List of Wikipedia URLs found in markdown links
+   */
+  private def extractExplicitWikipediaUrls(text: String): List[String] = {
+    val markdownLinkPattern = """\[([^\]]+)\]\((https?://[a-z]{2}\.wikipedia\.org/wiki/[^\)]+)\)""".r
+    markdownLinkPattern.findAllMatchIn(text).map { m =>
+      val url = m.group(2)
+      // Normalize to lowercase https for consistency
+      url.replaceFirst("(?i)^https?://", "https://")
+    }.toList.distinct
   }
 
   /**

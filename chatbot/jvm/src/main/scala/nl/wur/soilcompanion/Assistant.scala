@@ -63,7 +63,12 @@ trait Assistant {
     "You MUST copy the ENTIRE tool response (including all HTML) directly into your message to the user.",
     "Do NOT paraphrase, summarize, or describe the map - paste the complete tool output verbatim.",
     "Do NOT wrap the HTML in code blocks (```) - include it as-is so it renders as a map.",
-    "The user cannot see the map unless you include the HTML exactly as the tool returns it."
+    "The user cannot see the map unless you include the HTML exactly as the tool returns it.",
+    // AgroDataCube and field visualization guidance
+    "When users ask to 'show the field', 'visualize the crop field', or 'draw the field boundary' for a location in The Netherlands:",
+    "Use the showAgroDataCubeFieldOnMap or showAgroDataCubeFieldFromLocationContext tool - these automatically create and return the map.",
+    "These tools combine field lookup and map creation in one step. Do NOT try to manually pass data between AgroDataCube and MapTools.",
+    "Simply call the show field tool and include its complete HTML output in your response - the map will appear automatically."
   ))
   def reply(@UserMessage question: String): TokenStream
 }

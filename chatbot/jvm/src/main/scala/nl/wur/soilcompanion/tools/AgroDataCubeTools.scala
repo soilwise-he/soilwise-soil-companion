@@ -565,6 +565,207 @@ class AgroDataCubeTools {
             logger.debug(s"AgroDataCube KPI croprotation (200) for ids=$ids: ${preview(resp)}")
             s"KPI croprotation for fieldids=[$ids]:\n${preview(resp)}"
   }
+
+  /**
+   * Extract geometry coordinates from GeoJSON as a coordinate array suitable for MapTool.
+   * Returns JSON array format: [[lat1, lon1], [lat2, lon2], ...]
+   */
+  private def extractGeometryCoordinates(jsonStr: String): Option[String] = {
+    try {
+      val js = ujson.read(jsonStr)
+      val objMap = js.obj
+      val tpe = objMap.get("type").map(_.str).getOrElse("")
+
+      if (tpe.equalsIgnoreCase("FeatureCollection")) {
+        // Get first feature's geometry
+        val firstFeatureOpt = objMap.get("features")
+          .flatMap(v => scala.util.Try(v.arr).toOption)
+          .flatMap(_.headOption)
+
+        firstFeatureOpt.flatMap { feature =>
+          val geom = feature.obj.get("geometry")
+          geom.flatMap { g =>
+            val geomType = g.obj.get("type").map(_.str).getOrElse("")
+            val coords = g.obj.get("coordinates")
+
+            coords.flatMap { c =>
+              geomType match {
+                case "Polygon" =>
+                  // Polygon coordinates are [[[lon, lat], [lon, lat], ...]]
+                  // We want the outer ring (first array)
+                  val outerRing = c.arr.head.arr
+                  val latLonPairs = outerRing.map { coord =>
+                    val lon = coord.arr(0).num
+                    val lat = coord.arr(1).num
+                    ujson.Arr(lat, lon)
+                  }.toSeq
+                  Some(ujson.Arr(latLonPairs*).render())
+                case "MultiPolygon" =>
+                  // Take first polygon from MultiPolygon [[[[[lon, lat], ...]]]]
+                  val firstPolygon = c.arr.head.arr.head.arr
+                  val latLonPairs = firstPolygon.map { coord =>
+                    val lon = coord.arr(0).num
+                    val lat = coord.arr(1).num
+                    ujson.Arr(lat, lon)
+                  }.toSeq
+                  Some(ujson.Arr(latLonPairs*).render())
+                case _ => None
+              }
+            }
+          }
+        }
+      } else {
+        None
+      }
+    } catch {
+      case e: Throwable =>
+        logger.warn(s"Failed to extract geometry coordinates: ${e.getMessage}")
+        None
+    }
+  }
+
+  @Tool(Array(
+    "NL-only. Shows crop field (parcel) boundary on an interactive map for a location in The Netherlands.",
+    "Use this when the user asks to 'show the field', 'draw the field boundary', 'visualize the parcel', or 'show the crop field on a map'.",
+    "This tool retrieves the field geometry from AgroDataCube and returns a ready-to-display interactive map with the field boundary drawn.",
+    "IMPORTANT: This tool returns complete HTML for a map. You MUST include the ENTIRE response in your message to display the map.",
+    "Do not summarize or describe - copy the full HTML output verbatim so the map renders for the user."
+  ))
+  def showAgroDataCubeFieldOnMap(
+    @P("Latitude in decimal degrees (WGS84). Example: 52.75699. Only use if the location is in NL.")
+    lat: Double,
+    @P("Longitude in decimal degrees (WGS84). Example: 5.61071. Only use if the location is in NL.")
+    lon: Double,
+    @P("Optional year (e.g., '2019'); defaults to previous calendar year when empty. If unknown, leave empty.")
+    year: String
+  ): String = {
+    val resolvedYear = Option(year).map(_.trim).filter(_.nonEmpty).getOrElse {
+      val y = java.time.LocalDate.now().getYear - 1
+      logger.debug(s"AgroDataCube: no year provided, defaulting to previous year: $y")
+      y.toString
+    }
+
+    val wktPoint = s"POINT($lon $lat)"
+    val url = s"${baseUrl}/fields"
+    val query = Map(
+      "year" -> resolvedYear,
+      "geometry" -> wktPoint,
+      "epsg" -> "4326",
+      "output_epsg" -> "4326"
+      // Note: NOT using "result" -> "nogeom" here - we want the geometry
+    )
+
+    val respOpt = scala.util.Try(httpGet(url, query)).toOption
+    respOpt match
+      case None =>
+        s"AgroDataCube request failed for lat=$lat lon=$lon year=$resolvedYear. The service may be unavailable or requires authentication."
+      case Some(r) if r.statusCode != 200 =>
+        val bodyPrev = scala.util.Try(r.text()).toOption.map(preview(_)).getOrElse("")
+        logger.info(s"AgroDataCube geometry non-200 status=${r.statusCode}, body preview=$bodyPrev")
+        r.statusCode match
+          case 401 | 403 =>
+            val hint = if (tokenHeader().isEmpty) " Missing token; set environment variable AGRODATACUBE_ACCESS_TOKEN." else " Token may be invalid or lacks permission."
+            s"AgroDataCube authentication error (status ${r.statusCode}).$hint"
+          case _ => s"AgroDataCube returned status ${r.statusCode} for field geometry lookup. Please try again later."
+      case Some(r) =>
+        val body = r.text()
+        logger.debug(s"AgroDataCube field geometry response (200): ${preview(body)}")
+
+        // Extract field info
+        val firstOpt = parseFirstFieldIdFromGeoJson(body)
+
+        // The /fields endpoint with point query returns only centroid geometry
+        // We need to fetch the full geometry using the field ID
+        val coordsOpt = firstOpt.flatMap { fs =>
+          logger.debug(s"Fetching full geometry for field ID: ${fs.id}")
+          val fieldUrl = s"${baseUrl}/fields/${fs.id}"
+          val fieldQuery = Map(
+            "year" -> resolvedYear,
+            "output_epsg" -> "4326"
+          )
+          val fieldRespOpt = scala.util.Try(httpGet(fieldUrl, fieldQuery)).toOption
+
+          fieldRespOpt.flatMap {
+            case fieldResp if fieldResp.statusCode == 200 =>
+              val fieldBody = fieldResp.text()
+              logger.debug(s"AgroDataCube full field geometry (200): ${preview(fieldBody)}")
+              extractGeometryCoordinates(fieldBody)
+            case fieldResp =>
+              logger.warn(s"Failed to fetch full geometry for field ${fs.id}, status: ${fieldResp.statusCode}")
+              None
+          }
+        }
+
+        (firstOpt, coordsOpt) match
+          case (Some(fs), Some(coords)) =>
+            // Store context for reuse
+            val ctx = FieldContext(
+              fieldId = fs.id,
+              year = fs.year.getOrElse(resolvedYear),
+              cropCode = fs.cropCode,
+              cropName = fs.cropName
+            )
+            lastFieldContext = Some(ctx)
+
+            val titlePart = if (fs.title.nonEmpty) s"${fs.title}" else s"Field ${ctx.fieldId}"
+            val cropPart = (ctx.cropCode, ctx.cropName) match
+              case (Some(code), Some(name)) if name.nonEmpty => s", crop: $name (code: $code)"
+              case (Some(code), None) => s", crop code: $code"
+              case (None, Some(name)) if name.nonEmpty => s", crop: $name"
+              case _ => ""
+
+            val label = s"$titlePart (${ctx.year})$cropPart"
+            val mapTitle = s"Crop Field: $titlePart"
+
+            // Directly create the map using MapTools
+            val mapTools = new MapTools()
+            try {
+              val mapHtml = mapTools.createRegionMap(
+                coordinatesJson = coords,
+                fillColor = "#4CAF50",
+                strokeColor = "#2E7D32",
+                label = label,
+                basemap = "satellite",
+                title = mapTitle
+              )
+
+              // Prepend field information before the map
+              s"""Found crop field for year ${ctx.year}: $titlePart$cropPart.
+
+$mapHtml"""
+            } catch {
+              case e: Throwable =>
+                logger.error(s"Failed to create map for field ${ctx.fieldId}", e)
+                s"Found field geometry for year ${ctx.year}: $titlePart$cropPart, but failed to create map: ${e.getMessage}"
+            }
+          case (Some(_), None) =>
+            "Field found but geometry could not be extracted. The field may not have spatial data available."
+          case (None, _) =>
+            "No field found for the specified location. If the point falls near parcel edges, try slightly different coordinates."
+  }
+
+  @Tool(Array(
+    "NL-only. Shows crop field boundary on an interactive map using the location context from the UI.",
+    "Use this when the user has selected a location in NL and asks to 'show the field', 'visualize the field boundary', or 'draw the parcel on a map'.",
+    "This is the preferred tool when location context is available from the UI map picker.",
+    "IMPORTANT: This tool returns complete HTML for a map. You MUST include the ENTIRE response in your message to display the map."
+  ))
+  def showAgroDataCubeFieldFromLocationContext(
+    @P("Location context JSON string containing 'lat', 'lon', and optional 'zoom' fields from the UI.")
+    locationContextJson: String,
+    @P("Optional year string (e.g., '2019'). Defaults to previous year when empty.")
+    year: String
+  ): String = {
+    val (lat, lon) = try
+      val js = ujson.read(locationContextJson)
+      (js("lat").num, js("lon").num)
+    catch
+      case e: Throwable =>
+        logger.warn(s"Failed to parse location context JSON: ${e.getMessage}")
+        return "Could not parse the location context JSON. Please provide 'lat' and 'lon'."
+
+    showAgroDataCubeFieldOnMap(lat, lon, year)
+  }
 }
 
 

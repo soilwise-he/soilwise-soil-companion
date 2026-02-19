@@ -2319,3 +2319,19 @@ html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilw
     border-bottom: none;
     background-color: transparent;
 }
+
+/* ----------------------------- */
+/* Leaflet Map Container Styles  */
+/* ----------------------------- */
+
+/* Ensure Leaflet maps in chat messages stay below the input container */
+.leaflet-map-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Leaflet creates its own container with z-index, make sure it doesn't override */
+.leaflet-map-container .leaflet-pane,
+.leaflet-map-container .leaflet-map-pane {
+    z-index: auto !important;
+}

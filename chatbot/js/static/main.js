@@ -17341,6 +17341,16 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__fixExternalLinks__Lorg_scal
       }
       i = ((1 + i) | 0);
     }
+    $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLeafletMaps__V($thiz);
+  } catch (e) {
+  }
+}
+function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__initLeafletMaps__V($thiz) {
+  try {
+    var initFn = initLeafletMaps;
+    if (((initFn !== (void 0)) && ($as_T((typeof initFn)) === "function"))) {
+      initFn();
+    }
   } catch (e) {
   }
 }

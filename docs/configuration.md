@@ -400,6 +400,70 @@ Notes:
 - The CSV file should contain columns: ID, prefLabel, altLabel, definition, broader, exactMatch, closeMatch.
 - To disable auto-linking, set `auto-link-terms: false` or use the environment variable `VOCAB_AUTO_LINK_TERMS=false`.
 
+## Map Tools configuration
+
+The chatbot includes LLM tools to create interactive maps for visualizing spatial data related to soil and agriculture.
+
+Configuration block (in `chatbot/jvm/src/main/resources/application.conf`):
+
+```
+map-config: {
+  # Leaflet library URLs (CDN)
+  leaflet-css-url: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  leaflet-css-url: ${?MAP_LEAFLET_CSS_URL}
+
+  leaflet-js-url: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  leaflet-js-url: ${?MAP_LEAFLET_JS_URL}
+
+  # Default map dimensions
+  default-width: "100%"
+  default-width: ${?MAP_DEFAULT_WIDTH}
+
+  default-height: "500px"
+  default-height: ${?MAP_DEFAULT_HEIGHT}
+
+  # Default zoom level when not specified
+  default-zoom: 10
+  default-zoom: ${?MAP_DEFAULT_ZOOM}
+}
+```
+
+Notes and features:
+- Maps are created using Leaflet.js, a leading open-source JavaScript library for interactive maps.
+- Maps render directly in the chatbot UI as embedded HTML with full interactivity (pan, zoom, click).
+- Supports multiple basemap styles: OpenStreetMap (default), satellite imagery, and terrain.
+- Can display markers (points), polygons (areas/regions), and custom styling.
+- All maps are generated server-side and delivered as sanitized HTML/JavaScript.
+
+Available tool methods:
+- `createMap(centerLat, centerLon, zoom, markersJson, basemap, title)` — create a map centered at specific coordinates with optional markers.
+- `createMapFromLocationContext(locationContextJson, markersJson, basemap, title)` — create a map using the UI location picker context.
+- `createMultiLocationMap(locationsJson, basemap, title)` — create a map showing multiple locations with automatic zoom/centering.
+- `createRegionMap(coordinatesJson, fillColor, strokeColor, label, basemap, title)` — create a map showing a polygonal region or area boundary.
+
+Usage examples:
+- "Show me Wageningen on a map" → creates a centered map of Wageningen
+- "Map these soil sample locations: ..." → creates a multi-marker map
+- "Visualize this field boundary" → creates a polygon map showing the field area
+- "Show satellite view of this location" → creates a map with satellite basemap
+
+Map features:
+- **Interactive controls**: Pan, zoom, and click on markers/regions
+- **Multiple basemaps**: Choose between street map, satellite imagery, or terrain
+- **Custom markers**: Different colors and popup labels for each point
+- **Polygon regions**: Visualize field boundaries, study areas, or administrative regions
+- **Scale indicator**: Metric scale bar for distance reference
+- **Responsive sizing**: Maps adapt to the UI layout (default 100% width, 500px height)
+
+Configuration options:
+- `leaflet-css-url`: URL for Leaflet CSS library (default: unpkg.com CDN)
+- `leaflet-js-url`: URL for Leaflet JavaScript library (default: unpkg.com CDN)
+- `default-width`: Default map width (default: "100%")
+- `default-height`: Default map height (default: "500px")
+- `default-zoom`: Default zoom level when not specified (default: 10)
+
+The tool automatically loads Leaflet.js from a CDN on first use, ensuring maps work without additional client-side setup.
+
 ## Vocabulary Tools configuration
 
 The chatbot includes LLM tools to query the SoilWise vocabulary SPARQL endpoint for detailed concept information, including broader, narrower, related, and exact match concepts from the SKOS vocabulary hierarchy.

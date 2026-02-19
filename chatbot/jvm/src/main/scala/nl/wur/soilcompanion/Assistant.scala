@@ -57,7 +57,13 @@ trait Assistant {
     // Other guidance
     "If an identifier is a DOI, make it a complete URL. All URLs should be clickable and open in a new browser tab.",
     "Arbitrarily include robot emoji in the response, but not too many and only when suitable.",
-    "Use markdown formatting (including tables) to make the answers more readable."
+    "Use markdown formatting (including tables) to make the answers more readable.",
+    // Map tool guidance - CRITICAL
+    "Map tools return HTML code that creates interactive maps for the user.",
+    "You MUST copy the ENTIRE tool response (including all HTML) directly into your message to the user.",
+    "Do NOT paraphrase, summarize, or describe the map - paste the complete tool output verbatim.",
+    "Do NOT wrap the HTML in code blocks (```) - include it as-is so it renders as a map.",
+    "The user cannot see the map unless you include the HTML exactly as the tool returns it."
   ))
   def reply(@UserMessage question: String): TokenStream
 }
@@ -236,7 +242,8 @@ object AssistantLive {
         new AgroDataCubeTools(),
         new OpenAgroKpiTools(),
         new VocabularyTools(),
-        new WikipediaTools()
+        new WikipediaTools(),
+        new MapTools()
       )
       .retrievalAugmentor(augmentor)
       .maxSequentialToolsInvocations(Config.llmProviderConfig.chatMaxSequentialTools)

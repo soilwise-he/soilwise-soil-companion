@@ -150,6 +150,19 @@ object SoilCompanionApp extends App {
         }
         i += 1
       }
+
+      // Initialize any Leaflet maps in the container
+      initLeafletMaps()
+    } catch { case _: Throwable => () }
+  }
+
+  // Call the global Leaflet map initialization function (defined in leaflet-init.js)
+  private def initLeafletMaps(): Unit = {
+    try {
+      val initFn = js.Dynamic.global.initLeafletMaps
+      if (!js.isUndefined(initFn) && js.typeOf(initFn) == "function") {
+        initFn.asInstanceOf[js.Function0[Unit]]()
+      }
     } catch { case _: Throwable => () }
   }
 

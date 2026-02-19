@@ -259,6 +259,12 @@ object SoilCompanionServer extends MainRoutes {
     else cask.Response(upickle.default.write(payload), statusCode = 503)
   }
 
+  @get("/wms-test")
+  def wmsTest(): String = {
+    logger.info("WMS test endpoint called!")
+    "WMS proxy endpoint is reachable"
+  }
+
   // Simple sanitization and validation for uploaded text
   private def sanitizeFilename(name: String): String =
     Option(name).map(_.trim).filter(_.nonEmpty).map { n =>
@@ -695,6 +701,104 @@ object SoilCompanionServer extends MainRoutes {
     val homePathStr = homePath.toString
     // logger.info(s"Serving static files from $homePathStr...")
     homePathStr
+  }
+
+  /**
+   * WMS proxy endpoint to bypass CORS restrictions for ISRIC SoilGrids WMS service.
+   * Proxies requests to https://maps.isric.org/mapserv to allow browser access.
+   */
+  @get("/wms-proxy")
+  def wmsProxy(
+    map: String,
+    service: String,
+    request: String,
+    layers: String,
+    styles: String = "",
+    format: String,
+    transparent: String,
+    version: String,
+    width: String,
+    height: String,
+    srs: String,
+    bbox: String
+  ): cask.Response[Array[Byte]] = {
+    try {
+      // Build query string from parameters
+      val params = Map(
+        "map" -> map,
+        "service" -> service,
+        "request" -> request,
+        "layers" -> layers,
+        "styles" -> styles,
+        "format" -> format,
+        "transparent" -> transparent,
+        "version" -> version,
+        "width" -> width,
+        "height" -> height,
+        "srs" -> srs,
+        "bbox" -> bbox
+      )
+
+      val queryString = params.map { case (k, v) =>
+        s"$k=${java.net.URLEncoder.encode(v, "UTF-8")}"
+      }.mkString("&")
+
+      val targetUrl = s"https://maps.isric.org/mapserv?$queryString"
+
+      // Fetch the WMS tile from ISRIC
+      val connection = new java.net.URL(targetUrl).openConnection().asInstanceOf[java.net.HttpURLConnection]
+      connection.setRequestMethod("GET")
+      connection.setConnectTimeout(10000)
+      connection.setReadTimeout(10000)
+
+      val responseCode = connection.getResponseCode()
+      if (responseCode == 200) {
+        val inputStream = connection.getInputStream()
+        val bytes = inputStream.readAllBytes()
+        inputStream.close()
+
+        val contentType = Option(connection.getContentType()).getOrElse("image/png")
+
+        // Check if it's an XML error instead of an image
+        if (contentType.contains("xml")) {
+          val errorMessage = new String(bytes, "UTF-8")
+          logger.error(s"WMS returned error: $errorMessage")
+        }
+
+        cask.Response(
+          bytes,
+          statusCode = 200,
+          headers = Seq(
+            "Content-Type" -> contentType,
+            "Access-Control-Allow-Origin" -> "*",
+            "Cache-Control" -> "public, max-age=86400" // Cache for 24 hours
+          )
+        )
+      } else {
+        val errorStream = connection.getErrorStream()
+        val errorBody = if (errorStream != null) {
+          val bytes = errorStream.readAllBytes()
+          errorStream.close()
+          new String(bytes, "UTF-8")
+        } else {
+          "No error details"
+        }
+        logger.error(s"WMS proxy failed with code $responseCode: $errorBody")
+        cask.Response(
+          Array.empty[Byte],
+          statusCode = responseCode,
+          headers = Seq("Access-Control-Allow-Origin" -> "*")
+        )
+      }
+    } catch {
+      case e: Exception =>
+        logger.error(s"WMS proxy error: ${e.getMessage}", e)
+        cask.Response(
+          Array.empty[Byte],
+          statusCode = 500,
+          headers = Seq("Access-Control-Allow-Origin" -> "*")
+        )
+    }
   }
 
   /**

@@ -128,6 +128,14 @@ object Config {
                                     userAgent: String
                                   ) derives ConfigReader
 
+  case class MapConfig(
+                        leafletCssUrl: String,
+                        leafletJsUrl: String,
+                        defaultWidth: String,
+                        defaultHeight: String,
+                        defaultZoom: Int
+                      ) derives ConfigReader
+
   case class LlmProviderConfig(
                                 name: String,
                                 provider: String, // "openai" or "ollama"
@@ -245,4 +253,8 @@ object Config {
   // Vocabulary Tools configuration
   val vocabularyToolsConfig: VocabularyToolsConfig =
     ConfigSource.default.at("vocabulary-tools-config").loadOrThrow[VocabularyToolsConfig]
+
+  // Map configuration
+  val mapConfig: MapConfig =
+    ConfigSource.default.at("map-config").loadOrThrow[MapConfig]
 }

@@ -180,7 +180,8 @@ object SoilCompanionApp extends App {
       val doiPattern = """(?:https?://)?(?:dx\.)?doi\.org/(10\.\S+)|(?:doi:\s*)(10\.\S+)|(?:DOI:\s*)(10\.\S+)""".r
 
       // Pattern to match SoilWise ID format: "SoilWise ID: 10.xxxx/yyyy"
-      val soilwiseIdPattern = """(?:SoilWise\s+ID:\s*)(10\.\S+)""".r
+      // Excludes trailing punctuation like ), ., ,) etc.
+      val soilwiseIdPattern = """(?:SoilWise\s+ID:\s*)(10\.[^\s\),;!?]+?)(?=[\.;,\)!\?]?\s|[\.;,\)!\?]?$)""".r
 
       // Walk through text nodes and replace patterns
       val walker = dom.document.createTreeWalker(

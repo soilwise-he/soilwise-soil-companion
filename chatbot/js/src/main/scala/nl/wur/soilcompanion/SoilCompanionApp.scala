@@ -1566,7 +1566,7 @@ object SoilCompanionApp extends App {
               .replace(">", "&gt;")
 
             val titleHtml = title.map(t => s"""<div class="map-title">${t.replace("<", "&lt;").replace(">", "&gt;")}</div>""").getOrElse("")
-            val mapHtml   = s"""$titleHtml<div id="$mapId" class="leaflet-map-container" data-map-config="$configJson" style="width:100%;height:400px;border-radius:8px;border:2px solid #e0e0e0;background:#f5f5f5;margin:15px 0;"><div style="text-align:center;padding:20px;color:#666;">Loading map...</div></div>"""
+            val mapHtml   = s"""$titleHtml<div id="$mapId" class="leaflet-map-container" data-map-config="$configJson"><div style="text-align:center;padding:20px;color:#666;">Loading map...</div></div>"""
 
             // Replace the plain <p>[[MAP:id]]</p> wrapper with just the map div (block element)
             html = html

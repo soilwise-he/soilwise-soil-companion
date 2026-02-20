@@ -2328,10 +2328,58 @@ html[data-theme="dark"] .uniform-link-colors .message-content a[href*="voc.soilw
 .leaflet-map-container {
     position: relative;
     z-index: 1;
+    width: 100%;
+    height: 400px;
+    margin: 15px 0;
+    border-radius: 12px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+    overflow: hidden; /* Ensure map doesn't spill over rounded corners */
+}
+
+/* 3D-like border effect for light theme */
+.leaflet-map-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Dark theme overrides */
+html[data-theme="dark"] .leaflet-map-container {
+    background: #2b231b;
+    border-color: #3b3127;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .leaflet-map-container::before {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Leaflet creates its own container with z-index, make sure it doesn't override */
 .leaflet-map-container .leaflet-pane,
 .leaflet-map-container .leaflet-map-pane {
-    z-index: auto !important;
+    z-index: 2 !important; /* Should be higher than 1 but lower than input if needed */
+}
+
+.map-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: #4a3f35;
+}
+
+html[data-theme="dark"] .map-title {
+    color: #e9dfd2;
 }

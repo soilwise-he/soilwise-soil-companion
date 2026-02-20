@@ -19251,7 +19251,7 @@ function $p_Lnl_wur_soilcompanion_SoilCompanionApp$__replacePendingMaps__V($thiz
                 var this$20 = new $c_s_Some(value$1);
               }
               var titleHtml = $as_T((this$20.isEmpty__Z() ? "" : this$20.get__O()));
-              var mapHtml = (((((titleHtml + "<div id=\"") + mapId) + "\" class=\"leaflet-map-container\" data-map-config=\"") + configJson) + "\" style=\"width:100%;height:400px;border-radius:8px;border:2px solid #e0e0e0;background:#f5f5f5;margin:15px 0;\"><div style=\"text-align:center;padding:20px;color:#666;\">Loading map...</div></div>");
+              var mapHtml = (((((titleHtml + "<div id=\"") + mapId) + "\" class=\"leaflet-map-container\" data-map-config=\"") + configJson) + "\"><div style=\"text-align:center;padding:20px;color:#666;\">Loading map...</div></div>");
               var this$21 = $n($as_T(html.sr_ObjectRef__f_elem));
               var target = (("<p>" + placeholder) + "</p>");
               var this$22 = $n($as_T(this$21.split(target).join(mapHtml)));

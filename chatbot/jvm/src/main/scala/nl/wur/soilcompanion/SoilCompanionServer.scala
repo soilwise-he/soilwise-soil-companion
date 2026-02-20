@@ -294,7 +294,7 @@ object SoilCompanionServer extends MainRoutes {
     val lower = name.toLowerCase
     lower.endsWith(".txt") || lower.endsWith(".md")
 
-  private def sanitizeText(input: String, maxChars: Int = Config.appConfig.uploadMaxChars): String =
+  private def sanitizeText(input: String, maxChars: Int = Config.appConfig.uploadMaxChars): String = {
     val sb = new StringBuilder
     val it = input.iterator
     var count = 0
@@ -308,8 +308,13 @@ object SoilCompanionServer extends MainRoutes {
           case _ =>
             sb.append(ch)
             count += 1
-    // normalize line endings
-    sb.result().replace("\r\n", "\n").replace('\r', '\n')
+
+    // normalize line endings and prevent manual map placeholder injection
+    sb.result()
+      .replace("\r\n", "\n")
+      .replace('\r', '\n')
+      .replace("[[MAP:", "[_MAP_:")
+  }
 
   // --- Demo authentication endpoints ---
   /**
@@ -440,7 +445,8 @@ object SoilCompanionServer extends MainRoutes {
             s"User location context (JSON): ${loc}\nPlease factor this geographic context into your reasoning when relevant, but do not over-index on it if the question is general.\n\n"
           case None => ""
 
-        val augmentedContentPreCap = s"${locationSection}${uploadSection}Question: ${content}"
+        val sanitizedContent = sanitizeText(content, Config.llmProviderConfig.chatMaxPromptChars)
+        val augmentedContentPreCap = s"${locationSection}${uploadSection}Question: ${sanitizedContent}"
 
         // Apply overall prompt safety cap
         val promptLimit = math.max(5000, Config.llmProviderConfig.chatMaxPromptChars)
@@ -895,12 +901,12 @@ object SoilCompanionServer extends MainRoutes {
             "lat" -> la,
             "lon" -> lo,
             "zoom" -> z.getOrElse(0),
-            "countryName" -> countryName0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-            "countryCode" -> countryCode0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-            "displayName" -> displayName0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
-            "bestLabel" -> bestLabel0.fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "countryName" -> countryName0.map(sanitizeText(_, 100)).fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "countryCode" -> countryCode0.map(sanitizeText(_, 10)).fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "displayName" -> displayName0.map(sanitizeText(_, 1000)).fold[ujson.Value](ujson.Null)(ujson.Str(_)),
+            "bestLabel" -> bestLabel0.map(sanitizeText(_, 200)).fold[ujson.Value](ujson.Null)(ujson.Str(_)),
             // addressJson is already a JSON string produced client-side; keep as-is for simplicity
-            "addressJson" -> addressJson0.fold[ujson.Value](ujson.Null)(ujson.Str(_))
+            "addressJson" -> addressJson0.map(sanitizeText(_, 5000)).fold[ujson.Value](ujson.Null)(ujson.Str(_))
           )
           val serialized = upickle.default.write(json)
           locationContexts.put(sessionId, serialized)

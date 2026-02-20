@@ -259,7 +259,7 @@ class MapTools(mapEventSink: String => Unit = _ => ()) {
           loc.obj.get("label").map(_.str),
           loc.obj.get("color").map(_.str)
         )
-      }
+      }.toSeq
 
       if (locations.isEmpty) {
         return "No locations provided. Please provide at least one location with lat/lon coordinates."
@@ -267,9 +267,11 @@ class MapTools(mapEventSink: String => Unit = _ => ()) {
 
       val lats      = locations.map(_._1)
       val lons      = locations.map(_._2)
+
       val centerLat = (lats.min + lats.max) / 2
       val centerLon = (lons.min + lons.max) / 2
 
+      // Default zoom if frontend doesn't fit bounds (e.g. for center only)
       val latDiff = lats.max - lats.min
       val lonDiff = lons.max - lons.min
       val maxDiff = Math.max(latDiff, lonDiff)
@@ -342,7 +344,7 @@ class MapTools(mapEventSink: String => Unit = _ => ()) {
         mapId     = mapId,
         centerLat = centerLat,
         centerLon = centerLon,
-        zoom      = 12,
+        zoom      = 15,
         property  = sgProperty,
         depth     = effectiveDepth,
         title     = effectiveTitle
@@ -384,6 +386,7 @@ class MapTools(mapEventSink: String => Unit = _ => ()) {
       val centerLat = coords.map(_._1).sum / coords.length
       val centerLon = coords.map(_._2).sum / coords.length
 
+      // Default zoom if frontend doesn't fit bounds
       val lats    = coords.map(_._1)
       val lons    = coords.map(_._2)
       val latDiff = lats.max - lats.min

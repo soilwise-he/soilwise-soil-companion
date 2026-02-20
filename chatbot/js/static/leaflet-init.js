@@ -142,6 +142,9 @@
         wmsLayer.addTo(map);
       }
 
+      // Track features to calculate bounds
+      const features = L.featureGroup();
+
       // Add markers
       if (config.markers && config.markers.length > 0) {
         config.markers.forEach(marker => {
@@ -159,6 +162,7 @@
           }
 
           m.addTo(map);
+          features.addLayer(m);
         });
       }
 
@@ -178,11 +182,17 @@
           }
 
           p.addTo(map);
+          features.addLayer(p);
         });
       }
 
       // Add scale control
       L.control.scale({ imperial: false, metric: true }).addTo(map);
+
+      // Adjust view to fit features if any, otherwise use default center/zoom
+      if (features.getLayers().length > 0) {
+        map.fitBounds(features.getBounds(), { padding: [30, 30] });
+      }
 
       // Fix rendering
       setTimeout(() => {

@@ -66,6 +66,10 @@ object SoilCompanionApp extends App {
   
   // When user clicks "Clear" before a sessionId is available, remember intent
   private var pendingClearLocation: Boolean = false
+
+  // Map configs received out-of-band during streaming, keyed by map ID.
+  // On "done" these are used to replace [[MAP:<id>]] placeholders in the last bot message.
+  private val pendingMapConfigs = scala.collection.mutable.Map.empty[String, ujson.Value]
   
   // Share auth state with plain JS (toolbar.js) and persist across UI changes
   private def setAuthState(authed: Boolean): Unit = {
@@ -1524,6 +1528,71 @@ object SoilCompanionApp extends App {
   }
 
   /**
+   * Replace every [[MAP:<id>]] placeholder in the last bot message with an actual Leaflet
+   * map container div. The map config was previously received as an out-of-band "map_data"
+   * WebSocket event and stored in `pendingMapConfigs`. After inserting the containers,
+   * triggers `window.initLeafletMaps()` so leaflet-init.js initialises them.
+   *
+   * Called when streaming is complete ("done" event) so that the full, parsed Markdown
+   * is already in the DOM and we can safely do a targeted replacement.
+   */
+  private def replacePendingMaps(): Unit = {
+    if (pendingMapConfigs.isEmpty) return
+
+    val messages = dom.document.getElementById("messages")
+    val last     = messages.lastElementChild
+    Option(last).filter(_.classList.contains("bot-message")).foreach { el =>
+      val contentEl = el.querySelector(".message-content").asInstanceOf[dom.html.Element]
+      if (contentEl != null) {
+        // Replace in innerHTML using string operations (simpler than DOM tree walking
+        // because marked.js may have wrapped the placeholder in <p> tags)
+        var html = contentEl.innerHTML
+        pendingMapConfigs.foreach { case (mapId, payload) =>
+          // marked.js wraps the placeholder in <p>; the brackets are not HTML-special so they
+          // appear literally. We also handle the &#91;/&#93; encoded form just in case.
+          val placeholder        = s"[[MAP:$mapId]]"
+          val encodedPlaceholder = s"&#91;&#91;MAP:$mapId&#93;&#93;"
+
+          if (html.contains(placeholder) || html.contains(encodedPlaceholder)) {
+            val config     = payload("config")
+            val title      = payload.obj.get("title").flatMap(v => if (v.str.isEmpty) None else Some(v.str))
+            // Escape for use inside an HTML attribute value (double-quoted)
+            val configJson = config.render(indent = 0)
+              .replace("&", "&amp;")
+              .replace("\"", "&quot;")
+              .replace("'", "&#39;")
+              .replace("<", "&lt;")
+              .replace(">", "&gt;")
+
+            val titleHtml = title.map(t => s"""<div class="map-title">${t.replace("<", "&lt;").replace(">", "&gt;")}</div>""").getOrElse("")
+            val mapHtml   = s"""$titleHtml<div id="$mapId" class="leaflet-map-container" data-map-config="$configJson" style="width:100%;height:400px;border-radius:8px;border:2px solid #e0e0e0;background:#f5f5f5;margin:15px 0;"><div style="text-align:center;padding:20px;color:#666;">Loading map...</div></div>"""
+
+            // Replace the plain <p>[[MAP:id]]</p> wrapper with just the map div (block element)
+            html = html
+              .replace(s"<p>$placeholder</p>", mapHtml)
+              .replace(placeholder, mapHtml)
+              .replace(s"<p>$encodedPlaceholder</p>", mapHtml)
+              .replace(encodedPlaceholder, mapHtml)
+            dom.console.log(s"[MapTools] Replaced placeholder for $mapId")
+          }
+        }
+        contentEl.innerHTML = html
+        pendingMapConfigs.clear()
+
+        // Trigger Leaflet initialisation for the newly inserted containers
+        try {
+          val initFn = js.Dynamic.global.selectDynamic("initLeafletMaps")
+          if (!js.isUndefined(initFn) && js.typeOf(initFn) == "function") {
+            initFn.asInstanceOf[js.Function0[Unit]]()
+          }
+        } catch { case _: Throwable => () }
+
+        messages.scrollTop = messages.scrollHeight
+      }
+    }
+  }
+
+  /**
    * Fetches the current server session and establishes a WebSocket connection
    * using the fetched session ID. The method sends an HTTP GET request to the
    * backend server to retrieve a session ID, handles the server response, and
@@ -1686,6 +1755,19 @@ object SoilCompanionApp extends App {
               val msg = evt.detail.getOrElse("Your session expired due to inactivity. Please login to start a new chat.")
               addMessage("AI", msg)
               updateFooterStatus(None)
+            case "map_data" =>
+              // Store the map config out-of-band; placeholder replacement happens on "done"
+              evt.detail.foreach { mapDataJson =>
+                try {
+                  val payload = ujson.read(mapDataJson)
+                  val mapId   = payload("mapId").str
+                  pendingMapConfigs(mapId) = payload
+                  dom.console.log(s"[MapTools] Received map_data for $mapId")
+                } catch {
+                  case e: Throwable =>
+                    dom.console.error(s"[MapTools] Failed to parse map_data: ${e.getMessage}")
+                }
+              }
             case "links_metadata" =>
               // Parse the metadata and update the last bot message
               val messageContainer = dom.document.getElementById("messages")
@@ -1739,6 +1821,8 @@ object SoilCompanionApp extends App {
                   el.setAttribute("data-raw-content", "")
                 }
               }
+              // Replace any [[MAP:id]] placeholders with actual Leaflet map containers
+              replacePendingMaps()
               // Clear currentQuestionId after finishing, so a next question will set a new one
               currentQuestionId = None
               pendingResponseTimer.foreach(dom.window.clearTimeout)

@@ -236,7 +236,7 @@ object AssistantLive {
 
   // -- end of simple RAG preparation ---
 
-  def apply(): Assistant = {
+  def apply(mapEventSink: String => Unit = _ => ()): Assistant = {
     // Streaming model is lazy; will throw a clear error if API key missing when first used
     AiServices.builder(classOf[Assistant])
       .streamingChatModel(streamingChatModel)
@@ -244,11 +244,11 @@ object AssistantLive {
       .tools(
         new CatalogTools(),
         new SoilGridsTools(),
-        new AgroDataCubeTools(),
+        new AgroDataCubeTools(mapEventSink),
         new OpenAgroKpiTools(),
         new VocabularyTools(),
         new WikipediaTools(),
-        new MapTools()
+        new MapTools(mapEventSink)
       )
       .retrievalAugmentor(augmentor)
       .maxSequentialToolsInvocations(Config.llmProviderConfig.chatMaxSequentialTools)

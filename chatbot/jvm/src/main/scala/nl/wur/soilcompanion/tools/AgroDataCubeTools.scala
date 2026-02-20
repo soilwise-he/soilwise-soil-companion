@@ -11,8 +11,12 @@ import nl.wur.soilcompanion.Config
  * - Most endpoints return GeoJSON, even when 'result=nogeom' is set.
  * - This initial implementation focuses on looking up a single field by location
  *   using a WKT POINT geometry in EPSG:4326 and the previous year by default.
+ *
+ * @param mapEventSink Forwarded to MapTools so that any map created internally emits its
+ *                     configuration out-of-band as a "map_data" WebSocket event rather than
+ *                     embedding large HTML in the LLM response.
  */
-class AgroDataCubeTools {
+class AgroDataCubeTools(mapEventSink: String => Unit = _ => ()) {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -717,8 +721,9 @@ class AgroDataCubeTools {
             val label = s"$titlePart (${ctx.year})$cropPart"
             val mapTitle = s"Crop Field: $titlePart"
 
-            // Directly create the map using MapTools
-            val mapTools = new MapTools()
+            // Directly create the map using MapTools, forwarding the event sink so the
+            // map config is sent out-of-band as a WebSocket event instead of inline HTML.
+            val mapTools = new MapTools(mapEventSink)
             try {
               val mapHtml = mapTools.createRegionMap(
                 coordinatesJson = coords,

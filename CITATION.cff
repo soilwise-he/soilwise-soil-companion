@@ -8,7 +8,7 @@ authors:
     email: "rob.knapen@wur.nl"
     affiliation: "Wageningen University & Research"
     orcid: "https://orcid.org/0000-0003-0556-158X"
-repository-code: "https://git.wur.nl/soilwise/soil-companion"
+repository-code: "https://github.com/soilwise-he/soilwise-soil-companion/"
 url: "https://soilwise-he.eu"
 abstract: >-
   An AI-powered chatbot for answering soil-related questions,

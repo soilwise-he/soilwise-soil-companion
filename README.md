@@ -31,8 +31,8 @@ Notes:
 
 The Soil Companion is a full-stack Scala / Scala.js application. Key technologies used:
 
-- SBT 1.11.x (multi-module, cross-build JS/JVM)
-- Scala 3.8.1
+- SBT 1.12.x (multi-module, cross-build JS/JVM)
+- Scala 3.8.2
 - Scala.js frontend (scalajs-dom, Scalatags, upickle)
 - JVM backend (Cask HTTP server, LangChain4j, PureConfig, Logback)
 - JDK 17+ (tested 17-25)
@@ -41,7 +41,7 @@ The Soil Companion is a full-stack Scala / Scala.js application. Key technologie
 ## Prerequisites
 
 - **JDK 17+** (tested with 17–25; the Docker image uses Eclipse Temurin 21)
-- **SBT 1.11+** (Scala Build Tool)
+- **SBT 1.12+** (Scala Build Tool)
 - An **OpenAI API key**, or a local **Ollama** instance for LLM inference
 
 ## Quick Start

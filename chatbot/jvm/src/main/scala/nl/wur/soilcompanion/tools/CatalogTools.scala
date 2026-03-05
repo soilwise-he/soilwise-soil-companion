@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2024-2026 Wageningen University and Research
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package nl.wur.soilcompanion.tools
 
 import dev.langchain4j.agent.tool.{P, Tool, ToolSpecification, ToolSpecifications}
@@ -6,27 +22,9 @@ import nl.wur.soilcompanion.*
 import upickle.default.*
 
 import java.net.URLEncoder
-import java.util
 import java.util.Base64
 
 // --- classes for content payload ---
-
-/* Example direct Solr access:
-    curl -X 'POST' \
-     'https://solr.soilwise-he.containers.wur.nl/solr/records/select' \
-     -H 'accept: application/json' \
-     -H 'Content-Type: application/json' -u "user:pwd" \
-     -d '{ params: {
-       "q": "(abstract:(soil AND health) OR pdf_content:(soil AND health)) AND type:(journalpaper)",
-       "fl": ["identifier", "score", "type", "title", "abstract", "pdf_content", "pdf_link", "date_publication"],
-       "sort": "score desc",
-       "rows": "3"
-        } }'
-
-    Use the case class to format the parameters and convert to JSON payload:
-      write(SolrParams(query="carbon AND farming", params=contentSearchConfig), indent = 2))
-    Then use the other case classes to decode the Solr JSON response body
- */
 
 case class SolrParams(
   query: String,

@@ -142,18 +142,12 @@ server to pick up new files.
 
 This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgements
+---
+## SoilWise-he project
 
-<img src="chatbot/js/static/img/eu-funding-banner-w500.png" alt="Funded by the European Union" width="250" />
-
-This project has received funding from the European Union's HORIZON Innovation 
-Actions 2022 under grant agreement No. **101112838** ([SoilWise](https://soilwise-he.eu)).
-
-Views and opinions expressed are however those of the author(s) only and do not 
-necessarily reflect those of the European Union or the European Research Executive 
-Agency (REA). Neither the European Union nor the granting authority can be held 
-responsible for them. 
-
-The SoilWise research project is independent of any similarly named commercial
-organisations.
+This work has been initiated as part of the [SoilWise-he](https://soilwise-he.eu) project. The project
+receives funding from the European Union's HORIZON Innovation Actions 2022 under grant agreement No.
+101112838. Views and opinions expressed are however those of the author(s) only and do not necessarily
+reflect those of the European Union or Research Executive Agency. Neither the European Union nor the
+granting authority can be help responsible for them.
 

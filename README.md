@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19252205.svg)](https://doi.org/10.5281/zenodo.19252205)
+
 # SoilWise Soil Companion
 ***An AI chatbot for soil related questions***
 
